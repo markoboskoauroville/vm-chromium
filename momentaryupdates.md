@@ -96,3 +96,6 @@ All requests above done except: AutoplayAllowed needs one Chrome restart (asked,
 
 **Request (2.11.2026, ~18:20 CT, Mac session "MPA-ACADEMY").** Marko: "this is all going too slow with controlling the virtual machine. Can you build something like a Chrome extension, the same as actually Claude has made? It's excellent for controlling Chromium, but it can be driven from this machine from you. It should look the same, have the same features as the Chrome plugin from Claude, and now it has an API to be run and run faster from this machine. This screen grabbing and then clicking with our Chromium recorder is too slow. Can you do it better"
 **Status:** saved first. Found: Claude in Chrome is already connected in the VM's Chrome ("Browser 2 (Linux)", next to "Browser 1 (macOS)").
+
+**Request (2.11.2026, ~18:30 CT, Mac session "MPA-ACADEMY").** Marko: "I have a better idea. Install Claude Code in a virtual machine, and then talk with that one to do work there. Same as I have here in the terminal. It can be in a virtual machine. Let's do that"
+**Status:** saved first.
