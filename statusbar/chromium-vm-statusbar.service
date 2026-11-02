@@ -1,0 +1,15 @@
+[Unit]
+Description=chromium-vm: the status bar (one see-through line at the bottom of the screen)
+After=chromium-vm-session.service
+BindsTo=chromium-vm-xvnc.service
+
+[Service]
+Type=simple
+User=@VM_USER@
+Environment=DISPLAY=:1
+ExecStart=/usr/bin/python3 /usr/local/lib/chromium-vm/chromium-vm-statusbar.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=chromium-vm-xvnc.service

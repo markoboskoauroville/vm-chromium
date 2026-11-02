@@ -29,6 +29,9 @@ xdpyinfo >/dev/null 2>&1 || { echo "display $DISPLAY not up" >&2; exit 1; }
 xsetroot -solid '#202124' 2>/dev/null || true
 xset s off -dpms 2>/dev/null || true
 
+# xcompmgr: a compositor, so the status bar can be see-through (alpha) without black holes (2.11.2026).
+pgrep -u "$(id -u)" -x xcompmgr >/dev/null || (xcompmgr -n >/dev/null 2>&1 &)
+
 # matchbox: no titlebar, no panel; one window fills the screen, dialogs float over it.
 matchbox-window-manager -use_titlebar no -use_cursor yes &
 wm=$!
