@@ -15,7 +15,7 @@ HOST = CONF.get('VNC_IP', '100.102.86.30'); PORT = int(CONF.get('AGENT_PORT', '8
 TOKEN = open(os.path.expanduser('~/.config/chromium-vm/agent-token')).read().strip()
 DISPLAY = ':' + CONF.get('DISPLAY_NUM', '1'); CDP = 'http://127.0.0.1:9222'
 DOWNLOADS = os.path.expanduser('~/Downloads'); os.makedirs(DOWNLOADS, exist_ok=True)
-VERSION = 8
+VERSION = 9
 ENV = dict(os.environ, DISPLAY=DISPLAY)
 
 def run(cmd, data=None, timeout=15):
@@ -49,6 +49,19 @@ def cdp_eval(expr, match=None, await_promise=True):
 
 def cdp_call(method, params, match=None):
     ws = websocket.create_connection(tab(match)['webSocketDebuggerUrl'], timeout=60, suppress_origin=True)
+    try:
+        ws.send(json.dumps({'id': 1, 'method': method, 'params': params}))
+        while True:
+            m = json.loads(ws.recv())
+            if m.get('id') == 1: break
+    finally:
+        ws.close()
+    if 'error' in m: raise ValueError(m['error'].get('message', 'DevTools error'))
+    return m.get('result', {})
+
+def browser_call(method, params):
+    url = json.load(urllib.request.urlopen(CDP + '/json/version', timeout=5))['webSocketDebuggerUrl']
+    ws = websocket.create_connection(url, timeout=60, suppress_origin=True)
     try:
         ws.send(json.dumps({'id': 1, 'method': method, 'params': params}))
         while True:
@@ -242,6 +255,8 @@ ACTIONS = {
                 lambda a: claude_ask(a['text'], a.get('send', True), int(a.get('wait', 180)), a.get('tab', 'claude.ai'))),
   'downloads': ('finished Chrome downloads after number `since` (0 = all), with their Drive state', {'since': 'int'},
                 lambda a: downloads_since(int(a.get('since', 0)))),
+  'cdp':       ('any DevTools method on a tab (or the browser when tab is "browser")', {'method': 'str', 'params': 'obj', 'tab': 'str'},
+                lambda a: browser_call(a['method'], a.get('params', {})) if a.get('tab') == 'browser' else cdp_call(a['method'], a.get('params', {}), a.get('tab'))),
   'status':    ('what is moving now: Chrome downloads in progress, the Drive copy, the Drive queue', {},
                 lambda a: vm_status()),
   'capture':   ('screenshot of a tab region (CSS px x,y,w,h, scale) saved as PNG under ~/Downloads/<save>; goes to Drive', 

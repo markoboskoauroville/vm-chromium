@@ -41,3 +41,7 @@
   Gmail, Drive, Docs, Sheets all dark. The session script holds its flags in memory: restart the service, not Chrome.
 - 2.11.2026: rewriting Preferences with json.dump adds spaces, so the crash-flag sed missed and Chrome showed
   "Restore pages?" with the old tabs gone; Ctrl+Shift+T brought them back. The sed now allows the space.
+- 2.11.2026 status bar: on this Xvnc screen a depth-32 (RGBA) GTK window is shown opaque even with xcompmgr running
+  (-n or -c), and a SHAPE cut-out leaves black because Chrome does not repaint what the shape gives back. What works:
+  pseudo-transparency: with xcompmgr on, Gdk.pixbuf_get_from_window on Chrome's (redirected) window returns the strip
+  under the bar; paint it, then black at 50%, then the text. Redraw every 400 ms.

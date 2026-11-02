@@ -12,7 +12,9 @@ See-through by alpha through xcompmgr (started by the session); clicks between t
 import json, os, time, urllib.request
 import gi
 gi.require_version('Gtk', '3.0'); gi.require_version('Gdk', '3.0')
-from gi.repository import Gtk, Gdk, GLib
+gi.require_version('GdkX11', '3.0')
+from gi.repository import Gtk, Gdk, GLib, GdkX11
+import subprocess
 import cairo
 
 CONF = os.path.expanduser('~/.config/chromium-vm/statusbar.json')
@@ -45,6 +47,14 @@ def human(n, width=6):
         if n < 1000 or unit == 'TB':
             return (f'{n:.0f}' if unit in ('B ', 'KB') else f'{n:.1f}').rjust(width) + ' ' + unit
         n /= 1024
+
+def speed(arrow, n):
+    """'↓6.0KB/s' right-aligned in a fixed width: the arrow stays with its number, nothing else moves."""
+    for unit in ('B', 'KB', 'MB', 'GB'):
+        if n < 1000 or unit == 'GB': break
+        n /= 1024
+    v = f'{n:.0f}' if unit in ('B', 'KB') and n >= 100 or unit == 'B' else f'{n:.1f}'
+    return f'{arrow}{v}{unit}/s'.rjust(10)
 
 class Readings:
     def __init__(self):
@@ -92,8 +102,8 @@ def segments(r, show):
     """[(text, 'name'|'value')]. Every field has a fixed width; what changes in length (what is moving) comes last."""
     seg = []
     def part(name, value):
-        if seg: seg.append(('   ', 'name'))
-        seg.extend([(name + ' ', 'name'), (value, 'value')])
+        if seg: seg.append((' ', 'name'))
+        seg.extend([(name, 'name'), (value, 'value')])          # the colours separate them: no space (Marko)
     if show.get('cpu'):
         part('CPU', f"{r['cpu']:3.0f}%")
     if show.get('ram'):
@@ -103,7 +113,7 @@ def segments(r, show):
     for key, dev, name in (('net', NET, 'NET'), ('tail', 'tailscale0', 'TAILSCALE')):
         if show.get(key):
             d, u = r['speeds'].get(dev, (0, 0))
-            part(name, f'↓{human(d)}/s ↑{human(u)}/s')
+            part(name, speed('↓', d) + speed('↑', u))
     if show.get('uptime'):
         h = int(r['up'] // 3600)
         part('UP', (f'{h // 24:2d}d {h % 24:2d}h' if h >= 24 else f'{h:2d}h {int(r["up"] % 3600 // 60):2d}m'))
@@ -128,8 +138,9 @@ class Bar(Gtk.Window):
         super().__init__(type=Gtk.WindowType.POPUP)       # override-redirect: no frame, the WM leaves it alone
         self.conf = load_conf(); self.readings = Readings(); self.seg = []
         self.set_app_paintable(True)
-        visual = Gdk.Screen.get_default().get_rgba_visual()      # see-through: xcompmgr runs in the session
-        if visual: self.set_visual(visual)
+        # See-through by copying what is under the bar from Chrome's own window (the compositor keeps it whole even
+        # where the bar covers it) and darkening it 50%: true alpha was ignored on this Xvnc screen (2.11.2026).
+        self.under = None; self.under_at = 0
         self.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.connect('draw', self.on_draw)
         self.connect('button-press-event', lambda *_: Settings(self).show_all())
@@ -141,6 +152,7 @@ class Bar(Gtk.Window):
         self.seg = [('…', 'name')]; self.reshape()
         self.show_all()
         GLib.timeout_add(1000, self.tick); self.tick()
+        GLib.timeout_add(400, lambda: (self.queue_draw(), True)[1])   # follow the page under the band
 
     def place(self):
         sc = Gdk.Screen.get_default(); w, h = sc.get_width(), sc.get_height()
@@ -161,10 +173,7 @@ class Bar(Gtk.Window):
         x, y = 10, h - (h - self.conf['size']) / 2 - 3
         for text, col in self.seg:
             if text.strip():
-                cr.set_source_rgb(0, 0, 0)                      # a black outline only, no shadow (Marko, 2.11.2026)
-                for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (1, 1), (1, -1), (-1, 1)):
-                    cr.move_to(x + dx, y + dy); cr.show_text(text)
-                cr.set_source_rgb(*COL[col]); cr.move_to(x, y); cr.show_text(text)
+                cr.set_source_rgb(*COL[col]); cr.move_to(x, y); cr.show_text(text)   # no outline (Marko, 2.11.2026)
             x += cr.text_extents(text).x_advance
 
     def reshape(self):
@@ -172,12 +181,33 @@ class Bar(Gtk.Window):
         surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
         self.paint(cairo.Context(surf), w, h)
         region = Gdk.cairo_region_create_from_surface(surf)
-        if self.get_window():
-            self.get_window().input_shape_combine_region(region, 0, 0)   # clicks between the letters go to Chrome
+        # the band is visible now: the whole line takes the click (settings)
+
+    def chrome_window(self):
+        if time.time() - self.under_at > 5 or self.under is None:
+            self.under_at = time.time()
+            try:
+                ids = subprocess.run(['xdotool', 'search', '--onlyvisible', '--class', 'google-chrome'],
+                                     capture_output=True, text=True, timeout=2).stdout.split()
+                disp = GdkX11.X11Display.get_default()
+                self.under = GdkX11.X11Window.foreign_new_for_display(disp, int(ids[-1])) if ids else None
+            except Exception:
+                self.under = None
+        return self.under
 
     def on_draw(self, _w, cr):
-        cr.set_operator(cairo.OPERATOR_SOURCE); cr.set_source_rgba(0, 0, 0, 0); cr.paint()   # nothing behind the letters
-        cr.set_operator(cairo.OPERATOR_OVER)
+        w, h = self.get_size()
+        under = self.chrome_window()
+        pb = None
+        if under is not None:
+            try:
+                sh = Gdk.Screen.get_default().get_height()
+                pb = Gdk.pixbuf_get_from_window(under, 0, sh - h, w, h)
+            except Exception:
+                pb = None
+        if pb is not None:
+            Gdk.cairo_set_source_pixbuf(cr, pb, 0, 0); cr.paint()
+        cr.set_source_rgba(0, 0, 0, 0.5); cr.paint()                 # the 50% band, like subtitles
         w, h = self.get_size(); self.paint(cr, w, h); return False
 
 class Settings(Gtk.Window):
