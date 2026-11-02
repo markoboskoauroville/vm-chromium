@@ -121,3 +121,5 @@ Then: "I managed to install Claude Code. Now it's there, and you can use it to d
 **Status:** saved first.
 Then (~19:20 CT): "Also there at the bottom is the status line. After the app and its hours make a power button. I click on the power button and I have option. Only one option, just I need to confirm and that's the reboot."
 **Status:** saved first.
+Then (~19:30 CT): "There is also bug in split screen view. I cannot exit split screen. I want to see individual app and they are stuck in a split screen. So any individual app selected through this windows at the bottom which pop up should exit split screen mode automatically."
+**Status:** saved first.
