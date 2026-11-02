@@ -10,6 +10,7 @@ if [ -d "/run/user/$uid" ]; then
 fi
 
 case "$CHROMIUM_SOURCE" in
+  chrome) CHROMIUM=/usr/bin/google-chrome-stable; PROFILE="$HOME/.config/google-chrome" ;;
   snap) CHROMIUM=/snap/bin/chromium; PROFILE="$HOME/snap/chromium/common/chromium" ;;
   *)    CHROMIUM=/usr/bin/chromium;  PROFILE="$HOME/.config/chromium" ;;
 esac
@@ -34,7 +35,7 @@ wm=$!
     if [ "$size" != "$last" ]; then
       last=$size
       w=${size%x*}; h=${size#*x}
-      for id in $(xdotool search --onlyvisible --class chromium 2>/dev/null); do
+      for id in $(xdotool search --onlyvisible --class 'chromium|google-chrome' 2>/dev/null); do
         xdotool windowmove "$id" 0 0 windowsize "$id" "$w" "$h" 2>/dev/null || true
       done
     fi

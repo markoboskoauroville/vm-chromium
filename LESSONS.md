@@ -6,3 +6,9 @@
   with "No usable sandbox!" in a loop. Fix: an AppArmor profile for /usr/lib/chromium/chromium with `userns,`
   (stage1/apparmor/chromium-vm, loaded by setup.sh). Never --no-sandbox.
 - 2.11.2026: the repo is private and the VM has no GitHub login: copy stage1 over with `tar | ssh`, don't clone.
+- 2.11.2026: plain Chromium (xtradeb, Debian keys in /etc/chromium.d/apikeys) signs into Google websites but never
+  into the browser profile or Sync: Google limited that to Google Chrome in March 2021. Google Chrome for Linux
+  arm64 exists (stable 156.0.8078.79, dl.google.com repo), so chromium-vm runs Google Chrome
+  (`setup.sh --chromium chrome`, the default now). Ubuntu's /etc/apparmor.d/chrome already allows its sandbox.
+  The profile was copied ~/.config/chromium → ~/.config/google-chrome once; tabs and cookies came along
+  (both use --password-store=basic).

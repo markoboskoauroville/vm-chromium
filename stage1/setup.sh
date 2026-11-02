@@ -1,11 +1,11 @@
 #!/bin/bash
 # Stage 1 on chromium-vm: Xvnc on the Tailscale address + Chromium and nothing else, kept running by systemd.
-# Run on the VM from a clone of this repository:   sudo ./stage1/setup.sh [--chromium deb|snap]
+# Run on the VM from a clone of this repository:   sudo ./stage1/setup.sh [--chromium chrome|deb|snap]
 # Safe to run again (it updates files and restarts the services).
 set -euo pipefail
 cd "$(dirname "$0")"
 
-SOURCE=deb
+SOURCE=chrome
 VM_USER=${SUDO_USER:-ubuntu}
 VNC_IP=100.102.86.30
 while [ $# -gt 0 ]; do
@@ -13,12 +13,12 @@ while [ $# -gt 0 ]; do
     --chromium) SOURCE=$2; shift 2 ;;
     --user)     VM_USER=$2; shift 2 ;;
     --ip)       VNC_IP=$2; shift 2 ;;
-    *) echo "usage: sudo $0 [--chromium deb|snap] [--user NAME] [--ip ADDR]" >&2; exit 2 ;;
+    *) echo "usage: sudo $0 [--chromium chrome|deb|snap] [--user NAME] [--ip ADDR]" >&2; exit 2 ;;
   esac
 done
 [ "$(id -u)" = 0 ] || { echo "run with sudo" >&2; exit 1; }
 [ "$VM_USER" != root ] || { echo "--user must be the login user (e.g. ubuntu), not root" >&2; exit 1; }
-case "$SOURCE" in deb|snap) ;; *) echo "--chromium deb or snap" >&2; exit 2 ;; esac
+case "$SOURCE" in chrome|deb|snap) ;; *) echo "--chromium chrome, deb or snap" >&2; exit 2 ;; esac
 VM_UID=$(id -u "$VM_USER"); VM_HOME=$(getent passwd "$VM_USER" | cut -d: -f6)
 
 echo "1. Packages: TigerVNC, matchbox, X tools, fonts"
@@ -31,7 +31,25 @@ apt-get install -y -q --no-install-recommends \
   ca-certificates software-properties-common gpg-agent
 
 echo "2. Chromium ($SOURCE)"
-if [ "$SOURCE" = deb ]; then
+if [ "$SOURCE" = chrome ]; then
+  # Google Chrome: plain Chromium builds cannot sign into a browser profile or Sync (Google, March 2021).
+  install -d -m 755 /etc/apt/keyrings
+  curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor --yes -o /etc/apt/keyrings/google-chrome.gpg
+  echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" \
+    > /etc/apt/sources.list.d/google-chrome.list
+  apt-get update -q
+  apt-get install -y -q google-chrome-stable
+  POLICY_DIRS=(/etc/opt/chrome/policies/managed)
+  # Ubuntu ships /etc/apparmor.d/chrome (userns for /opt/google/chrome/chrome): make sure it is loaded.
+  [ -f /etc/apparmor.d/chrome ] && apparmor_parser -r /etc/apparmor.d/chrome
+  # First switch from Chromium: carry the profile (tabs, cookies, Google sign-in) over once.
+  if [ -d "$VM_HOME/.config/chromium" ] && [ ! -d "$VM_HOME/.config/google-chrome" ]; then
+    systemctl stop chromium-vm-session.service 2>/dev/null || true
+    sleep 2
+    cp -a "$VM_HOME/.config/chromium" "$VM_HOME/.config/google-chrome"
+    rm -f "$VM_HOME/.config/google-chrome"/Singleton{Lock,Socket,Cookie}
+  fi
+elif [ "$SOURCE" = deb ]; then
   add-apt-repository -y ppa:xtradeb/apps
   # Take chromium* only from xtradeb; Ubuntu's chromium-browser is just a stub that installs the snap.
   cat > /etc/apt/preferences.d/chromium-vm-xtradeb <<'PIN'
