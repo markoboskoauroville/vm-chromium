@@ -33,3 +33,19 @@
   Viewer full screen on the 2nd monitor: VM 1512×944 fine after the watcher fix (it had stretched the bar).
   Gemini life story (tools/gemini_life_story.py) on profile "Marko" ([address removed]), refs ~/refs on the VM
   (from markobosko.pages.dev); 06 verified on Drive. Instagram/Facebook are NOT signed in on the VM.
+- 2.11.2026 (Mac session): **vm-router v1 + VM Router (Mantra) v1** (router/, README there). Router on 127.0.0.1:8891
+  (MANTRA_PORTS `vm-router`), `vmr` on the PATH (symlink to router/vmr.py), Star row `vmrouter` (folder Mac).
+  Verified: self-test 8/8 (own background tab, read, refusal of another session's tab and of a tab-less call, /u/N
+  added, tab closed); the two live job tabs 09C5…/88C6… refused by id and by url match; browser-wide and Target.* cdp
+  refused; navigation to another /u/M refused; capture forced under the session folder and `..` refused; the global
+  lock queues (two dry holds of 1.5 s: 1.5 s and 3.0 s); pacing on one account across two sessions (gap 4 s: 0, 4, 4 s
+  waited); downloads attributed by folder, also after release; `gemini_state` counts only `<generated-image> img`.
+  App: built, signed, installed, opened in the background, screenshots at 860×680 and at its minimum 560×468 (no
+  word cut), ② CHECK pressed through AX → PASSED 8/8, OFF through AX quit the app and the router stayed up.
+  NOT verified (not allowed while the Gemini jobs ran): type / key / clip_set / clip_get through the lock with a real
+  tab activation, `expect_download` with a real Chrome download, the Gemini scripts with `VMR_NAME` set, `--login`.
+  No vm-agent change was needed (nothing to deploy). The running Gemini jobs still talk to :8890 directly; their next
+  start can go through the router: `VMR_NAME=life-story python3 tools/gemini_life_story.py <tab>` (adopts the tab,
+  account /u/0, folder Gemini/life-story; MPA: /u/1, Gemini/MPA-Academy).
+  Next: try the focus actions on a router tab when the jobs are done; a finer download owner would need vm-agent to
+  listen to Browser.downloadWillBegin (frameId → tab), only if the serialized claim proves too coarse.

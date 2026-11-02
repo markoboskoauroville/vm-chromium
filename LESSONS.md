@@ -45,3 +45,12 @@
   (-n or -c), and a SHAPE cut-out leaves black because Chrome does not repaint what the shape gives back. What works:
   pseudo-transparency: with xcompmgr on, Gdk.pixbuf_get_from_window on Chrome's (redirected) window returns the strip
   under the bar; paint it, then black at 50%, then the text. Redraw every 400 ms.
+- 2.11.2026 router: vm-agent's `tabs` gives no ids; the router reads `Target.getTargets` through `cdp` on `browser`.
+  `Target.createTarget {background: true}` opens a tab without taking the front from another session's tab, and
+  `Page.captureScreenshot` works on a background tab.
+- 2.11.2026 router: a tab argument must be checked before "this session has no tab": the first self-test answered a
+  stranger's call on another session's tab with 409 instead of 403.
+- 2.11.2026 Gemini: a result is an `<img>` inside `<generated-image>` and its src is blob:, exactly like a pasted
+  reference preview (inside user-query-file-preview): tell them apart with closest('generated-image'), never by blob:.
+- 2.11.2026 router app: OFF quits only the window's app, not the router: relaunch after a build presses OFF, and a
+  build must never cut the sessions' running jobs.

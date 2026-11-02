@@ -26,3 +26,10 @@ Built by the principle in MANTRA_MANIFEST modules/build-the-tool.md: no screensh
   `cvm ask "..."` (answer as text, ~7 s), `cvm paste` / `cvm type` / `cvm key`, `cvm clip` / `cvm clip set`,
   `cvm put` / `cvm get` / `cvm ls`, `cvm tabs` / `cvm open` / `cvm text` / `cvm eval`, `cvm shot` (last resort).
 - Install on the VM: copy the repo over (`tar | ssh`, the repo is private), `sudo ./stage1/setup.sh && sudo ./agent/install.sh`.
+
+## Many sessions at once (2.11.2026): vm-router + `vmr`
+
+Sessions and jobs go through **vm-router** on the Mac (127.0.0.1:8891): each session its own tabs, Google account
+(/u/N) and Downloads folder, clipboard / type / key one at a time, Gemini image requests paced per account, an event
+log. `vmr -s NAME …`, or `VMR_NAME=NAME cvm …`; the app **VM Router (Mantra)** (Star, folder Mac) shows it.
+Details: [router/README.md](router/README.md).

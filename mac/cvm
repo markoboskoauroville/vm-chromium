@@ -9,6 +9,8 @@
   cvm put FILE...       Mac files -> ~/Downloads on the VM     cvm get NAME [DEST]   and back     cvm ls
   cvm tabs | cvm open URL | cvm text [TAB] [MAX] | cvm eval JS [TAB] | cvm shot [FILE]   (shot: the last resort)
   cvm api               the agent's actions
+With VMR_NAME=<session> set, every command goes through vm-router (127.0.0.1:8891) as that session: its own tabs,
+type/key/clip one at a time with its tab in front (see `vmr`). Without it, cvm talks to vm-agent directly as before.
 """
 import base64, json, os, subprocess, sys, urllib.request, urllib.parse
 BASE = 'http://100.102.86.30:8890'
@@ -22,7 +24,16 @@ def req(method, path, body=None, raw=None, timeout=300):
     except urllib.error.HTTPError as e: return e.read()
     except urllib.error.URLError as e: sys.exit(f'cvm: chromium-vm not reachable ({e.reason}); is Tailscale on?')
 
+VMR = None
+if os.environ.get('VMR_NAME'):          # 2.11.2026: through the router, as one session among many
+    sys.path.insert(0, os.path.expanduser('~/Developer/vm-chromium/router')); import vmr
+    VMR = vmr.Session(os.environ['VMR_NAME'])
+
 def act(name, **a):
+    if VMR:
+        if name == 'open': return VMR.open(a['url'])
+        try: return VMR.call(name, **a)
+        except vmr.Error as e: sys.exit('cvm: ' + str(e))
     r = json.loads(req('POST', '/api/' + name, a))
     if not r.get('ok'): sys.exit('cvm: ' + r.get('error', '?'))
     return r['result']
@@ -33,11 +44,14 @@ pb = lambda: subprocess.run(['pbpaste'], capture_output=True).stdout.decode()
 c, args = (sys.argv[1] if len(sys.argv) > 1 else 'help'), sys.argv[2:]
 TABF = os.path.expanduser('~/.config/cvm-tab')
 def cur_tab():
+    if VMR: return os.environ.get('CVM_TAB') or 'claude.ai'   # matched among the session's own tabs only
     return os.environ.get('CVM_TAB') or (open(TABF).read().strip() if os.path.exists(TABF) else 'claude.ai')
 if c == 'ask':
     r = act('claude_ask', text=' '.join(args) if args else sys.stdin.read(), tab=cur_tab()); out(r.get('answer', r))
 elif c == 'new':
-    tid = act('open', url='https://claude.ai/new'); os.makedirs(os.path.dirname(TABF), exist_ok=True)
+    tid = act('open', url='https://claude.ai/new')
+    if VMR: print('cvm tab (session ' + os.environ['VMR_NAME'] + '):', tid); sys.exit()
+    os.makedirs(os.path.dirname(TABF), exist_ok=True)
     open(TABF, 'w').write(tid); print('cvm tab:', tid)
 elif c == 'type': act('type', text=' '.join(args)); print('typed')
 elif c == 'paste': t = pb(); act('type', text=t); print(f'typed {len(t)} characters')
