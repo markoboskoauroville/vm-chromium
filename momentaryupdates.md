@@ -36,3 +36,5 @@
 
 ## 2.11.2026, Marko (test: Claude extension in Chrome driven from the Mac)
 "project to test the communication between the cloud extension inside Chromium and this machine. If you look at my Chromium area of bookmarks, there are many cloud things, which I don't know what are. You also need to explain them to me. But it looks like there are some kind of stored groups or something like this. Nicely, this tab group needs to be deleted, and the deletion is driven by the cloud extension, right? In the browser, you need to give it a task, and then it works with these things which are occupying my user interface, and I don't need those groups anymore. It deletes them"
+"how can I stop the extension from piling up and creating those groups in my bar? I don't need those groups. I don't need to remember them or come back to them. Please stop this behavior"
+"please explain to me: are you driving my mouse from my computer there, or can I be in some other program, and the actions are happening at the two locations at the same time? So my mouse is not needed there"

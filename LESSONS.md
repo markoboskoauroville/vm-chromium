@@ -26,3 +26,13 @@
   Drive with lsjson (same size = done). The /json/new DevTools endpoint needs the whole url percent-encoded.
 - 2.11.2026: the Claude extension's side panel is a DevTools target (chrome-extension://fcoeoabgfenejglbffodgkkbkcdhcgfn/
   sidepanel.html): it can be driven like a claude.ai tab.
+- 2.11.2026: the Claude extension's chat is the frame `claude.ai/cic/new?surface=cic_sidepanel` (DevTools type
+  iframe) inside sidepanel.html: composer `[contenteditable]` ("Write your prompt to Claude"), button "Start task".
+  Driven from the Mac it answered in ~20 s. It cannot touch Chrome's own UI (bookmarks bar, saved tab groups):
+  only web pages. Its tools also failed once with "anchor tab group not established".
+- 2.11.2026: saved tab groups deleted with the VM's own pointer (xdotool on :1): right-click chip → Delete group →
+  dialog button checked by its colour (#035F6A at 783,273 in a 1280×798 screen) before the click. Deleting one
+  deletes it on every device of the account. 11 "Claude" groups were removed; BRAIN BRAKE kept.
+- 2.11.2026: Chrome prefs set through chrome.settingsPrivate on a chrome://settings tab (DevTools):
+  auto_pin_new_tab_groups=false, bookmark_bar.show_tab_groups=false, so the extension's task groups no longer pile
+  up on the bookmarks bar.

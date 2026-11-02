@@ -15,18 +15,19 @@ HOST = CONF.get('VNC_IP', '100.102.86.30'); PORT = int(CONF.get('AGENT_PORT', '8
 TOKEN = open(os.path.expanduser('~/.config/chromium-vm/agent-token')).read().strip()
 DISPLAY = ':' + CONF.get('DISPLAY_NUM', '1'); CDP = 'http://127.0.0.1:9222'
 DOWNLOADS = os.path.expanduser('~/Downloads'); os.makedirs(DOWNLOADS, exist_ok=True)
-VERSION = 6
+VERSION = 7
 ENV = dict(os.environ, DISPLAY=DISPLAY)
 
 def run(cmd, data=None, timeout=15):
     return subprocess.run(cmd, input=data, capture_output=True, env=ENV, timeout=timeout).stdout
 
 # ---- Chrome DevTools ---------------------------------------------------------------------------------------------
-def tabs():
-    return [t for t in json.load(urllib.request.urlopen(CDP + '/json', timeout=5)) if t.get('type') == 'page']
+def tabs(frames=False):
+    kinds = ('page', 'iframe') if frames else ('page',)
+    return [t for t in json.load(urllib.request.urlopen(CDP + '/json', timeout=5)) if t.get('type') in kinds]
 
 def tab(match=None):
-    ts = tabs()
+    ts = tabs(frames=bool(match))     # a match may name a frame too (the Claude extension's panel is a claude.ai/cic frame)
     if match:
         ts = [t for t in ts if t['id'] == match or match in t['url'] or match.lower() in t['title'].lower()]
     if not ts: raise ValueError('no tab' + (f' matching {match!r}' if match else ''))
