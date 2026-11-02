@@ -50,3 +50,6 @@ We are saving the SIM. That's very smart, saving the SIM. Then we are going to o
 Go and hammer my Gemini account. Let's generate images until it says that it's done for today, and then we can transfer them to G Drive. We need to do this as we're doing on this computer, which is only generate images. Then don't download. You need to take a screenshot and then save the screenshot. That's the idea, and then transfer it to G Drive. Can also make a folder for such tasks. When you transfer something in Gemini inside the Downloads Chrome folder, you make a Gemini folder. So we are always straight about these things."
 "posts generating Gemini now" / "PAUSE NOW"
 "pause I want to switch accounts. You're going to do this test in another account. I am actually logging in to a different profile: Marko [address removed]. Our will come. We save it, we keep it in peace, and we test Gemini on the Marko [address removed] account. Give me some time to log in, and I will tell you the action."
+
+## 2.11.2026, Marko (the health line: where and how)
+"I want the status bar to be at the bottom of the virtual machine, not at the top as you suggested. Make it transparent at the bottom with a hard shadow so I can see the letters"
