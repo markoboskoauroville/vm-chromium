@@ -17,3 +17,7 @@
 ## 2.11.2026, Marko (after: Chromium cannot sign into a browser profile)
 "please inspect my virtual machine and tell me why I cannot log in to my Chromium profile. I can only log in to my Google account. My Chromium profile icon is generic"
 "yes, please switch it"
+
+## 2.11.2026, Marko (Chrome works on the VM, Claude open there)
+"I have opened the Chrome browser. It is working. And I opened also the Claude. Can you communicate with that Claude session, or I need to do something that you can— I can give you commands here and you type it there?"
+"First, we need to build our own virtual machine viewer which is going to have IAPI and everything goes faster without this manual workarounds. We need to enable as much as possible direct communication between you and virtual machine and cloud there, plus between my Mac. I can drag and drop files on this, my local files, and they will be uploaded to virtual machine. I can copy paste between, and you can directly with Claude extension in the Chrome, and it can answer to you. So it's 2-way fast communication which is spending as little credits as possible. So you need to find very optimal ways to communicate without too much effort. That's why we are building the tool. Once they are built— to build the tool there is a lot of effort, but once they are built Everything is cheap and fast. So this is our principle now, and write this in the manifest that we are working in this principle from now on."
