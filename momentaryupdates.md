@@ -13,3 +13,7 @@
 ## 2.11.2026, Marko (Screen Sharing connected, Chromium at Google's sign-in)
 "my Chromium is opened, but I cannot copy-paste between my computer and that computer anything I want to copy-paste. I want to copy-paste the password in my welcoming screen, take a screenshot, and let me know how to enable the clipboard between these two: my Mac and this program, which is exactly called Screen Sharing"
 "please put this as a feature request for our viewer of this virtual machine to free copy and paste between the two machines"
+
+## 2.11.2026, Marko (after: Chromium cannot sign into a browser profile)
+"please inspect my virtual machine and tell me why I cannot log in to my Chromium profile. I can only log in to my Google account. My Chromium profile icon is generic"
+"yes, please switch it"
