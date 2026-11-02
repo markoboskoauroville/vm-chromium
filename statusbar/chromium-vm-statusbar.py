@@ -16,6 +16,7 @@ gi.require_version('GdkX11', '3.0')
 from gi.repository import Gtk, Gdk, GLib, GdkX11
 import subprocess
 import cairo
+GLib.set_prgname('vm-statusbar')   # its X class must not contain "chromium": the session's resize watcher looks for that
 
 CONF = os.path.expanduser('~/.config/chromium-vm/statusbar.json')
 TOKEN_FILE = os.path.expanduser('~/.config/chromium-vm/agent-token')
@@ -27,10 +28,10 @@ PARTS = [  # key, label in the settings
     ('tail', 'Tailscale speed ↓ ↑'), ('moving', 'What is moving (downloads, Google Drive)'),
     ('uptime', 'Up since'), ('clock', 'Croatian time'),
 ]
-DEFAULT = {'show': {k: True for k, _ in PARTS} | {'tail': False}, 'size': 13, 'height': 22}
+DEFAULT = {'show': {k: True for k, _ in PARTS} | {'tail': False, 'clock': False}, 'size': 13, 'height': 22}
 
 # Two colours (Marko, 2.11.2026: "white is the variable name, and orange is the variable itself").
-COL = {'name': (1.0, 1.0, 1.0), 'value': (1.0, 0.58, 0.10)}
+COL = {'name': (1.0, 1.0, 1.0), 'value': (1.0, 0.58, 0.10), 'now': (0.35, 0.95, 0.45)}   # green: what is moving now
 
 def load_conf():
     c = json.loads(json.dumps(DEFAULT))
@@ -54,7 +55,7 @@ def speed(arrow, n):
         if n < 1000 or unit == 'GB': break
         n /= 1024
     v = f'{n:.0f}' if unit in ('B', 'KB') and n >= 100 or unit == 'B' else f'{n:.1f}'
-    return f'{arrow}{v}{unit}/s'.rjust(10)
+    return f'{arrow}{v}{unit}/s'.rjust(9)
 
 class Readings:
     def __init__(self):
@@ -107,30 +108,31 @@ def segments(r, show):
     if show.get('cpu'):
         part('CPU', f"{r['cpu']:3.0f}%")
     if show.get('ram'):
-        part('RAM', f"{r['ram_used'] / 2**30:4.1f}/{r['ram_total'] / 2**30:4.1f} GB")
+        part('RAM', f"{r['ram_used'] / 2**30:4.1f}/{r['ram_total'] / 2**30:4.1f}GB")
     if show.get('disk'):
-        part('SSD', f"{r['free'] / 2**30:5.1f} GB free")
+        part('SSD', f"{r['free'] / 2**30:5.1f}GB")
     for key, dev, name in (('net', NET, 'NET'), ('tail', 'tailscale0', 'TAILSCALE')):
         if show.get(key):
             d, u = r['speeds'].get(dev, (0, 0))
             part(name, speed('↓', d) + speed('↑', u))
     if show.get('uptime'):
         h = int(r['up'] // 3600)
-        part('UP', (f'{h // 24:2d}d {h % 24:2d}h' if h >= 24 else f'{h:2d}h {int(r["up"] % 3600 // 60):2d}m'))
+        part('UP', (f'{h // 24:2d}d{h % 24:02d}h' if h >= 24 else f'{h:2d}h{int(r["up"] % 3600 // 60):02d}m'))
     if show.get('clock'):
         os.environ['TZ'] = 'Europe/Zagreb'; time.tzset()
         part('CT', time.strftime('%H:%M'))
     if show.get('moving'):
         a, items = r['agent'], []
         for g in a.get('downloading', [])[:2]:
-            items.append(f"↓ Chrome {g['name'][:36]} {human(g['bytes']).strip()}")
+            items.append(f"↓Chrome {g['name'][:36]} {human(g['bytes']).strip().replace(' ', '')}")
         if a.get('moving'):
-            items.append(('Transferring ' + a['moving'])[:70])
+            items.append(a['moving'][:70])
         elif a.get('drive_queue'):
-            items.append(f"Google Drive queue {a['drive_queue']}")
+            items.append(f"Drive queue {a['drive_queue']}")
         if not r['agent']:
             items = ['agent not answering']
-        if items: part('NOW', '  '.join(items))
+        if items:   # drawn from the left edge (Marko): the status stays on the right
+            seg.append(('  '.join(items), 'now'))
     return seg
 
 class Bar(Gtk.Window):
@@ -159,6 +161,8 @@ class Bar(Gtk.Window):
         self.move(0, h - self.conf['height']); self.resize(w, self.conf['height'])
 
     def tick(self):
+        sc = Gdk.Screen.get_default()
+        if self.get_size() != (sc.get_width(), self.conf['height']): self.place()
         try:
             self.seg = segments(self.readings.read(), self.conf['show'])
         except Exception as e:
@@ -170,8 +174,13 @@ class Bar(Gtk.Window):
     def paint(self, cr, w, h):
         cr.select_font_face('DejaVu Sans Mono', cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)   # a terminal font
         cr.set_font_size(self.conf['size'])
-        x, y = 10, h - (h - self.conf['size']) / 2 - 3
-        for text, col in self.seg:
+        y = h - (h - self.conf['size']) / 2 - 3
+        now = [t for t in self.seg if t[1] == 'now']
+        status = [t for t in self.seg if t[1] != 'now']
+        for text, col in now:                                   # what is happening: from the left edge
+            cr.set_source_rgb(*COL[col]); cr.move_to(10, y); cr.show_text(text)
+        x = w - 10 - sum(cr.text_extents(t).x_advance for t, _ in status)   # the status: on the right (Marko)
+        for text, col in status:
             if text.strip():
                 cr.set_source_rgb(*COL[col]); cr.move_to(x, y); cr.show_text(text)   # no outline (Marko, 2.11.2026)
             x += cr.text_extents(text).x_advance

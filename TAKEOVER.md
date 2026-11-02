@@ -25,3 +25,11 @@
   the viewer v2 fetches them into ~/Downloads/Chromium Downloads (while it runs; catches up on open); the VM
   copies each to Google Drive "Chromium Downloads" (rclone remote `gdrive`, scope drive.file, account
   [address removed], Marko allowed it). Verified with two real downloads: Mac + Drive both.
+- 2.11.2026 (Mac session): Drive only now: vm-agent v10 sends every finished download (subfolders too) to Drive
+  "Chromium Downloads/…" and deletes it from the VM; the viewer v3 no longer fetches to the Mac. New agent actions:
+  capture (DevTools screenshot into ~/Downloads), cdp (raw DevTools), paste_files (VM files pasted into a page),
+  status. Status bar (statusbar/, service chromium-vm-statusbar): bottom, mono, white names / orange values / green
+  activity from the left, status right-aligned, 50% see-through band (pseudo-transparency), settings on click.
+  Viewer full screen on the 2nd monitor: VM 1512×944 fine after the watcher fix (it had stretched the bar).
+  Gemini life story (tools/gemini_life_story.py) on profile "Marko" ([address removed]), refs ~/refs on the VM
+  (from markobosko.pages.dev); 06 verified on Drive. Instagram/Facebook are NOT signed in on the VM.
