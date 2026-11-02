@@ -107,17 +107,18 @@ def segments(r, show):
     seg = []
     def part(name, value):
         if seg: seg.append(('|', 'pipe'))                       # a black pipe, no spaces (Marko, 2.11.2026)
-        seg.extend([(name, 'name')] + (value if isinstance(value, list) else [(value, 'value')]))
+        seg.extend(([(name, 'name')] if name else []) + (value if isinstance(value, list) else [(value, 'value')]))
+    # The order is importance (Marko, 2.11.2026): the network first (no label), free SSD second, then the rest.
+    for key, dev, name in (('net', NET, ''), ('tail', 'tailscale0', 'TS')):
+        if show.get(key):
+            d, u = r['speeds'].get(dev, (0, 0))
+            part(name, [(bits(d), 'down'), (bits(u), 'up')])
+    if show.get('disk'):
+        part('SSD', f"{r['free'] / 2**30:5.1f}GB")
     if show.get('cpu'):
         part('CPU', f"{r['cpu']:3.0f}%")
     if show.get('ram'):
         part('RAM', f"{r['ram_used'] / 2**30:4.1f}/{r['ram_total'] / 2**30:4.1f}GB")
-    if show.get('disk'):
-        part('SSD', f"{r['free'] / 2**30:5.1f}GB")
-    for key, dev, name in (('net', NET, 'NET'), ('tail', 'tailscale0', 'TAILSCALE')):
-        if show.get(key):
-            d, u = r['speeds'].get(dev, (0, 0))
-            part(name, [(bits(d), 'down'), (bits(u), 'up')])
     if show.get('uptime'):
         h = int(r['up'] // 3600)
         part('UP', (f'{h // 24:2d}d{h % 24:02d}h' if h >= 24 else f'{h:2d}h{int(r["up"] % 3600 // 60):02d}m'))
