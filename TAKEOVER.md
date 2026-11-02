@@ -60,3 +60,9 @@
   Instagram tribal.jam.collective needs its own login; the Mantra Remote v21 connection test on the real Pixel 7
   (installed, password saved; ENTER not yet pressed); the Mac viewer's keys/mouse/drag never hand-tested by Marko.
   Next session: read Drive "Chromium Downloads/Gemini/life-story/RESULTS.txt" first.
+- 2.11.2026 ~18:15 CT (MPA-ACADEMY session), Marko: "reset the Chrome, stop all the actions, or pause all the actions ...
+  Then return actions after we finish". PAUSED: chromium-vm-worker-gemini.service stopped (sudo systemctl stop); Chrome
+  restarted (chromium-vm-session.service); the Mac jobs stopped: the 18:34 chain (3 cover attempts gemini_mpa_cover.py, then
+  gemini_mpa_drums.py SKIP=… MADE_BEFORE=13 TARGET=55 on tab auroville.community /u/1), life story finished its day (55 real,
+  gmail limit until 20:35 CT). TO RESUME: `sudo systemctl start chromium-vm-worker-gemini.service`; reopen Gemini tabs; rerun the
+  cover script, then the drums with the SKIP list (see tools/gemini_mpa_drums.log).
