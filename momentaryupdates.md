@@ -93,3 +93,6 @@ Context: two Gemini jobs ran in parallel on chromium-vm (life story on [address 
 
 ## Status at closing (2.11.2026 ~17:00 CT)
 All requests above done except: AutoplayAllowed needs one Chrome restart (asked, no answer yet); tribal.jam.collective needs its own Instagram login (Marko); real-Pixel ENTER test of Mantra Remote v21 paused at "wait until I say continue". The Gemini life story continues by itself in the worker.
+
+**Request (2.11.2026, ~18:20 CT, Mac session "MPA-ACADEMY").** Marko: "this is all going too slow with controlling the virtual machine. Can you build something like a Chrome extension, the same as actually Claude has made? It's excellent for controlling Chromium, but it can be driven from this machine from you. It should look the same, have the same features as the Chrome plugin from Claude, and now it has an API to be run and run faster from this machine. This screen grabbing and then clicking with our Chromium recorder is too slow. Can you do it better"
+**Status:** saved first. Found: Claude in Chrome is already connected in the VM's Chrome ("Browser 2 (Linux)", next to "Browser 1 (macOS)").
