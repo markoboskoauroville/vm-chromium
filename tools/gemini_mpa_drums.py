@@ -54,7 +54,7 @@ SERIES = [
 ]
 
 LIMIT_WORDS = ('reached your limit', 'limit for today', 'try again tomorrow', 'daily limit', "can't create more images",
-               'cannot create more images', 'image generation limit', 'come back tomorrow', 'reached the limit')
+               'cannot create more images', 'image generation limit', 'come back tomorrow', 'reached the limit', 'limit resets', 'as soon as your limit')
 NEWEST = '''(() => { const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete
   && i.closest('generated-image') && !i.closest('[data-chromium-vm-overlay]'));
   const t = document.body.innerText.toLowerCase();

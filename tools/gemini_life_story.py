@@ -86,7 +86,7 @@ SCENES += [
 ]
 
 LIMIT_WORDS = ('reached your limit', 'limit for today', 'try again tomorrow', 'daily limit', "can't create more images",
-               'cannot create more images', 'image generation limit', 'come back tomorrow', 'reached the limit')
+               'cannot create more images', 'image generation limit', 'come back tomorrow', 'reached the limit', 'limit resets', 'as soon as your limit')
 
 VM = None   # 2.11.2026: with VMR_NAME set, the job goes through vm-router as its own session (router/README.md)
 def via_router(tab):
@@ -109,7 +109,7 @@ def log(s):
     line = time.strftime('%H:%M:%S ') + s
     print(line, flush=True); open(LOG, 'a').write(line + '\n')
 
-NEWEST = '''(() => { const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete
+NEWEST = '''(() => { const im = [...document.querySelectorAll('model-response img')].filter(i => i.naturalWidth >= 700 && i.complete
   && i.closest('generated-image') && !i.closest('[data-chromium-vm-overlay]'));
   const t = document.body.innerText.toLowerCase();
   return {n: im.length, w: im.length ? im[im.length-1].naturalWidth : 0, h: im.length ? im[im.length-1].naturalHeight : 0,
@@ -140,7 +140,7 @@ def one(tab, name, scene):
         return 'timeout'
     time.sleep(2); st = ev(NEWEST, tab); w, h = st['w'], st['h']
     # the picture alone, top-left, at its natural size (1 image pixel = 1 screen pixel), on black
-    ev(f'''(() => {{ const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete && i.closest('generated-image'));
+    ev(f'''(() => {{ const im = [...document.querySelectorAll('model-response img')].filter(i => i.naturalWidth >= 700 && i.complete);
         const src = im[im.length-1]; const d = document.createElement('div'); d.dataset.chromiumVmOverlay = 1;
         d.style.cssText = 'position:fixed;left:0;top:0;width:{w}px;height:{h}px;z-index:2147483647;background:#000';
         const c = src.cloneNode(); c.removeAttribute('srcset');
