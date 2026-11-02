@@ -9,7 +9,7 @@ speak".
 See-through by alpha through xcompmgr (started by the session); clicks between the letters reach Chrome
 (input shape). A cut-out window alone left a black strip: Chrome does not repaint what it gives back. A click on the letters opens the settings. Settings: ~/.config/chromium-vm/statusbar.json.
 """
-import json, os, time, urllib.request
+import json, os, threading, time, urllib.request
 import gi
 gi.require_version('Gtk', '3.0'); gi.require_version('Gdk', '3.0')
 gi.require_version('GdkX11', '3.0')
@@ -59,6 +59,18 @@ def bits(n):
         n /= 1000
     v = f'{n:.0f}' if n >= 100 or unit == 'b' else f'{n:.1f}'
     return f'{v}{unit}'.rjust(6)
+
+SPEEDTEST = {}
+
+def run_speedtest():
+    """speedtest-cli on the VM (Oracle's line, not the SIM): download and upload in bits/s, ping in ms."""
+    SPEEDTEST.clear(); SPEEDTEST['state'] = 'running'
+    try:
+        out = subprocess.run(['speedtest-cli', '--json', '--secure'], capture_output=True, text=True, timeout=120).stdout
+        j = json.loads(out)
+        SPEEDTEST.update(state='done', down=j['download'], up=j['upload'], ping=j['ping'], at=time.time())
+    except Exception:
+        SPEEDTEST.update(state='failed', at=time.time())
 
 class Readings:
     def __init__(self):
@@ -112,7 +124,15 @@ def segments(r, show):
     for key, dev, name in (('net', NET, ''), ('tail', 'tailscale0', 'TS')):
         if show.get(key):
             d, u = r['speeds'].get(dev, (0, 0))
-            part(name, [(bits(d), 'down'), (bits(u), 'up')])
+            st = SPEEDTEST if key == 'net' else None
+            if st and st.get('state') == 'running':
+                part(name, [('speed test…', 'value')])
+            elif st and st.get('state') == 'done' and time.time() - st['at'] < 5:
+                part(name, [(bits(st['down'] / 8), 'down'), (bits(st['up'] / 8), 'up'), (f"{st['ping']:.0f}ms", 'value')])
+            elif st and st.get('state') == 'failed' and time.time() - st['at'] < 5:
+                part(name, [('speed test failed', 'up')])
+            else:
+                part(name, [(bits(d), 'down'), (bits(u), 'up')])
     if show.get('disk'):
         part('SSD', f"{r['free'] / 2**30:5.1f}GB")
     if show.get('cpu'):
@@ -149,7 +169,8 @@ class Bar(Gtk.Window):
         self.under = None; self.under_at = 0
         self.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.connect('draw', self.on_draw)
-        self.connect('button-press-event', lambda *_: Settings(self).show_all())
+        self.net_x = (0, 0)
+        self.connect('button-press-event', self.on_click)
         self.place()
         Gdk.Screen.get_default().connect('size-changed', lambda *_: self.place())
         # Cut the shape BEFORE the window appears: mapped whole even once, it covers Chrome as a black block, and
@@ -159,6 +180,14 @@ class Bar(Gtk.Window):
         self.show_all()
         GLib.timeout_add(1000, self.tick); self.tick()
         GLib.timeout_add(400, lambda: (self.queue_draw(), True)[1])   # follow the page under the band
+
+    def on_click(self, _w, ev):
+        a, b = self.net_x
+        if a <= ev.x <= b:
+            if SPEEDTEST.get('state') != 'running':
+                threading.Thread(target=run_speedtest, daemon=True).start()
+        else:
+            Settings(self).show_all()
 
     def place(self):
         sc = Gdk.Screen.get_default(); w, h = sc.get_width(), sc.get_height()
@@ -184,10 +213,13 @@ class Bar(Gtk.Window):
         for text, col in now:                                   # what is happening: from the left edge
             cr.set_source_rgb(*COL[col]); cr.move_to(10, y); cr.show_text(text)
         x = w - 10 - sum(cr.text_extents(t).x_advance for t, _ in status)   # the status: on the right (Marko)
+        net_start, net_end, first_pipe = x, None, True
         for text, col in status:
+            if col == 'pipe' and first_pipe: net_end = x; first_pipe = False
             if text.strip():
                 cr.set_source_rgb(*COL[col]); cr.move_to(x, y); cr.show_text(text)   # no outline (Marko, 2.11.2026)
             x += cr.text_extents(text).x_advance
+        self.net_x = (net_start, net_end if net_end is not None else x)     # the speeds come first
 
     def reshape(self):
         w, h = self.get_size()

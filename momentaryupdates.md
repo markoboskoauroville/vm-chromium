@@ -71,3 +71,7 @@ Go and hammer my Gemini account. Let's generate images until it says that it's d
 
 ## 2.11.2026, Marko
 "now this looks good. Now I opened all the pages with images so you can use them for referencing in Gemini but I am confused with the third tab. I want to switch to my Travelgem Collective page, which is under the same account, but I cannot switch. I don't know how to do so. You just need to switch that and put images from that account then you find my face and use it to generate an image, and continue generating with the method we already agreed on You can also scan all these images and see the situation from my life, and you can emulate them through Gemini please, let's go. Ready for action"
+"I cannot get to my Travelgem Collective. Not possible"
+"I am in the loop. When I switch to Tribal Jam Collective, it brings me to a login window, and then I log into my account. Again, I am at My Marko Bosko, so I'm not able to switch my own profile"
+"also, what is annoying on these profiles is that the video starts automatically when I'm scrolling, also taking my data. Please disable this auto-starting of videos on everything that's on the screen"
+"Please make my status line clickable. If I click on the speed, it is going to do a speed test with internet upload and download, and it's going to show it on screen for 5 seconds, then it's going to go back to momentarily speeds."

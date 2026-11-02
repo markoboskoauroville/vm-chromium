@@ -4,5 +4,6 @@
   "PromotionalTabsEnabled": false,
   "BackgroundModeEnabled": false,
   "PromptForDownloadLocation": false,
-  "DownloadDirectory": "/home/ubuntu/Downloads"
+  "DownloadDirectory": "/home/ubuntu/Downloads",
+  "AutoplayAllowed": false
 }
