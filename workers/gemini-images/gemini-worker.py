@@ -9,7 +9,7 @@ creating different workers for our virtual environment".
 The batch lives on Google Drive: Chromium Downloads/Gemini/_batch/batch.json (+ refs/). Every round:
   1. fetch the batch and the reference photos from Drive;
   2. open Gemini in the tab of the batch's account (Chrome profile with that Google account), one tab only;
-  3. for each item not yet in the Drive folder (nor in _wrong): new chat, paste two random references, the prompt,
+  3. for each item not yet in the Drive folder: new chat, paste two random references, the prompt,
      wait for the picture in Gemini's answer, take it 1:1 (DevTools screenshot, never a download button), save it
      under ~/Downloads/<folder>/ (vm-agent sends it to Drive and deletes it from the VM);
   4. a human pace between images; on "Your limit resets at …" stop, write RESULTS.txt, sleep until that time + 5 min.
@@ -53,9 +53,8 @@ def fetch_batch():
 
 def done_names(folder):
     names = set()
-    for sub in ('', '_wrong (reference captured)'):
-        r = rclone('lsf', DRIVE + folder + ('/' + sub if sub else ''), '--files-only')
-        names |= {os.path.splitext(x.strip())[0] for x in r.stdout.splitlines() if x.strip()}
+    r = rclone('lsf', DRIVE + folder, '--files-only')      # _wrong is not done: those scenes are made again
+    names |= {os.path.splitext(x.strip())[0] for x in r.stdout.splitlines() if x.strip()}
     local = os.path.join(HOME, 'Downloads', folder)                     # saved, not yet on Drive
     if os.path.isdir(local):
         names |= {os.path.splitext(f)[0] for f in os.listdir(local)}
