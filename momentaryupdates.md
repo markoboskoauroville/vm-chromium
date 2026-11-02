@@ -110,3 +110,6 @@ Then: "only one keyboard shortcut, and that's Command-Tab. That's only one for s
 **Request (2.11.2026, ~18:55 CT).** Marko: "I will never log in. I need to jump between applications, and this is so difficult in this environment. Can you build in some window manager so I can have parallel windows? I have a rectangle on my computer. Can you build it here so I can just press some shortcuts, and then the windows are jumping around rising because now it's very difficult"
 **Status:** saved first; passed to the agent building the VM desktop (dock + Cmd-Tab).
 Then: "I managed to install Claude Code. Now it's there, and you can use it to do modifications of the virtual machine easily" (done: `vmclaude "task"` on the Mac, headless claude -p on the VM with shell and file tools) / "so we can use the same principle as with jumping displays at the bottom: give me three more displays with different layout for every program which is opened using code from Rectangle"
+
+**Request (2.11.2026, ~18:32 CT).** Marko: "virtual machine window layout: remove thirds, and instead of thirds, give me two layouts which contain Claude and Chrome"
+**Status:** saved first.

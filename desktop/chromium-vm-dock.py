@@ -31,13 +31,16 @@ APPS = [   # (label, test on WM_CLASS (instance, class), how to bring it back wh
 BAR_H = 22            # the status bar's band; the dock sits above it
 EDGE = 4              # the pointer within this many pixels of the bottom edge calls the dock
 PAD, GAP, LABEL, SEP = 14, 16, 22, 18
+
 # Layout displays (Marko, 2.11.2026: "three more displays with different layout ... using code from Rectangle"):
 # a mini screen of the arrangement; a click runs chromium-vm-snap layout NAME. Slots in fractions of the work area.
 LAYOUTS = [
     ('Halves', 'halves', [(0, 0, 0, .5, 1), (2, .5, 0, .5, 1)]),
-    ('Thirds', 'thirds', [(0, 0, 0, 1/3, 1), (1, 1/3, 0, 1/3, 1), (2, 2/3, 0, 1/3, 1)]),
+    ('Claude | Chrome', 'cc-halves', [(1, 0, 0, .5, 1), (2, .5, 0, .5, 1)]),
+    ('Claude 40 | Chrome 60', 'cc-40-60', [(1, 0, 0, .4, 1), (2, .4, 0, .6, 1)]),
     ('Chrome + 2', 'big', [(2, 0, 0, 2/3, 1), (0, 2/3, 0, 1/3, .5), (1, 2/3, .5, 1/3, .5)]),
 ]
+NT = 3 + len(LAYOUTS)      # tiles: the three programs, then the layouts
 SNAP = '/usr/local/lib/chromium-vm/chromium-vm-snap'
 COLOURS = [(0.85, 0.47, 0.34), (0.55, 0.45, 0.85), (0.30, 0.62, 0.90)]   # Claude Code, Claude, Chrome
 REFRESH_MS = 330      # thumbnails while the dock is up
@@ -96,9 +99,9 @@ class Dock(Gtk.Window):
     # ---- geometry ----------------------------------------------------------------------------------------------
     def layout(self):
         sc = Gdk.Screen.get_default(); self.sw, self.sh = sc.get_width(), sc.get_height()
-        self.tw = int(max(110, min(240, (self.sw * 0.92 - 2 * PAD - 5 * GAP - SEP) / 6)))
+        self.tw = int(max(110, min(240, (self.sw * 0.92 - 2 * PAD - (NT - 1) * GAP - SEP) / NT)))
         self.th = int(self.tw * self.sh / max(1, self.sw))
-        self.w = PAD * 2 + 6 * self.tw + 5 * GAP + SEP; self.h = PAD + self.th + LABEL + PAD // 2
+        self.w = PAD * 2 + NT * self.tw + (NT - 1) * GAP + SEP; self.h = PAD + self.th + LABEL + PAD // 2
         self.x = (self.sw - self.w) // 2; self.y = self.sh - BAR_H - 6 - self.h
         self.resize(self.w, self.h); self.move(self.x, self.y + (0 if self.shown else self.sh))
 
@@ -106,7 +109,7 @@ class Dock(Gtk.Window):
         return PAD + n * (self.tw + GAP) + (SEP if n >= 3 else 0)
 
     def tile_at(self, x, y):
-        for n in range(6):
+        for n in range(NT):
             tx = self.tile_x(n)
             if tx - GAP / 2 <= x <= tx + self.tw + GAP / 2 and 0 <= y <= self.h: return n
         return -1

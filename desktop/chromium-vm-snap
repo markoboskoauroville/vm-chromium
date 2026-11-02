@@ -3,8 +3,8 @@
 Called by openbox's keybindings (Ctrl+Alt+key = ⌃⌥key from the Mac viewer). Snaps the active window inside the
 work area (screen less the status bar), like Rectangle's defaults:
 left right top bottom | max center | tl tr bl br | third1 third2 third3 | two1 two2 | restore
-`layout halves|thirds|big` arranges all three programs at once (the dock's layout displays, Marko 2.11.2026):
-halves = Claude Code left | Chrome right; thirds = Claude Code | Claude | Chrome; big = Chrome on the first two
+`layout halves|cc-halves|cc-40-60|big` arranges all three programs at once (the dock's layout displays, Marko 2.11.2026):
+halves = Claude Code left | Chrome right; cc-halves = Claude | Chrome; cc-40-60 = Claude 40% | Chrome 60%; big = Chrome on the first two
 thirds, Claude Code top right, Claude bottom right.
 The geometry before the first snap is kept in ~/.cache/chromium-vm/snap.json, so `restore` brings it back."""
 import json, os, subprocess, sys
@@ -18,7 +18,9 @@ def sh(*a):
 APPS = {'code': lambda i, c: c == 'Xfce4-terminal', 'claude': lambda i, c: c.lower() == 'com.anthropic.claude',
         'chrome': lambda i, c: c == 'Google-chrome' and 'chromium-vm-chrome' in i}
 LAYOUTS = {'halves': [('code', 'left'), ('chrome', 'right')],
-           'thirds': [('code', 'third1'), ('claude', 'third2'), ('chrome', 'third3')],
+           # Marko, 2.11.2026: "remove thirds, and instead of thirds, give me two layouts which contain Claude and Chrome"
+           'cc-halves': [('claude', 'left'), ('chrome', 'right')],
+           'cc-40-60': [('claude', 'l40'), ('chrome', 'r60')],
            'big': [('chrome', 'two1'), ('code', 'r3top'), ('claude', 'r3bot')]}
 
 def app_windows():
@@ -67,7 +69,8 @@ def place(wid, act):
          'max': (0, 0, AW, AH), 'tl': (0, 0, w2, h2), 'tr': (AW - w2, 0, w2, h2), 'bl': (0, AH - h2, w2, h2),
          'br': (AW - w2, AH - h2, w2, h2), 'third1': (0, 0, w3, AH), 'third2': (w3, 0, w3, AH),
          'third3': (AW - w3, 0, w3, AH), 'two1': (0, 0, AW - w3, AH), 'two2': (w3, 0, AW - w3, AH),
-         'r3top': (AW - w3, 0, w3, h2), 'r3bot': (AW - w3, AH - h2, w3, h2)}
+         'r3top': (AW - w3, 0, w3, h2), 'r3bot': (AW - w3, AH - h2, w3, h2),
+         'l40': (0, 0, max(600, AW * 2 // 5), AH), 'r60': (max(600, AW * 2 // 5), 0, AW - max(600, AW * 2 // 5), AH)}
     if act == 'restore':
         if wid not in st: return
         x, y, w, h = st.pop(wid); json.dump(st, open(STATE, 'w'))
