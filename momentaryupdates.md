@@ -24,3 +24,6 @@
 
 ## 2.11.2026, Marko
 "let's build the Swift viewer for the Chromium virtual machine. Mantra, our clipboard and drag-and-drop are as planned. The cloud extension side panel isn't driven yet; only the Cloud AI tabs are. I need a way to drive the Chromium remotely from any location, especially from my computer here. Let's see what we can do about it but first, the viewer"
+
+## 2.11.2026, Marko
+"now tell me: if a file is downloaded, what's the easiest way to get it to this local machine? Can I also have some kind of file browser that will be just a connection between two machines, already open in two tabs, in two halves, to transfer files between them? I like Commander One. Can we use it? It's open source, and I need to somehow switch to Commander One. Maybe through some Chromium extension, or maybe Chromium itself can have an extension that looks like Commander One and allows me to copy, delete, and transfer files between two machines. This Chrome plugin we can publish publicly. Again, we're building something for the Chromium audience. Mantra Production is building a Chrome extension, Commander One Emulator or something like that. Find a good name and let's have it in the star. Let's have it in the star"
