@@ -9,7 +9,7 @@ jamming environments, different classroom environments, traveling environment" (
 
 Same way as gemini_life_story.py: one tab, a new chat per picture, the reference photo pasted from the VM's disk, the
 picture shown alone at natural size and saved by DevTools screenshot (never a download button) under
-~/Downloads/Gemini/mpa-drums/ -> Google Drive -> deleted from the VM. A human pace between pictures.
+~/Downloads/Gemini/MPA-Academy/ -> Google Drive -> deleted from the VM. A human pace between pictures.
     python3 tools/gemini_mpa_drums.py <devtools tab id> [drums|series|all] [first index]
 """
 import json, os, random, sys, time, urllib.request
@@ -56,7 +56,7 @@ SERIES = [
 LIMIT_WORDS = ('reached your limit', 'limit for today', 'try again tomorrow', 'daily limit', "can't create more images",
                'cannot create more images', 'image generation limit', 'come back tomorrow', 'reached the limit')
 NEWEST = '''(() => { const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete
-  && !i.closest('[data-chromium-vm-overlay]'));
+  && !/^(blob|data):/.test(i.src) && !i.closest('[data-chromium-vm-overlay]'));
   const t = document.body.innerText.toLowerCase();
   return {n: im.length, w: im.length ? im[im.length-1].naturalWidth : 0, h: im.length ? im[im.length-1].naturalHeight : 0,
           busy: !!document.querySelector('[aria-label="Stop response"]'), tail: t.slice(-600)}; })()'''
@@ -77,8 +77,8 @@ def one(tab, app, name, prompt):
     for _ in range(20):
         if ev('!!document.querySelector("rich-textarea .ql-editor")', tab): break
         time.sleep(1)
-    before = ev(NEWEST, tab)['n']
     call('paste_files', tab=tab, files=[REF]); time.sleep(4)
+    before = ev(NEWEST, tab)['n']
     ev(f'''(() => {{ const b = document.querySelector("rich-textarea .ql-editor"); b.focus();
         document.execCommand("insertText", false, {json.dumps(prompt)}); return true; }})()''', tab)
     time.sleep(1)
@@ -92,7 +92,7 @@ def one(tab, app, name, prompt):
     else:
         return 'timeout'
     time.sleep(2); st = ev(NEWEST, tab); w, h = st['w'], st['h']
-    ev(f'''(() => {{ const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete);
+    ev(f'''(() => {{ const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete && !/^(blob|data):/.test(i.src));
         const src = im[im.length-1]; const d = document.createElement('div'); d.dataset.chromiumVmOverlay = 1;
         d.style.cssText = 'position:fixed;left:0;top:0;width:{w}px;height:{h}px;z-index:2147483647;background:#000';
         const c = src.cloneNode(); c.removeAttribute('srcset');
@@ -102,7 +102,7 @@ def one(tab, app, name, prompt):
     big = w > vp['w'] or h > vp['h']
     if big: cdp('Emulation.setDeviceMetricsOverride', tab, width=max(vp['w'], w), height=max(vp['h'], h), deviceScaleFactor=1, mobile=False)
     time.sleep(1.5 if big else 0.5)
-    r = call('capture', tab=tab, x=0, y=0, w=w, h=h, scale=1, save=f'Gemini/mpa-drums/{name}.png')
+    r = call('capture', tab=tab, x=0, y=0, w=w, h=h, scale=1, save=f'Gemini/MPA-Academy/{name}.png')
     if big: cdp('Emulation.clearDeviceMetricsOverride', tab)
     ev('document.querySelectorAll("[data-chromium-vm-overlay]").forEach(e => e.remove())', tab)
     return f"saved {w}x{h} {r['bytes']} bytes"
@@ -113,12 +113,23 @@ if __name__ == '__main__':
     jobs = []
     if which in ('drums', 'all'): jobs += [(n, f'Create an image: {s} {DRUM} {NOBODY} {STYLE}') for n, s in DRUMS]
     if which in ('series', 'all'): jobs += [(n, f'Create an image: {s} {WHO} {DRUM} Photorealistic, cinematic, landscape 16:9, no text, no logos.') for n, s in SERIES]
+    # Marko, 2.11.2026: "Your goal is to generate 55 images." After the list, variations of both lists until 55 are saved
+    # (MADE_BEFORE = pictures already in Drive's Gemini/MPA-Academy from an earlier run).
+    TARGET = int(os.environ.get('TARGET', '55')); made_before = int(os.environ.get('MADE_BEFORE', '0'))
+    VARS = ['another camera angle of the same scene', 'the same scene in soft blue-hour light', 'the same scene by candle light',
+            'a closer, more intimate framing of the same scene', 'the same scene seen from further away, more of the room']
+    jobs = jobs[start:]
+    for v in VARS:
+        jobs += [(f'{n}-v{VARS.index(v) + 2}', f'{p[:-1]} ({v}).') for n, p in
+                 [(n, f'Create an image: {s} {DRUM} {NOBODY} {STYLE}') for n, s in DRUMS] +
+                 [(n, f'Create an image: {s} {WHO} {DRUM} Photorealistic, cinematic, landscape 16:9, no text, no logos.') for n, s in SERIES]]
     made = 0
-    for name, prompt in jobs[start:]:
+    for name, prompt in jobs:
+        if made_before + made >= TARGET: log(f'target reached: {made_before + made} pictures'); break
         try: res = one(tab, app, name, prompt)
         except Exception as e: res = f'error {e}'
         if res.startswith('saved'): made += 1
-        log(f'{name}: {res}  (made: {made})')
+        log(f'{name}: {res}  (made: {made_before + made} of {TARGET})')
         if res == 'limit': log('Gemini says the day is done on this account: stopping.'); break
         time.sleep(random.uniform(45, 100))
     log('finished')

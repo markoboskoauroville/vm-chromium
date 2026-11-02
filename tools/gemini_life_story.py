@@ -102,7 +102,7 @@ def log(s):
     print(line, flush=True); open(LOG, 'a').write(line + '\n')
 
 NEWEST = '''(() => { const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete
-  && !i.closest('[data-chromium-vm-overlay]'));
+  && !/^(blob|data):/.test(i.src) && !i.closest('[data-chromium-vm-overlay]'));
   const t = document.body.innerText.toLowerCase();
   return {n: im.length, w: im.length ? im[im.length-1].naturalWidth : 0, h: im.length ? im[im.length-1].naturalHeight : 0,
           src: im.length ? im[im.length-1].src.slice(0, 60) : '', busy: !!document.querySelector('[aria-label="Stop response"]'),
@@ -113,9 +113,9 @@ def one(tab, name, scene):
     for _ in range(20):
         if ev('!!document.querySelector("rich-textarea .ql-editor")', tab): break
         time.sleep(1)
-    before = ev(NEWEST, tab)['n']
     prompt = f'Create an image: {scene} {WHO} {STYLE}'
     call('paste_files', tab=tab, files=random.sample(POOL, 2)); time.sleep(4)   # his face, two at random, from the VM's disk
+    before = ev(NEWEST, tab)['n']
     ev(f'''(() => {{ const b = document.querySelector("rich-textarea .ql-editor"); b.focus();
         document.execCommand("insertText", false, {json.dumps(prompt)}); return true; }})()''', tab)
     time.sleep(1)
@@ -132,7 +132,7 @@ def one(tab, name, scene):
         return 'timeout'
     time.sleep(2); st = ev(NEWEST, tab); w, h = st['w'], st['h']
     # the picture alone, top-left, at its natural size (1 image pixel = 1 screen pixel), on black
-    ev(f'''(() => {{ const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete);
+    ev(f'''(() => {{ const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete && !/^(blob|data):/.test(i.src));
         const src = im[im.length-1]; const d = document.createElement('div'); d.dataset.chromiumVmOverlay = 1;
         d.style.cssText = 'position:fixed;left:0;top:0;width:{w}px;height:{h}px;z-index:2147483647;background:#000';
         const c = src.cloneNode(); c.removeAttribute('srcset');

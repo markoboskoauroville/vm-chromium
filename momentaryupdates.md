@@ -76,3 +76,11 @@ Go and hammer my Gemini account. Let's generate images until it says that it's d
 "also, what is annoying on these profiles is that the video starts automatically when I'm scrolling, also taking my data. Please disable this auto-starting of videos on everything that's on the screen"
 "Please make my status line clickable. If I click on the speed, it is going to do a speed test with internet upload and download, and it's going to show it on screen for 5 seconds, then it's going to go back to momentarily speeds."
 "please just keep on generating until we hit the limit of the account, and then you note how much the limit is, so we know for the future. And you just don't go too fast. Go in the normal speed of the human"
+
+"okay, continue generating and quickly check my Firefox account. There is a key scale window open, and inside it says trial seven day left. I am wondering what will happen after trial finish? Can I continue using it or what's going on? And if I continue using it, what are limitations" (Marko, 2.11.2026)
+"I clicked the free plan..." / "please confirm that my actions were good by looking at the screenshot from browser Firefox" — checked 2.11.2026: tailnet auroville.community on the Personal plan (Free), seats 1/6, devices unlimited, tagged 0/50; trial notice gone.
+"for this session, if it's square or 16 by 9, it's not important. It's important just to have images" (Marko, 2.11.2026)
+
+**Request (2.11.2026, ~14:08 CT, Mac session "MPA-ACADEMY").** Marko: "please build the router for using virtual machines. If multiple sessions are using it, it should be seamless, not getting one image from the other session and so on. VM router for this machine" / "another star application This is a good case study to see how it works."
+Context: two Gemini jobs ran in parallel on chromium-vm (life story on [address removed], tab 09C5…; MPA Academy drums on [address removed], tab 88C6…). Found the same day: 9 life-story saves were his own pasted reference photo (the "newest image" counted before the paste, Gemini still "Creating your image"); fixed in both scripts (count after paste, ignore blob:/data: previews), the 9 moved to Drive life-story/_wrong (reference captured).
+**Status:** saved first.
