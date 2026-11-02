@@ -153,7 +153,8 @@ def write_results(batch, rounds, pending, next_at):
     lines = [f"RESULTS of the Gemini worker on chromium-vm  ({batch['name']}, {batch['account']})",
              f"written {ct(dt.datetime.utcnow())}", '',
              f"Pictures in this folder: {len(done_names(batch['folder']))}   still to make: {pending}",
-             (f"Next round: {ct(next_at)} (Gemini's limit resets then)" if next_at else 'Next round: when a new batch appears'), '']
+             (f"Next round: {ct(next_at)} (Gemini's limit resets then)" if next_at else
+              ('Working now: one image every 1-2.5 minutes' if pending else 'Next round: when a new batch appears')), '']
     for r in rounds[-30:]:
         lines.append(f"Round from {ct(r['start'])}: {r['made']} made, {r['failed']} failed, stopped by: {r['stop']}")
         for x in r['items'][-80:]: lines.append(f"   {x}")
@@ -164,7 +165,9 @@ def write_results(batch, rounds, pending, next_at):
 
 def main():
     rounds = json.load(open(os.path.join(STATE, 'rounds.json'))) if os.path.exists(os.path.join(STATE, 'rounds.json')) else []
-    for r in rounds: r['start'] = dt.datetime.fromisoformat(r['start'])
+    for r in rounds:
+        r['start'] = dt.datetime.fromisoformat(r['start'])
+        if r['stop'] == 'running': r['stop'] = 'the worker was restarted'
     def save_rounds():
         json.dump([dict(r, start=r['start'].isoformat()) for r in rounds], open(os.path.join(STATE, 'rounds.json'), 'w'), indent=1)
     while True:
