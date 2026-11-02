@@ -85,7 +85,7 @@ SCENES += [
     ('54-sound-bath-festival', 'A sound bath at a festival tent: people lying on mats, Marko playing gong and singing bowls, colourful fabrics, evening light.'),
 ]
 
-LIMIT_WORDS = ('reached your limit', 'limit for today', 'try again tomorrow', 'daily limit', "can't create more images",
+LIMIT_WORDS = ('your limit resets', 'limit resets at', 'reached your limit', 'limit for today', 'try again tomorrow', 'daily limit', "can't create more images",
                'cannot create more images', 'image generation limit', 'come back tomorrow', 'reached the limit', 'limit resets', 'as soon as your limit')
 
 VM = None   # 2.11.2026: with VMR_NAME set, the job goes through vm-router as its own session (router/README.md)

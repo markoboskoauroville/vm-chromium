@@ -84,3 +84,4 @@ Go and hammer my Gemini account. Let's generate images until it says that it's d
 **Request (2.11.2026, ~14:08 CT, Mac session "MPA-ACADEMY").** Marko: "please build the router for using virtual machines. If multiple sessions are using it, it should be seamless, not getting one image from the other session and so on. VM router for this machine" / "another star application This is a good case study to see how it works."
 Context: two Gemini jobs ran in parallel on chromium-vm (life story on [address removed], tab 09C5…; MPA Academy drums on [address removed], tab 88C6…). Found the same day: 9 life-story saves were his own pasted reference photo (the "newest image" counted before the paste, Gemini still "Creating your image"); fixed in both scripts (count after paste, ignore blob:/data: previews), the 9 moved to Drive life-story/_wrong (reference captured).
 **Status:** saved first.
+"so what is the result? How many images can go for free"
