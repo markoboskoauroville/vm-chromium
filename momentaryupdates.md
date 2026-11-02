@@ -85,3 +85,6 @@ Go and hammer my Gemini account. Let's generate images until it says that it's d
 Context: two Gemini jobs ran in parallel on chromium-vm (life story on [address removed], tab 09C5…; MPA Academy drums on [address removed], tab 88C6…). Found the same day: 9 life-story saves were his own pasted reference photo (the "newest image" counted before the paste, Gemini still "Creating your image"); fixed in both scripts (count after paste, ignore blob:/data: previews), the 9 moved to Drive life-story/_wrong (reference captured).
 **Status:** saved first.
 "so what is the result? How many images can go for free"
+
+## 2.11.2026, Marko (the worker on the VM)
+"Yes, please continue automatically. But actually, I don't want you to be connected. Create an extension or no, create Chrome which is going to run it for you and you are going to be disconnected. Let's test this. So make the whole script with all the prompts what needs to be attached. You need to prepare in the Google Drive, prepare everything, the whole batch of tasks, and then make a worker inside my virtual environment which is going to do it exactly at that time and run it. And then next time when I run you, you're going to check the results."
