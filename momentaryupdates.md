@@ -123,3 +123,5 @@ Then (~19:20 CT): "Also there at the bottom is the status line. After the app an
 **Status:** saved first.
 Then (~19:30 CT): "There is also bug in split screen view. I cannot exit split screen. I want to see individual app and they are stuck in a split screen. So any individual app selected through this windows at the bottom which pop up should exit split screen mode automatically."
 **Status:** saved first.
+Then (~19:45 CT): "Since status line is there at the bottom, when there is a power button, next to it add setting button actually. But these settings are for virtual machine viewer, not for remote session. So we just put it there. And I can enable or disable my F1 and F2 to be on the Mac OS or in the remote session."
+**Status:** saved first.
