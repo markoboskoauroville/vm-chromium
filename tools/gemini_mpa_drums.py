@@ -105,12 +105,17 @@ def one(tab, app, name, prompt):
         d.style.cssText = 'position:fixed;left:0;top:0;width:{w}px;height:{h}px;z-index:2147483647;background:#000';
         const c = src.cloneNode(); c.removeAttribute('srcset');
         c.style.cssText = 'width:{w}px;height:{h}px;max-width:none;max-height:none;display:block';
-        d.appendChild(c); document.body.appendChild(d); return true; }})()''', tab)
+        d.appendChild(c); document.body.appendChild(d); return c.decode().then(() => true, () => false); }})()''', tab)
     vp = ev('({w: innerWidth, h: innerHeight})', tab)
     big = w > vp['w'] or h > vp['h']
     if big: cdp('Emulation.setDeviceMetricsOverride', tab, width=max(vp['w'], w), height=max(vp['h'], h), deviceScaleFactor=1, mobile=False)
     time.sleep(1.5 if big else 0.5)
+    # the cover must stand while the picture is taken (2.11.2026: two saves were the Gemini page itself)
+    if not ev("!!document.querySelector('[data-chromium-vm-overlay] img') && document.querySelector('[data-chromium-vm-overlay] img').complete", tab):
+        ev('document.querySelectorAll("[data-chromium-vm-overlay]").forEach(e => e.remove())', tab); return 'no-cover'
     r = call('capture', tab=tab, x=0, y=0, w=w, h=h, scale=1, save=f'Gemini/MPA-Academy/{name}.png')
+    if not ev("!!document.querySelector('[data-chromium-vm-overlay] img') && document.querySelector('[data-chromium-vm-overlay] img').complete", tab):
+        return f"cover-lost {w}x{h} (saved file is bad: {r.get('path', '')})"
     if big: cdp('Emulation.clearDeviceMetricsOverride', tab)
     ev('document.querySelectorAll("[data-chromium-vm-overlay]").forEach(e => e.remove())', tab)
     return f"saved {w}x{h} {r['bytes']} bytes"
