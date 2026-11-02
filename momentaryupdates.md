@@ -102,3 +102,7 @@ All requests above done except: AutoplayAllowed needs one Chrome restart (asked,
 **Status:** Claude Code 2.1.316 installed on chromium-vm (native installer, ~/.local/bin/claude), tmux installed.
 Then (the VM DOCK): "build me some doc[k], same as doc[k] on the macOS. I can switch between terminal and Chrome for now. So I can see this Chrome Google C[laude] Code." / "very simply, when I hover down, it jumps as a dock on the macOS" / "only two. You can imagine that screens. They're not icons. They are screens. There is a screen of C[laude] Code, which I can click, and there is a screen of Google Chrome, which I can click" / "NOT DOC DOK DOCK DOCK"
 Then: "also, I need the Linux application cloud to be the same as I have on this machine's Linux version. Now we have three screens, and I'm switching between them. It's just switching the screen; they are not in the view at the same time. Shift Tab can also switch. Shift Tab or Apple Tab can switch when I'm on the machine between the three programs: cloud in the terminal, the cloud application, and Chrome"
+Then: "only one keyboard shortcut, and that's Command-Tab. That's only one for switching"
+
+**Request (2.11.2026, ~18:45 CT).** Marko: "also, for our app Chromium virtual machine, make the whole top part, which is not part of the virtual machine, like the title. The full-screen, reconnect on/off disappears when I put the mouse at the top, then it comes back, but otherwise it's after hiding"
+**Status:** saved first.
