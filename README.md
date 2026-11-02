@@ -45,7 +45,11 @@ Details: [router/README.md](router/README.md).
   Click on the speeds: a speed test (5 s). Click elsewhere: settings.
 - **Workers** (workers/): programs that run on their own. First: gemini-images (batch on Drive, RESULTS.txt beside
   the pictures, sleeps until Gemini's limit resets).
-- **The Mac viewer**: Chromium Virtual Machine (Mantra) v3 (viewer/), Star folder Mac.
+- **The Mac viewer**: Chromium Virtual Machine (Mantra) v10 (viewer/), Star folder Mac. No title bar; one gear at the
+  bottom-right, after the status line's power button: F1 (Speechify) and F2 (Voice to Text) each MAC | VM (MAC = never
+  sent to the VM; dictation lands on the VM through vm-agent `paste_text`), FULL SCREEN | RECONNECT, CLOSE WINDOW | QUIT.
+  Needs Accessibility (amber PERMISSIONS above the gear while missing).
+- **Power**: the status line's ⏻ (after UP) → REBOOT | CANCEL.
 
 ## The desktop (2.11.2026): three programs, the dock, Rectangle's keys
 

@@ -125,3 +125,8 @@ Then (~19:30 CT): "There is also bug in split screen view. I cannot exit split s
 **Status:** saved first.
 Then (~19:45 CT): "Since status line is there at the bottom, when there is a power button, next to it add setting button actually. But these settings are for virtual machine viewer, not for remote session. So we just put it there. And I can enable or disable my F1 and F2 to be on the Mac OS or in the remote session."
 **Status:** saved first.
+
+**Status (2.11.2026, ~20:25 CT, session closed):** all five requests of this session done. Viewer v6 → v10: no top bar; the
+gear sits at the bottom-right, right after the status line's power button (v7); panel: status, F1 Speechify MAC | VM,
+F2 Voice to Text MAC | VM, FULL SCREEN | RECONNECT, CLOSE WINDOW | QUIT; dictation tested end to end by Claude (v10 +
+vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: one program picked = maximized, out of split.

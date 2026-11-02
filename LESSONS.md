@@ -80,3 +80,14 @@
   thumbnails of the windows behind work; the dock reads the root window under itself BEFORE it maps (static band).
 - 2.11.2026: testing switching keys while Marko works on the same screen takes his focus away mid-typing: look first
   (passive screenshot + getactivewindow), test when the screen is idle, give the focus back at once.
+
+- 2.11.2026 (viewer v10): with the Mac's global hotkeys suspended (CGSSetGlobalHotKeyOperatingMode, for ⌘Tab on the
+  VM) Carbon hotkeys like Voice to Text's F2 never fire; the viewer re-presses the key with the hotkeys given back for
+  0.25 s. Speechify also has its own event tap and gets the real press, so re-pressing F1 turns it straight off: only
+  swallow F1. Dictation apps write by Accessibility into the focused text field: a remote-screen view must be an
+  AXTextArea (settable AXSelectedText, readable AXValue) or the text lands nowhere. A program's ⌘V has no ⌘
+  flagsChanged before it: read the Mac clipboard at once and paste on the VM via vm-agent `paste_text`;
+  xfce4-terminal pastes on Ctrl+Shift+V (Claude Code takes Ctrl+V as image paste).
+- 2.11.2026: test dictation without his mic: input → BlackHole 2ch, `say -a 125 "..."` (by device number; `say -a
+  "BlackHole 2ch"` crashes), key presses by CGEvent, paste into a scratch `xfce4-terminal -x sh -c "cat > /tmp/f"`
+  on the VM; input back to External Microphone. Speechify ignores the system input and records its own microphone.
