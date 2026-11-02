@@ -4,7 +4,7 @@
 // Marko, 2.11.2026: "let's build the Swift viewer for the Chromium virtual machine ... clipboard and drag-and-drop".
 import AppKit
 
-let VERSION = 3
+let VERSION = 4
 let APP_NAME = "Chromium Virtual Machine (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -25,6 +25,10 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     var lastPushedChange = NSPasteboard.general.changeCount
     var lastClipText = ""
     var door: Door?
+    // v4 (Marko, 2.11.2026): "the whole top part, which is not part of the virtual machine ... disappears ... when I put
+    // the mouse at the top, then it comes back": title bar and button bar float over the picture, hidden until the top edge
+    let barBox = NSVisualEffectView()
+    var chromeOn = true, hideTimer: Timer?, mouseMonitor: Any?
     var downloadsTimer: Timer?
     var fetching = false
     static let downloadsFolder = URL(fileURLWithPath: NSHomeDirectory() + "/Downloads/Chromium Downloads")
@@ -78,7 +82,9 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
 
     func buildWindow() {
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1280, height: 830),
-                          styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+                          styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
+        window.titlebarAppearsTransparent = true
+        window.acceptsMouseMovedEvents = true
         window.title = APP_NAME
         window.minSize = NSSize(width: 480, height: 360)
         window.collectionBehavior = [.fullScreenPrimary]
@@ -104,21 +110,54 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         bar.edgeInsets = NSEdgeInsets(top: 0, left: 12, bottom: 0, right: 6)
         bar.heightAnchor.constraint(equalToConstant: 30).isActive = true
 
-        let line = NSBox(); line.boxType = .separator
-        let root = NSStackView(views: [bar, line, screen])
-        root.orientation = .vertical; root.spacing = 0
-        root.setHuggingPriority(.defaultLow, for: .vertical)
-        screen.setContentHuggingPriority(.init(1), for: .vertical)
-        screen.setContentCompressionResistancePriority(.init(1), for: .vertical)
-        screen.setContentCompressionResistancePriority(.init(1), for: .horizontal)
+        // the picture fills the whole window; the bar floats over its top edge, below the (transparent) title bar
+        let root = NSView()
         window.contentView = root
-        for v in [bar, line, screen] as [NSView] { v.widthAnchor.constraint(equalTo: root.widthAnchor).isActive = true }
-
+        screen.translatesAutoresizingMaskIntoConstraints = false
+        root.addSubview(screen)
+        NSLayoutConstraint.activate([screen.leadingAnchor.constraint(equalTo: root.leadingAnchor),
+                                     screen.trailingAnchor.constraint(equalTo: root.trailingAnchor),
+                                     screen.topAnchor.constraint(equalTo: root.topAnchor),
+                                     screen.bottomAnchor.constraint(equalTo: root.bottomAnchor)])
+        barBox.material = .hudWindow; barBox.blendingMode = .withinWindow; barBox.state = .active
+        barBox.translatesAutoresizingMaskIntoConstraints = false; bar.translatesAutoresizingMaskIntoConstraints = false
+        barBox.addSubview(bar)
+        root.addSubview(barBox)
+        let titleH = window.frame.height - window.contentLayoutRect.height
+        NSLayoutConstraint.activate([barBox.leadingAnchor.constraint(equalTo: root.leadingAnchor),
+                                     barBox.trailingAnchor.constraint(equalTo: root.trailingAnchor),
+                                     barBox.topAnchor.constraint(equalTo: root.topAnchor, constant: max(titleH, 0)),
+                                     bar.leadingAnchor.constraint(equalTo: barBox.leadingAnchor),
+                                     bar.trailingAnchor.constraint(equalTo: barBox.trailingAnchor),
+                                     bar.topAnchor.constraint(equalTo: barBox.topAnchor),
+                                     bar.bottomAnchor.constraint(equalTo: barBox.bottomAnchor)])
+        mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] e in
+            self?.watchTop(e); return e }
         screen.onDropFiles = { [weak self] in self?.upload($0) }
         screen.beforePaste = { [weak self] go in self?.pushClipboard(go) ?? go() }
         window.center()
         window.makeKeyAndOrderFront(nil)
         window.makeFirstResponder(screen)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in self?.setChrome(false) }
+    }
+
+    /// the title bar and the button bar: shown while the pointer is at the top, hidden otherwise
+    func setChrome(_ on: Bool) {
+        hideTimer?.invalidate(); hideTimer = nil
+        guard on != chromeOn else { return }
+        chromeOn = on
+        barBox.isHidden = !on
+        window.standardWindowButton(.closeButton)?.superview?.superview?.isHidden = !on   // the title bar container
+        window.titleVisibility = on ? .visible : .hidden
+    }
+    func watchTop(_ e: NSEvent) {
+        guard e.window === window, let h = window.contentView?.bounds.height else { return }
+        let y = e.locationInWindow.y
+        if y >= h - 4 { setChrome(true); return }
+        let titleH = window.frame.height - window.contentLayoutRect.height
+        if chromeOn && y < h - (titleH + 30 + 14) && hideTimer == nil {
+            hideTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in self?.setChrome(false) }
+        } else if y >= h - (titleH + 30 + 14) { hideTimer?.invalidate(); hideTimer = nil }
     }
 
     @objc func noop() {}
@@ -127,8 +166,8 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     @objc func fullScreen() { window.toggleFullScreen(nil) }
     @objc func reconnect() { rfb?.close(); rfb = nil; connected = false; connect() }
 
-    func windowWillEnterFullScreen(_ n: Notification) { bar.isHidden = true }
-    func windowDidExitFullScreen(_ n: Notification) { bar.isHidden = false }
+    func windowWillEnterFullScreen(_ n: Notification) { setChrome(false) }
+    func windowDidExitFullScreen(_ n: Notification) { setChrome(false) }
     func windowDidResignKey(_ n: Notification) { screen.releaseAll() }
     func windowDidResize(_ n: Notification) { scheduleResize() }
 
