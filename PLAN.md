@@ -1,4 +1,4 @@
-# CHROMIUM_VM: a Chromebook in Oracle Cloud
+# vm-chromium: a Chromebook in Oracle Cloud
 
 **The experience (Marko, 2.11.2026):** like a Chromebook: you open the screen and you are on the internet. On
 chromium-vm nothing but Chromium: when he connects, Chromium is already there, full screen, his tabs where he left

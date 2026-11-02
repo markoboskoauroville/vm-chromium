@@ -1,4 +1,4 @@
-# CHROMIUM_VM
+# vm-chromium
 
 A Chromebook in Oracle Cloud: chromium-vm (Ubuntu 24.04 Minimal, ARM, 200 GB, Tailscale 100.102.86.30) runs only
 Chromium, reached by VNC over Tailscale from the Mac app **Chromium Virtual Machine (Mantra)** and from Mantra Remote
