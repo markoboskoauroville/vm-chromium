@@ -27,3 +27,6 @@
 
 ## 2.11.2026, Marko
 "now tell me: if a file is downloaded, what's the easiest way to get it to this local machine? Can I also have some kind of file browser that will be just a connection between two machines, already open in two tabs, in two halves, to transfer files between them? I like Commander One. Can we use it? It's open source, and I need to somehow switch to Commander One. Maybe through some Chromium extension, or maybe Chromium itself can have an extension that looks like Commander One and allows me to copy, delete, and transfer files between two machines. This Chrome plugin we can publish publicly. Again, we're building something for the Chromium audience. Mantra Production is building a Chrome extension, Commander One Emulator or something like that. Find a good name and let's have it in the star. Let's have it in the star"
+
+## 2.11.2026, Marko
+"first, build an automatic download folder. In my Download folder, you need to put a folder called Chromium Downloads. In that folder, everything Chromium does will just land automatically. At the same time, one copy will be held in my G Drive, of course, with the same account as Chromium, and the folder has the same name"
