@@ -88,7 +88,15 @@ SCENES += [
 LIMIT_WORDS = ('reached your limit', 'limit for today', 'try again tomorrow', 'daily limit', "can't create more images",
                'cannot create more images', 'image generation limit', 'come back tomorrow', 'reached the limit')
 
+VM = None   # 2.11.2026: with VMR_NAME set, the job goes through vm-router as its own session (router/README.md)
+def via_router(tab):
+    global VM
+    if os.environ.get('VMR_NAME'):
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'router')); import vmr
+        VM = vmr.Session(os.environ['VMR_NAME'], account=0, folder='Gemini/life-story', tab=tab)
+
 def call(action, **a):
+    if VM: return VM.call(action, **a)
     r = urllib.request.Request(BASE + action, data=json.dumps(a).encode(), method='POST',
                                headers={'X-Mantra-Token': TOKEN})
     j = json.load(urllib.request.urlopen(r, timeout=120))
@@ -102,7 +110,7 @@ def log(s):
     print(line, flush=True); open(LOG, 'a').write(line + '\n')
 
 NEWEST = '''(() => { const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete
-  && !/^(blob|data):/.test(i.src) && !i.closest('[data-chromium-vm-overlay]'));
+  && i.closest('generated-image') && !i.closest('[data-chromium-vm-overlay]'));
   const t = document.body.innerText.toLowerCase();
   return {n: im.length, w: im.length ? im[im.length-1].naturalWidth : 0, h: im.length ? im[im.length-1].naturalHeight : 0,
           src: im.length ? im[im.length-1].src.slice(0, 60) : '', busy: !!document.querySelector('[aria-label="Stop response"]'),
@@ -123,7 +131,7 @@ def one(tab, name, scene):
         if (!s || s.disabled) return false; s.click(); return true; })()''', tab)
     if not sent: return 'no-send'
     t0 = time.time()
-    while time.time() - t0 < 180:
+    while time.time() - t0 < 300:
         time.sleep(4)
         st = ev(NEWEST, tab)
         if any(w in st['tail'] for w in LIMIT_WORDS): return 'limit'
@@ -132,7 +140,7 @@ def one(tab, name, scene):
         return 'timeout'
     time.sleep(2); st = ev(NEWEST, tab); w, h = st['w'], st['h']
     # the picture alone, top-left, at its natural size (1 image pixel = 1 screen pixel), on black
-    ev(f'''(() => {{ const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete && !/^(blob|data):/.test(i.src));
+    ev(f'''(() => {{ const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete && i.closest('generated-image'));
         const src = im[im.length-1]; const d = document.createElement('div'); d.dataset.chromiumVmOverlay = 1;
         d.style.cssText = 'position:fixed;left:0;top:0;width:{w}px;height:{h}px;z-index:2147483647;background:#000';
         const c = src.cloneNode(); c.removeAttribute('srcset');
@@ -154,7 +162,7 @@ if __name__ == '__main__':
     # Marko, 2.11.2026: "keep on generating until we hit the limit of the account ... note how much the limit is ...
     # Go in the normal speed of the human": a pause of 60-150 s between images; after the list, variations, until
     # Gemini says the day is done. The count of images made today is written into the log.
-    tab = sys.argv[1]; start = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+    tab = sys.argv[1]; via_router(tab); start = int(sys.argv[2]) if len(sys.argv) > 2 else 0
     order = SCENES[30:] + SCENES[:30] if os.environ.get('REAL_FIRST') else SCENES
     skip = set(os.environ.get("SKIP", "").split(","))
     made_before = int(os.environ.get('MADE_TODAY', '0'))

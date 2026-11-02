@@ -56,12 +56,20 @@ SERIES = [
 LIMIT_WORDS = ('reached your limit', 'limit for today', 'try again tomorrow', 'daily limit', "can't create more images",
                'cannot create more images', 'image generation limit', 'come back tomorrow', 'reached the limit')
 NEWEST = '''(() => { const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete
-  && !/^(blob|data):/.test(i.src) && !i.closest('[data-chromium-vm-overlay]'));
+  && i.closest('generated-image') && !i.closest('[data-chromium-vm-overlay]'));
   const t = document.body.innerText.toLowerCase();
   return {n: im.length, w: im.length ? im[im.length-1].naturalWidth : 0, h: im.length ? im[im.length-1].naturalHeight : 0,
           busy: !!document.querySelector('[aria-label="Stop response"]'), tail: t.slice(-600)}; })()'''
 
+VM = None   # 2.11.2026: with VMR_NAME set, the job goes through vm-router as its own session (router/README.md)
+def via_router(tab):
+    global VM
+    if os.environ.get('VMR_NAME'):
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'router')); import vmr
+        VM = vmr.Session(os.environ['VMR_NAME'], account=1, folder='Gemini/MPA-Academy', tab=tab)
+
 def call(action, **a):
+    if VM: return VM.call(action, **a)
     r = urllib.request.Request(BASE + action, data=json.dumps(a).encode(), method='POST', headers={'X-Mantra-Token': TOKEN})
     j = json.load(urllib.request.urlopen(r, timeout=120))
     if not j.get('ok'): raise RuntimeError(j.get('error'))
@@ -85,14 +93,14 @@ def one(tab, app, name, prompt):
     if not ev('''(() => { const s = document.querySelector('button[aria-label="Send message"]');
         if (!s || s.disabled) return false; s.click(); return true; })()''', tab): return 'no-send'
     t0 = time.time()
-    while time.time() - t0 < 180:
+    while time.time() - t0 < 300:
         time.sleep(4); st = ev(NEWEST, tab)
         if any(w in st['tail'] for w in LIMIT_WORDS): return 'limit'
         if st['n'] > before and not st['busy']: break
     else:
         return 'timeout'
     time.sleep(2); st = ev(NEWEST, tab); w, h = st['w'], st['h']
-    ev(f'''(() => {{ const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete && !/^(blob|data):/.test(i.src));
+    ev(f'''(() => {{ const im = [...document.querySelectorAll('img')].filter(i => i.naturalWidth >= 700 && i.complete && i.closest('generated-image'));
         const src = im[im.length-1]; const d = document.createElement('div'); d.dataset.chromiumVmOverlay = 1;
         d.style.cssText = 'position:fixed;left:0;top:0;width:{w}px;height:{h}px;z-index:2147483647;background:#000';
         const c = src.cloneNode(); c.removeAttribute('srcset');
@@ -108,7 +116,7 @@ def one(tab, app, name, prompt):
     return f"saved {w}x{h} {r['bytes']} bytes"
 
 if __name__ == '__main__':
-    tab = sys.argv[1]; which = sys.argv[2] if len(sys.argv) > 2 else 'all'; start = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+    tab = sys.argv[1]; via_router(tab); which = sys.argv[2] if len(sys.argv) > 2 else 'all'; start = int(sys.argv[3]) if len(sys.argv) > 3 else 0
     app = os.environ.get('GEMINI_APP', 'https://gemini.google.com/u/1/app')     # u/1 = auroville.community once signed in
     jobs = []
     if which in ('drums', 'all'): jobs += [(n, f'Create an image: {s} {DRUM} {NOBODY} {STYLE}') for n, s in DRUMS]
