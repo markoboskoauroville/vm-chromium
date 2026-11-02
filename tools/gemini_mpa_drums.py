@@ -127,10 +127,13 @@ if __name__ == '__main__':
     VARS = ['another camera angle of the same scene', 'the same scene in soft blue-hour light', 'the same scene by candle light',
             'a closer, more intimate framing of the same scene', 'the same scene seen from further away, more of the room']
     jobs = jobs[start:]
+    skip = set(os.environ.get('SKIP', '').split(','))     # names already saved (e.g. after a limit)
+    jobs = [(n, p) for n, p in jobs if n not in skip]
     for v in VARS:
         jobs += [(f'{n}-v{VARS.index(v) + 2}', f'{p[:-1]} ({v}).') for n, p in
                  [(n, f'Create an image: {s} {DRUM} {NOBODY} {STYLE}') for n, s in DRUMS] +
                  [(n, f'Create an image: {s} {WHO} {DRUM} Photorealistic, cinematic, landscape 16:9, no text, no logos.') for n, s in SERIES]]
+    jobs = [(n, p) for n, p in jobs if n not in skip]
     made = 0
     for name, prompt in jobs:
         if made_before + made >= TARGET: log(f'target reached: {made_before + made} pictures'); break
