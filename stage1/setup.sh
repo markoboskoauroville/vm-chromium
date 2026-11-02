@@ -51,6 +51,11 @@ else
   snap install chromium
   POLICY_DIRS=(/etc/chromium-browser/policies/managed)
 fi
+if [ "$SOURCE" = deb ]; then
+  # Ubuntu 24.04's AppArmor blocks Chromium's sandbox (user namespaces) unless the binary has a profile.
+  install -m 644 apparmor/chromium-vm /etc/apparmor.d/chromium-vm
+  apparmor_parser -r /etc/apparmor.d/chromium-vm
+fi
 for d in "${POLICY_DIRS[@]}"; do install -D -m 644 policies/chromium-vm.json "$d/chromium-vm.json"; done
 
 echo "3. Settings and scripts"

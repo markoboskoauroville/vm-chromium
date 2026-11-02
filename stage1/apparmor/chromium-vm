@@ -1,0 +1,10 @@
+# Ubuntu 24.04 blocks unprivileged user namespaces (kernel.apparmor_restrict_unprivileged_userns=1), so the
+# xtradeb Chromium finds "No usable sandbox" and exits. This lets only that binary make them (as Ubuntu's own
+# /etc/apparmor.d/chrome does for Google Chrome); the sandbox stays on.
+abi <abi/4.0>,
+include <tunables/global>
+
+profile chromium-vm /usr/lib/chromium/chromium flags=(unconfined) {
+  userns,
+  include if exists <local/chromium-vm>
+}
