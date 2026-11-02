@@ -32,7 +32,7 @@ DEFAULT = {'show': {k: True for k, _ in PARTS} | {'tail': False, 'clock': False}
 
 # Two colours (Marko, 2.11.2026: "white is the variable name, and orange is the variable itself").
 COL = {'name': (1.0, 1.0, 1.0), 'value': (1.0, 0.58, 0.10), 'now': (0.35, 0.95, 0.45),
-       'down': (0.35, 0.95, 0.45), 'up': (1.0, 0.30, 0.30)}   # NET: download green, upload red (Marko)   # green: what is moving now
+       'down': (0.35, 0.95, 0.45), 'up': (1.0, 0.30, 0.30), 'pipe': (0.0, 0.0, 0.0)}   # a black pipe between parts (Marko)   # NET: download green, upload red (Marko)   # green: what is moving now
 
 def load_conf():
     c = json.loads(json.dumps(DEFAULT))
@@ -106,7 +106,8 @@ def segments(r, show):
     """[(text, 'name'|'value')]. Every field has a fixed width; what changes in length (what is moving) comes last."""
     seg = []
     def part(name, value):
-        seg.extend([(name, 'name')] + (value if isinstance(value, list) else [(value, 'value')]))   # no spaces (Marko)
+        if seg: seg.append(('|', 'pipe'))                       # a black pipe, no spaces (Marko, 2.11.2026)
+        seg.extend([(name, 'name')] + (value if isinstance(value, list) else [(value, 'value')]))
     if show.get('cpu'):
         part('CPU', f"{r['cpu']:3.0f}%")
     if show.get('ram'):
