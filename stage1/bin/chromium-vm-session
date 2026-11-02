@@ -14,7 +14,10 @@ case "$CHROMIUM_SOURCE" in
   # Chrome 136+ refuses DevTools on the default profile folder, so the profile lives in its own folder.
   chrome) CHROMIUM=/usr/bin/google-chrome-stable; PROFILE="$HOME/.config/chromium-vm-chrome"
           EXTRA=(--user-data-dir="$PROFILE" --remote-debugging-address=127.0.0.1 --remote-debugging-port=9222
-                 --remote-allow-origins=http://127.0.0.1) ;;
+                 --remote-allow-origins=http://127.0.0.1
+                 # Dark everywhere (Marko, 2.11.2026): the UI and prefers-color-scheme dark, and pages without a
+                 # dark design darkened by Chrome itself.
+                 --force-dark-mode --enable-features=WebContentsForceDark) ;;
   snap) CHROMIUM=/snap/bin/chromium; PROFILE="$HOME/snap/chromium/common/chromium" ;;
   *)    CHROMIUM=/usr/bin/chromium;  PROFILE="$HOME/.config/chromium" ;;
 esac
@@ -51,7 +54,7 @@ trap 'kill $wm $watcher 2>/dev/null' EXIT
 while true; do
   # A kill or a reboot is not a crash to Chromium's user: no "restore pages?" bubble, the tabs just come back.
   prefs="$PROFILE/Default/Preferences"
-  [ -f "$prefs" ] && sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/; s/"exited_cleanly":false/"exited_cleanly":true/' "$prefs"
+  [ -f "$prefs" ] && sed -E -i 's/"exit_type": ?"Crashed"/"exit_type":"Normal"/; s/"exited_cleanly": ?false/"exited_cleanly":true/' "$prefs"
   rm -f "$PROFILE"/Singleton{Lock,Socket,Cookie}
 
   "$CHROMIUM" \

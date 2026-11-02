@@ -36,3 +36,8 @@
 - 2.11.2026: Chrome prefs set through chrome.settingsPrivate on a chrome://settings tab (DevTools):
   auto_pin_new_tab_groups=false, bookmark_bar.show_tab_groups=false, so the extension's task groups no longer pile
   up on the bookmarks bar.
+- 2.11.2026: dark everywhere = Chrome flags `--force-dark-mode --enable-features=WebContentsForceDark` (session
+  script) + Preferences browser.theme.color_scheme2=2 (Mode Dark; not in settingsPrivate). Checked: Google Search,
+  Gmail, Drive, Docs, Sheets all dark. The session script holds its flags in memory: restart the service, not Chrome.
+- 2.11.2026: rewriting Preferences with json.dump adds spaces, so the crash-flag sed missed and Chrome showed
+  "Restore pages?" with the old tabs gone; Ctrl+Shift+T brought them back. The sed now allows the space.
