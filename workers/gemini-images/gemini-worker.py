@@ -100,6 +100,9 @@ def reset_time(tail):
     return t if t > now else t + dt.timedelta(days=1)
 
 def one(tab, batch, item, refs):
+    # A background tab does not finish loading and drawing the picture (2.11.2026): the worker's tab comes to the front.
+    try: cdp('Page.bringToFront', tab)
+    except Exception: pass
     cdp('Page.navigate', tab, url='https://gemini.google.com/app'); time.sleep(7)
     for _ in range(20):
         if ev('!!document.querySelector("rich-textarea .ql-editor")', tab): break
@@ -118,6 +121,9 @@ def one(tab, batch, item, refs):
     t0 = time.time()
     while time.time() - t0 < 200:
         time.sleep(4)
+        if time.time() - t0 > 30:
+            try: cdp('Page.bringToFront', tab)
+            except Exception: pass
         st = ev(NEWEST, tab)
         if st['n'] > 0 and not st['busy']: break
         if not st['busy'] and time.time() - t0 > 20 and limit_text(st): return 'limit', st
