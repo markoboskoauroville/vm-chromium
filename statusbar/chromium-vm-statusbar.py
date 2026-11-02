@@ -22,6 +22,7 @@ CONF = os.path.expanduser('~/.config/chromium-vm/statusbar.json')
 TOKEN_FILE = os.path.expanduser('~/.config/chromium-vm/agent-token')
 AGENT = 'http://100.102.86.30:8890/api/status'
 NET = 'enp0s6'
+GEAR = 26   # the Mac viewer's settings gear sits on the line's right end, after the power button (Marko, 2.11.2026)
 
 PARTS = [  # key, label in the settings
     ('cpu', 'CPU'), ('ram', 'Memory'), ('disk', 'Free SSD space'), ('net', 'Internet speed ↓ ↑'),
@@ -203,7 +204,7 @@ class Bar(Gtk.Window):
         cr.set_font_size(self.conf['size'])
         now = sum(cr.text_extents(t).x_advance for t, c in self.seg if c == 'now')
         status = sum(cr.text_extents(t).x_advance for t, c in self.seg if c != 'now')
-        return int(10 + now + (24 if now else 0) + status + 10)
+        return int(10 + now + (24 if now else 0) + status + 10 + GEAR)
 
     def place(self):
         sc = Gdk.Screen.get_default(); sw, sh = sc.get_width(), sc.get_height()
@@ -229,7 +230,7 @@ class Bar(Gtk.Window):
         status = [t for t in self.seg if t[1] != 'now']
         for text, col in now:                                   # what is happening: from the left edge
             cr.set_source_rgb(*COL[col]); cr.move_to(10, y); cr.show_text(text)
-        x = w - 10 - sum(cr.text_extents(t).x_advance for t, _ in status)   # the status: on the right (Marko)
+        x = w - 10 - GEAR - sum(cr.text_extents(t).x_advance for t, _ in status)   # the status: on the right (Marko)
         net_start, net_end, first_pipe = x, None, True
         for text, col in status:
             if col == 'pipe' and first_pipe: net_end = x; first_pipe = False

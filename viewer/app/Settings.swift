@@ -48,9 +48,10 @@ final class SettingsOverlay: Solid {
     let permissions = WordButton()
     private let panel = NSVisualEffectView()
     let statusLine = NSTextField(labelWithString: "connecting…")
-    private var keyButtons: [UInt16: WordButton] = [:]
+    private var keyButtons: [UInt16: (WordButton, WordButton)] = [:]
     var isOpen: Bool { !panel.isHidden }
 
+    static let GEAR_W: CGFloat = 26
     static let macKeys: [(String, UInt16, String)] = [("F1", 122, "Speechify"), ("F2", 120, "Voice to Text")]
 
     init(app: App) {
@@ -58,34 +59,42 @@ final class SettingsOverlay: Solid {
         super.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = false
 
-        // the pill: the gear, then a note only when there is one
-        pill.material = .hudWindow; pill.blendingMode = .withinWindow; pill.state = .active
-        pill.wantsLayer = true; pill.layer?.cornerRadius = 15; pill.alphaValue = 0.85
-        gear.image = NSImage(systemSymbolName: "gearshape.fill", accessibilityDescription: "SETTINGS")
-        gear.isBordered = false; gear.contentTintColor = NSColor(white: 0.85, alpha: 1)
+        // v6b (Marko, 2.11.2026: "next to [the power button] add setting button ... these settings are for virtual machine
+        // viewer, not for remote session"): the gear sits at the bottom-right corner, on the VM's status line, right
+        // after its power button (the status bar keeps the last GEAR_W points free for it)
+        gear.image = NSImage(systemSymbolName: "gearshape.fill", accessibilityDescription: "SETTINGS")?
+            .withSymbolConfiguration(.init(pointSize: 13, weight: .semibold))
+        gear.isBordered = false; gear.contentTintColor = .white
         gear.target = self; gear.action = #selector(toggle)
         gear.setAccessibilityLabel("SETTINGS")
+        gear.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(gear)
+        // a note above the gear only when there is one (upload, clipboard, not connected, PERMISSIONS)
+        pill.material = .hudWindow; pill.blendingMode = .withinWindow; pill.state = .active
+        pill.wantsLayer = true; pill.layer?.cornerRadius = 12; pill.isHidden = true
         tip.font = .systemFont(ofSize: 12, weight: .semibold); tip.textColor = .systemOrange
         tip.lineBreakMode = .byTruncatingMiddle; tip.isHidden = true
         tip.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         permissions.title = "PERMISSIONS"; permissions.target = self; permissions.action = #selector(openPermissions)
         permissions.setAccessibilityLabel("PERMISSIONS")
         permissions.lit = true; permissions.litColor = .systemOrange; permissions.isHidden = true
-        let top = NSStackView(views: [gear, tip, permissions])
-        top.orientation = .horizontal; top.spacing = 8
-        top.edgeInsets = NSEdgeInsets(top: 0, left: 7, bottom: 0, right: 7)
-        pill.addSubview(top); top.translatesAutoresizingMaskIntoConstraints = false
+        let notes = NSStackView(views: [tip, permissions])
+        notes.orientation = .horizontal; notes.spacing = 8
+        notes.edgeInsets = NSEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        pill.addSubview(notes); notes.translatesAutoresizingMaskIntoConstraints = false
         pill.translatesAutoresizingMaskIntoConstraints = false
         addSubview(pill)
         NSLayoutConstraint.activate([
-            gear.widthAnchor.constraint(equalToConstant: 18), gear.heightAnchor.constraint(equalToConstant: 18),
-            top.leadingAnchor.constraint(equalTo: pill.leadingAnchor), top.trailingAnchor.constraint(equalTo: pill.trailingAnchor),
-            top.topAnchor.constraint(equalTo: pill.topAnchor), top.bottomAnchor.constraint(equalTo: pill.bottomAnchor),
-            pill.heightAnchor.constraint(equalToConstant: 30),
-            pill.leadingAnchor.constraint(equalTo: leadingAnchor), pill.topAnchor.constraint(equalTo: topAnchor),
+            gear.widthAnchor.constraint(equalToConstant: SettingsOverlay.GEAR_W), gear.heightAnchor.constraint(equalToConstant: 22),
+            gear.trailingAnchor.constraint(equalTo: trailingAnchor), gear.bottomAnchor.constraint(equalTo: bottomAnchor),
+            notes.leadingAnchor.constraint(equalTo: pill.leadingAnchor), notes.trailingAnchor.constraint(equalTo: pill.trailingAnchor),
+            notes.topAnchor.constraint(equalTo: pill.topAnchor), notes.bottomAnchor.constraint(equalTo: pill.bottomAnchor),
+            pill.heightAnchor.constraint(equalToConstant: 24),
+            pill.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -6),
+            pill.bottomAnchor.constraint(equalTo: gear.topAnchor, constant: -6),
             pill.widthAnchor.constraint(lessThanOrEqualToConstant: 520)])
 
-        // the panel under the gear
+        // the panel above the gear
         panel.material = .hudWindow; panel.blendingMode = .withinWindow; panel.state = .active
         panel.wantsLayer = true; panel.layer?.cornerRadius = 10; panel.isHidden = true
         panel.translatesAutoresizingMaskIntoConstraints = false
@@ -99,15 +108,17 @@ final class SettingsOverlay: Solid {
         stack.addArrangedSubview(name); stack.addArrangedSubview(statusLine)
         stack.addArrangedSubview(hairline())
 
-        stack.addArrangedSubview(label("KEYS HELD FOR THIS MAC (not sent to the VM)", 11, NSColor(white: 0.55, alpha: 1), .medium))
-        var keys: [NSView] = []
-        for (i, (k, code, who)) in SettingsOverlay.macKeys.enumerated() {
-            if i > 0 { keys.append(label("|", 13, NSColor(white: 0.4, alpha: 1), .regular)) }
-            let b = WordButton("\(k)  \(who)", self, #selector(toggleKey(_:)))
-            b.tag = Int(code); b.setAccessibilityLabel(k)
-            keyButtons[code] = b; keys.append(b)
+        // Marko: "I can enable or disable my F1 and F2 to be on the Mac OS or in the remote session": per key, MAC | VM
+        stack.addArrangedSubview(label("WHERE THE KEYS GO", 11, NSColor(white: 0.55, alpha: 1), .medium))
+        for (k, code, who) in SettingsOverlay.macKeys {
+            let mac = WordButton("MAC", self, #selector(keyToMac(_:))), vm = WordButton("VM", self, #selector(keyToVM(_:)))
+            mac.tag = Int(code); vm.tag = Int(code)
+            mac.setAccessibilityLabel("\(k) MAC"); vm.setAccessibilityLabel("\(k) VM")
+            keyButtons[code] = (mac, vm)
+            let name = label("\(k)  \(who)", 13, .white, .semibold)
+            name.widthAnchor.constraint(equalToConstant: 150).isActive = true
+            stack.addArrangedSubview(row([name, mac, pipe(), vm]))
         }
-        stack.addArrangedSubview(row(keys))
         stack.addArrangedSubview(hairline())
         stack.addArrangedSubview(row([WordButton("FULL SCREEN", self, #selector(fullScreen)), pipe(),
                                       WordButton("RECONNECT", self, #selector(reconnect))]))
@@ -118,7 +129,7 @@ final class SettingsOverlay: Solid {
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: panel.leadingAnchor), stack.trailingAnchor.constraint(equalTo: panel.trailingAnchor),
             stack.topAnchor.constraint(equalTo: panel.topAnchor), stack.bottomAnchor.constraint(equalTo: panel.bottomAnchor),
-            panel.leadingAnchor.constraint(equalTo: leadingAnchor), panel.topAnchor.constraint(equalTo: pill.bottomAnchor, constant: 6),
+            panel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -6), panel.bottomAnchor.constraint(equalTo: gear.topAnchor, constant: -6),
             panel.widthAnchor.constraint(greaterThanOrEqualToConstant: 330)])
         refreshKeys()
     }
@@ -128,7 +139,7 @@ final class SettingsOverlay: Solid {
     /// Only the pill and the open panel take the mouse; the rest of this (sizing) view lets clicks through to the VM.
     override func hitTest(_ p: NSPoint) -> NSView? {
         let local = convert(p, from: superview)
-        for v in [panel, pill] where !v.isHidden && v.frame.contains(local) {
+        for v in [panel, pill, gear] where !v.isHidden && v.frame.contains(local) {
             return super.hitTest(p) ?? self
         }
         return nil
@@ -149,18 +160,23 @@ final class SettingsOverlay: Solid {
 
     func refreshKeys() {
         let held = App.heldKeys
-        for (code, b) in keyButtons { b.lit = held.contains(code) }
+        for (code, (mac, vm)) in keyButtons { mac.lit = held.contains(code); vm.lit = !held.contains(code) }
         permissions.isHidden = held.isEmpty || CGPreflightPostEventAccess()
+        showNotes()
     }
 
     @objc func toggle() { panel.isHidden.toggle(); refreshKeys() }
-    func close() { panel.isHidden = true }
-    @objc func toggleKey(_ b: NSButton) {
-        var held = App.heldKeys; let c = UInt16(b.tag)
-        if held.contains(c) { held.remove(c) } else { held.insert(c) }
+    func close() { panel.isHidden = true; showNotes() }
+    @objc func keyToMac(_ b: NSButton) { setHeld(UInt16(b.tag), true) }
+    @objc func keyToVM(_ b: NSButton) { setHeld(UInt16(b.tag), false) }
+    func setHeld(_ c: UInt16, _ on: Bool) {
+        var held = App.heldKeys
+        if on { held.insert(c) } else { held.remove(c) }
         App.heldKeys = held; app?.screen.heldForMac = held
         refreshKeys()
     }
+    /// the note pill shows only when it has something, and never over the open panel
+    func showNotes() { pill.isHidden = !isOpen ? (tip.isHidden && permissions.isHidden) : true }
     @objc func openPermissions() {
         _ = CGRequestPostEventAccess()
         NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
@@ -172,6 +188,6 @@ final class SettingsOverlay: Solid {
 
     /// the note beside the gear: shown while there is one
     func setTip(_ s: String, color: NSColor = .systemOrange) {
-        tip.stringValue = s; tip.textColor = color; tip.isHidden = s.isEmpty
+        tip.stringValue = s; tip.textColor = color; tip.isHidden = s.isEmpty; showNotes()
     }
 }

@@ -4,7 +4,7 @@
 // Marko, 2.11.2026: "let's build the Swift viewer for the Chromium virtual machine ... clipboard and drag-and-drop".
 import AppKit
 
-let VERSION = 6
+let VERSION = 7
 let APP_NAME = "Chromium Virtual Machine (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -108,10 +108,10 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
                                      screen.bottomAnchor.constraint(equalTo: root.bottomAnchor)])
         overlay = SettingsOverlay(app: self)
         root.addSubview(overlay)
-        NSLayoutConstraint.activate([overlay.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 10),
-                                     overlay.topAnchor.constraint(equalTo: root.topAnchor, constant: 10),
-                                     overlay.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -10),
-                                     overlay.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -10)])
+        NSLayoutConstraint.activate([overlay.leadingAnchor.constraint(equalTo: root.leadingAnchor),
+                                     overlay.topAnchor.constraint(equalTo: root.topAnchor),
+                                     overlay.trailingAnchor.constraint(equalTo: root.trailingAnchor),
+                                     overlay.bottomAnchor.constraint(equalTo: root.bottomAnchor)])
         screen.heldForMac = App.heldKeys
         screen.onMacKey = { [weak self] code in self?.passToMac(code) }
         screen.onClick = { [weak self] in self?.overlay.close() }

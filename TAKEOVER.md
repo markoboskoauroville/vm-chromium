@@ -97,3 +97,7 @@
   CLOSE WINDOW | QUIT. Notes (uploads, clipboard, not connected) beside the gear. **Status bar**: a drawn power button
   after UP, click → REBOOT | CANCEL (sudo -n systemctl reboot). **Dock**: a single program picked (tile or ⌘Tab) is
   maximized, out of any split layout. Waiting: Marko allows Accessibility, then tries F1/F2, the panel, the power button.
+- 2.11.2026 (~19:50 CT): **viewer v7**: the gear moved to the bottom-right corner, on the VM's status line right after
+  its power button (the status bar keeps its last 26 px free: GEAR in chromium-vm-statusbar.py); the panel opens above
+  it; per key a choice F1 Speechify MAC | VM, F2 Voice to Text MAC | VM; notes and PERMISSIONS in a pill above the gear.
+  Accessibility granted by Marko 21:11. Not yet tried by hand: dictating with F1/F2 into the VM, the panel, reboot.
