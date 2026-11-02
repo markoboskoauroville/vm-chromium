@@ -31,21 +31,47 @@ phone (its ENTER on CHROMIUM-VM).
 7. The checks: from the Mac, `vncviewer`-style connect shows only Chromium; a reboot of the VM brings it back by
    itself; closing Chromium brings it back; the tabs survive.
 
-## Stage 2: the Mac client in the Star
+## Stage 2: the tool: an agent on the VM + the Mac viewer (Marko, 2.11.2026)
 
-- **Chromium Virtual Machine (Mantra)**, a Swift app (MANTRA_MANIFEST: Swift only, signed "Mantra Apps", name first,
-  controls as AX buttons, never cut text, numbered workflow only where there are steps).
-- v1: one window that is the VM's screen (a VNC client in Swift; Mantra Remote's Kotlin RFB code in
-  MANTRA_REMOTE is the model) with full screen (⌘F) and ✕; Tailscale must be on (say so if not).
-  If a first working step is wanted the same day: v1 may open macOS Screen Sharing at vnc://100.102.86.30:5901 while
-  the own viewer is built, said plainly.
-- **Free copy and paste between the Mac and the VM (feature request, Marko, 2.11.2026).** Apple's Screen Sharing
-  greys out Use Shared Clipboard / Get / Send Clipboard against a Linux VNC server, so the own viewer must do it:
-  Mac → VM: on every Mac clipboard change (NSPasteboard changeCount) send RFB ClientCutText; VM → Mac: on
-  ServerCutText put the text on NSPasteboard. Xvnc 1.13 already syncs CLIPBOARD and PRIMARY (SendCutText,
-  AcceptCutText, SetPrimary on by default). UTF-8 via the Extended Clipboard pseudo-encoding (0xC0A1E5CE),
-  Latin-1 fallback. Test: copy on the Mac, Ctrl+V in Chromium; Ctrl+C in Chromium, ⌘V on the Mac.
-  Until then: `vmpaste` (Mac clipboard typed into the VM's focused field) and `vmcopy` (VM clipboard → Mac).
+Principle (MANTRA_MANIFEST modules/build-the-tool.md): build the tool once, then every use is fast and cheap.
+Two-way, direct, text over pictures, as few credits as possible.
+
+### 2a. `vm-agent` on chromium-vm (first: it gives the fast channel at once)
+
+A small Python server (stdlib only), systemd user service, listening on **100.102.86.30:8890** (Tailscale only),
+`X-Mantra-Token` on every request (the token lives on the VM and in ~/Downloads/API/chromium-vm-agent.txt, never in
+the repo). Remote door shape: `/health`, `/api` (self-described actions), `POST /api/<action>`.
+
+| action | does | cost |
+|---|---|---|
+| `clip_get` / `clip_set` | the VM clipboard as text (xclip) | a few bytes |
+| `type` / `key` | text or keys into the focused window (xdotool) | a few bytes |
+| `put` (multipart / raw) / `get` / `ls` | files into ~/Downloads on the VM (Chrome's download folder) and back | the file only |
+| `shot` | a JPEG of the screen, scaled, only when asked | the last resort |
+| `tabs` / `open` / `page_text` / `eval` | Chrome through the DevTools protocol (127.0.0.1:9222 on the VM, never exposed) | text |
+| `claude_ask` | puts a message into the claude.ai tab (or the Claude extension), sends it, waits until the answer stops growing, returns the answer text | the answer only |
+
+Chrome 136+ refuses `--remote-debugging-port` on the default profile folder, so the session starts Chrome with
+`--user-data-dir=$HOME/.config/chromium-vm-chrome` (the profile moved there once) and
+`--remote-debugging-address=127.0.0.1 --remote-debugging-port=9222`. Only vm-agent talks to it.
+
+On the Mac: `cvm` (one command for Claude Code and for Marko): `cvm ask "..."`, `cvm text`, `cvm put <file>`,
+`cvm clip`, `cvm shot`. Replaces `vmpaste` / `vmcopy` / scp / xwd.
+
+### 2b. The Mac viewer: **Chromium Virtual Machine (Mantra)**
+
+- A Swift app (MANTRA_MANIFEST: Swift only, signed "Mantra Apps", name first, controls as AX buttons, never cut
+  text). One window that is the VM's screen: an RFB client in Swift (Mantra Remote's Kotlin RFB is the model),
+  ExtendedDesktopSize so the VM follows the window, full screen (⌘F).
+- **Free copy and paste both ways** (feature request, Marko, 2.11.2026): Mac → VM on every NSPasteboard change
+  (changeCount) as RFB ClientCutText; VM → Mac on ServerCutText. Xvnc 1.13 syncs CLIPBOARD and PRIMARY by itself.
+  UTF-8 through the Extended Clipboard pseudo-encoding (0xC0A1E5CE), Latin-1 fallback. Apple's Screen Sharing greys
+  its clipboard out against a Linux server; that is why the own viewer exists.
+- **Drag and drop**: Mac files dropped on the window go to the VM's ~/Downloads through vm-agent `put`, with a
+  progress line; dropped on a page's upload box they are then chosen there.
+- **Its own remote door** on 127.0.0.1 (MANTRA_PORTS id `chromium-vm`): the same actions as vm-agent, so the Star,
+  Mantra Door and the phone drive it too.
+- Tailscale must be on (say so plainly if not).
 - A row in the Star, folder **Mac** (STAR_SWIFT rows.json, key `chromiumvm`), registry entries, README/TAKEOVER/LESSONS.
 
 ## Stage 3: the phone
