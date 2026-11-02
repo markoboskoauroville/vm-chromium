@@ -21,3 +21,7 @@
   (folder Mac). Verified by me: connects, picture right, VM resizes to the window (1280×798), clipboard both ways with
   Č ć ž š đ, a file through the door's send_file (same path as a drop) landed in the VM's Downloads, door answers.
   Not yet verified: Marko's hand on keys, mouse, scroll, a real drag from Finder.
+- 2.11.2026 (Mac session): **Chromium Downloads** working: vm-agent v6 journals every finished Chrome download;
+  the viewer v2 fetches them into ~/Downloads/Chromium Downloads (while it runs; catches up on open); the VM
+  copies each to Google Drive "Chromium Downloads" (rclone remote `gdrive`, scope drive.file, account
+  [address removed], Marko allowed it). Verified with two real downloads: Mac + Drive both.

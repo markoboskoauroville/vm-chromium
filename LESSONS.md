@@ -20,3 +20,9 @@
   A new chat's url changes after the first send: follow the tab by its DevTools id, not its url.
 - 2.11.2026: Stream.getStreamsToHost streams that are not scheduled on a run loop open in the background: writing
   before `.open` fails silently and Xvnc logs "reading version failed: not an RFB client". Wait for `.open`.
+- 2.11.2026: `pkill -f "<words>"` inside `ssh host '…'` kills the ssh shell itself (its command line holds the
+  words): use `pkill -x rclone`.
+- 2.11.2026: rclone 1.60 can stay after an upload is done; vm-agent gives it a deadline by size and then checks
+  Drive with lsjson (same size = done). The /json/new DevTools endpoint needs the whole url percent-encoded.
+- 2.11.2026: the Claude extension's side panel is a DevTools target (chrome-extension://fcoeoabgfenejglbffodgkkbkcdhcgfn/
+  sidepanel.html): it can be driven like a claude.ai tab.

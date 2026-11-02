@@ -15,7 +15,7 @@ HOST = CONF.get('VNC_IP', '100.102.86.30'); PORT = int(CONF.get('AGENT_PORT', '8
 TOKEN = open(os.path.expanduser('~/.config/chromium-vm/agent-token')).read().strip()
 DISPLAY = ':' + CONF.get('DISPLAY_NUM', '1'); CDP = 'http://127.0.0.1:9222'
 DOWNLOADS = os.path.expanduser('~/Downloads'); os.makedirs(DOWNLOADS, exist_ok=True)
-VERSION = 4
+VERSION = 6
 ENV = dict(os.environ, DISPLAY=DISPLAY)
 
 def run(cmd, data=None, timeout=15):
@@ -82,6 +82,88 @@ def claude_ask(text, send=True, wait=180, match='claude.ai'):
         last = s['text']
     return {'answer': last or '', 'timeout': True}
 
+# ---- Chromium Downloads: every finished download, numbered, for the Mac and for Google Drive ----------------
+# Marko, 2.11.2026: "In my Download folder ... a folder called Chromium Downloads ... everything Chromium does will
+# just land automatically. At the same time, one copy will be held in my G Drive ... the folder has the same name".
+import threading
+JOURNAL = os.path.expanduser('~/.config/chromium-vm/downloads.json')
+GDRIVE = 'gdrive:Chromium Downloads'          # rclone remote, scope drive.file, account of the Chrome profile
+jlock = threading.Lock()
+PARTIAL = ('.crdownload', '.part', '.tmp', '.download')
+
+def jload():
+    try: return json.load(open(JOURNAL))
+    except Exception: return None
+
+def jsave(j):
+    tmp = JOURNAL + '.tmp'; json.dump(j, open(tmp, 'w'), indent=1); os.replace(tmp, JOURNAL)
+
+def from_mac(name, size):
+    """A file dropped from the Mac (PUT /files): never sent back as a download."""
+    with jlock:
+        j = jload() or {'seq': 0, 'files': {}}
+        j['files'][name] = {'size': size, 'mtime': os.path.getmtime(os.path.join(DOWNLOADS, name)), 'from_mac': True}
+        jsave(j)
+
+def watch_downloads():
+    seen = {}                                   # name -> (size, mtime) at the last look: a file is done when stable
+    with jlock:
+        if jload() is None:                     # first start: what is already there is the past, not new downloads
+            jsave({'seq': 0, 'files': {n: {'size': os.path.getsize(os.path.join(DOWNLOADS, n)), 'baseline': True}
+                                       for n in os.listdir(DOWNLOADS) if os.path.isfile(os.path.join(DOWNLOADS, n))}})
+    while True:
+        time.sleep(2)
+        try:
+            names = [n for n in os.listdir(DOWNLOADS) if not n.startswith('.') and not n.endswith(PARTIAL)
+                     and os.path.isfile(os.path.join(DOWNLOADS, n))]
+            with jlock:
+                j = jload()
+                for n in names:
+                    st = os.stat(os.path.join(DOWNLOADS, n)); now = (st.st_size, st.st_mtime)
+                    old = j['files'].get(n)
+                    if old and old.get('size') == st.st_size and abs(old.get('mtime', st.st_mtime) - st.st_mtime) < 1:
+                        continue                # known and unchanged
+                    if seen.get(n) != now: seen[n] = now; continue      # still growing: look again
+                    if old and old.get('from_mac') and old.get('size') == st.st_size: continue
+                    j['seq'] += 1
+                    j['files'][n] = {'size': st.st_size, 'mtime': st.st_mtime, 'seq': j['seq'], 'gdrive': 'waiting'}
+                    jsave(j)
+            gdrive_pending()
+        except Exception as e:
+            print('watch_downloads:', e, flush=True)
+
+def gdrive_pending():
+    if not os.path.exists(os.path.expanduser('~/.config/rclone/rclone.conf')): return
+    with jlock:
+        todo = [n for n, f in (jload() or {'files': {}})['files'].items() if f.get('gdrive') in ('waiting', 'failed', 'sending')]
+    for n in todo:
+        p = os.path.join(DOWNLOADS, n)
+        if not os.path.exists(p): continue
+        with jlock:
+            j = jload(); j['files'][n]['gdrive'] = 'sending'; jsave(j)
+        # rclone 1.60 sometimes stays after the upload is done (2.11.2026): a deadline by size, then a check.
+        limit = 120 + os.path.getsize(p) // 200_000
+        try:
+            ok = subprocess.run(['rclone', 'copyto', '--contimeout', '30s', '--timeout', '120s', '--retries', '3',
+                                 p, f'{GDRIVE}/{n}'], capture_output=True, timeout=limit).returncode == 0
+        except subprocess.TimeoutExpired:
+            ok = False
+        if not ok:   # it may have landed anyway: same size on Drive counts as done
+            try:
+                ls = json.loads(subprocess.run(['rclone', 'lsjson', f'{GDRIVE}/{n}'], capture_output=True, timeout=60).stdout or b'[]')
+                ok = bool(ls) and ls[0].get('Size') == os.path.getsize(p)
+            except Exception:
+                ok = False
+        with jlock:
+            j = jload(); f = j['files'].get(n)
+            if f: f['gdrive'] = 'done' if ok else 'failed'; jsave(j)
+
+def downloads_since(seq):
+    with jlock:
+        j = jload() or {'seq': 0, 'files': {}}
+    new = sorted(({'name': n, **f} for n, f in j['files'].items() if f.get('seq', 0) > seq), key=lambda f: f['seq'])
+    return {'seq': j['seq'], 'files': new}
+
 # ---- actions ---------------------------------------------------------------------------------------------------
 ACTIONS = {
   'clip_get':  ('the VM clipboard as text', {}, lambda a: run(['xclip', '-selection', 'clipboard', '-o']).decode(errors='replace')),
@@ -97,12 +179,14 @@ ACTIONS = {
                 lambda a: base64.b64encode(run(['sh', '-c', f'xwd -root -silent | convert xwd:- -resize {int(a.get("scale", 50))}% -quality 70 jpg:-'], timeout=30)).decode()),
   'tabs':      ('Chrome tabs: title and url', {}, lambda a: [{'title': t['title'], 'url': t['url']} for t in tabs()]),
   'open':      ('opens a url in a new tab, returns its id', {'url': 'str'},
-                lambda a: json.load(urllib.request.urlopen(urllib.request.Request(CDP + '/json/new?' + urllib.parse.quote(a['url'], safe=':/?&=#'), method='PUT'), timeout=10))['id']),
+                lambda a: json.load(urllib.request.urlopen(urllib.request.Request(CDP + '/json/new?' + urllib.parse.quote(a['url'], safe=''), method='PUT'), timeout=10))['id']),
   'page_text': ('the visible text of a tab (first matching url/title, else the first tab)', {'tab': 'str', 'max': 'int'},
                 lambda a: (cdp_eval('document.body.innerText', a.get('tab')) or '')[-int(a.get('max', 20000)):]),
   'eval':      ('runs JavaScript in a tab, returns the value', {'js': 'str', 'tab': 'str'}, lambda a: cdp_eval(a['js'], a.get('tab'))),
   'claude_ask':('writes a message into the claude.ai tab, sends it, waits, returns the answer text', {'text': 'str', 'send': 'bool, default true', 'tab': 'url/title/id part, default claude.ai'},
                 lambda a: claude_ask(a['text'], a.get('send', True), int(a.get('wait', 180)), a.get('tab', 'claude.ai'))),
+  'downloads': ('finished Chrome downloads after number `since` (0 = all), with their Drive state', {'since': 'int'},
+                lambda a: downloads_since(int(a.get('since', 0)))),
   'claude_last':('the last Claude answer on a claude.ai tab', {'tab': 'str'}, lambda a: cdp_eval(CLAUDE_LAST, a.get('tab', 'claude.ai'))),
 }
 
@@ -137,7 +221,7 @@ class H(http.server.BaseHTTPRequestHandler):
             with open(p + '.part', 'wb') as f:
                 while left:
                     b = self.rfile.read(min(left, 1 << 20)); f.write(b); left -= len(b); n += len(b)
-            os.replace(p + '.part', p); self.reply(200, {'ok': True, 'result': {'path': p, 'bytes': n}})
+            os.replace(p + '.part', p); from_mac(os.path.basename(p), n); self.reply(200, {'ok': True, 'result': {'path': p, 'bytes': n}})
         except Exception as e: self.reply(400, {'ok': False, 'error': str(e)})
     def do_POST(self):
         if not self.authed(): return
@@ -152,6 +236,7 @@ class H(http.server.BaseHTTPRequestHandler):
 class S(socketserver.ThreadingMixIn, http.server.HTTPServer): daemon_threads = True
 
 if __name__ == '__main__':
+    threading.Thread(target=watch_downloads, daemon=True).start()
     for _ in range(180):   # wait for the Tailscale address at boot
         try: S((HOST, PORT), H).serve_forever()
         except OSError: time.sleep(1)

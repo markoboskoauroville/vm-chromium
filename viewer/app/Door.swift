@@ -16,6 +16,7 @@ final class Door {
         ("reconnect", "drops the VNC connection and connects again", [:]),
         ("send_file", "sends a Mac file to ~/Downloads on the VM", ["path": "str"]),
         ("push_clipboard", "puts the Mac clipboard on the VM clipboard now", [:]),
+        ("fetch_downloads", "fetches new VM downloads into ~/Downloads/Chromium Downloads now", [:]),
     ]
 
     init(app: App) {
@@ -82,6 +83,8 @@ final class Door {
         case "push_clipboard":
             app.lastPushedChange = -1; app.lastClipText = ""
             app.pushClipboard { reply(200, ["ok": true, "result": "pushed"]) }
+        case "fetch_downloads":
+            app.fetchDownloads(); reply(200, ["ok": true, "result": "fetching"])
         case "send_file":
             guard let p = args["path"] as? String, FileManager.default.fileExists(atPath: p) else {
                 return reply(400, ["ok": false, "error": "no file at that path"]) }

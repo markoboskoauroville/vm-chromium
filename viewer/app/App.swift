@@ -4,7 +4,7 @@
 // Marko, 2.11.2026: "let's build the Swift viewer for the Chromium virtual machine ... clipboard and drag-and-drop".
 import AppKit
 
-let VERSION = 1
+let VERSION = 2
 let APP_NAME = "Chromium Virtual Machine (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -25,12 +25,17 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     var lastPushedChange = NSPasteboard.general.changeCount
     var lastClipText = ""
     var door: Door?
+    var downloadsTimer: Timer?
+    var fetching = false
+    static let downloadsFolder = URL(fileURLWithPath: NSHomeDirectory() + "/Downloads/Chromium Downloads")
 
     func applicationDidFinishLaunching(_ n: Notification) {
         NSApp.setActivationPolicy(.regular)
         buildMenu()
         buildWindow()
         door = Door(app: self)
+        try? FileManager.default.createDirectory(at: App.downloadsFolder, withIntermediateDirectories: true)
+        downloadsTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in self?.fetchDownloads() }
         connect()
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -196,6 +201,34 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
             pb.clearContents(); pb.setString(text, forType: .string)
             self.lastPushedChange = pb.changeCount
             self.flash("copied on the VM: \(text.count) characters on the Mac clipboard")
+        }
+    }
+
+    // MARK: Chromium Downloads: every finished download on the VM lands in ~/Downloads/Chromium Downloads
+    // (Marko, 2.11.2026). The VM numbers them (vm-agent `downloads`); the last number fetched is kept here, so
+    // what was downloaded while this app was closed comes in when it opens.
+
+    func fetchDownloads() {
+        guard !fetching else { return }
+        fetching = true
+        let since = UserDefaults.standard.integer(forKey: "downloadsSeq")
+        agent.call("downloads", ["since": since]) { [weak self] r, _ in
+            guard let self, let r = r as? [String: Any], let files = r["files"] as? [[String: Any]], !files.isEmpty else {
+                self?.fetching = false; return }
+            var queue = files
+            func next() {
+                guard !queue.isEmpty else { self.fetching = false; return }
+                let f = queue.removeFirst()
+                guard let name = f["name"] as? String, let seq = f["seq"] as? Int else { return next() }
+                self.note.stringValue = "↓ \(name)"
+                self.agent.get(name, to: App.downloadsFolder.appendingPathComponent(name)) { err in
+                    if let err { self.flash("↓ \(name): \(err)"); self.fetching = false; return }   // tried again in 3 s
+                    UserDefaults.standard.set(seq, forKey: "downloadsSeq")
+                    self.flash("↓ \(name) → Downloads/Chromium Downloads")
+                    next()
+                }
+            }
+            next()
         }
     }
 

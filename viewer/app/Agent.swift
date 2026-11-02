@@ -44,6 +44,21 @@ final class Agent: NSObject, URLSessionTaskDelegate {
         t.resume()
     }
 
+    /// GET /files/<name>: a file of the VM's ~/Downloads into `dest` (written beside it first, then moved).
+    func get(_ name: String, to dest: URL, done: @escaping (String?) -> Void) {
+        let n = name.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? name
+        var r = request("files/" + n, method: "GET"); r.timeoutInterval = 3600
+        session.downloadTask(with: r) { tmp, resp, e in
+            guard let tmp, (resp as? HTTPURLResponse)?.statusCode == 200 else { return done(e?.localizedDescription ?? "not found on the VM") }
+            do {
+                let fm = FileManager.default
+                try fm.createDirectory(at: dest.deletingLastPathComponent(), withIntermediateDirectories: true)
+                if fm.fileExists(atPath: dest.path) { try fm.removeItem(at: dest) }
+                try fm.moveItem(at: tmp, to: dest); done(nil)
+            } catch { done(error.localizedDescription) }
+        }.resume()
+    }
+
     func urlSession(_ s: URLSession, task: URLSessionTask, didSendBodyData _: Int64, totalBytesSent sent: Int64, totalBytesExpectedToSend total: Int64) {
         if total > 0 { progress[task.taskIdentifier]?(Double(sent) / Double(total)) }
     }
