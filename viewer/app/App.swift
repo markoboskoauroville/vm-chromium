@@ -4,7 +4,7 @@
 // Marko, 2.11.2026: "let's build the Swift viewer for the Chromium virtual machine ... clipboard and drag-and-drop".
 import AppKit
 
-let VERSION = 2
+let VERSION = 3
 let APP_NAME = "Chromium Virtual Machine (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -35,7 +35,9 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         buildWindow()
         door = Door(app: self)
         try? FileManager.default.createDirectory(at: App.downloadsFolder, withIntermediateDirectories: true)
-        downloadsTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in self?.fetchDownloads() }
+        // Since 2.11.2026 downloads go to Google Drive only and are deleted from the VM; nothing comes to the Mac by
+        // itself (Marko: "don't transfer anything to my computer ... We are saving the SIM"). fetch_downloads on the
+        // door still brings them when asked.
         connect()
         NSApp.activate(ignoringOtherApps: true)
     }

@@ -15,7 +15,7 @@ HOST = CONF.get('VNC_IP', '100.102.86.30'); PORT = int(CONF.get('AGENT_PORT', '8
 TOKEN = open(os.path.expanduser('~/.config/chromium-vm/agent-token')).read().strip()
 DISPLAY = ':' + CONF.get('DISPLAY_NUM', '1'); CDP = 'http://127.0.0.1:9222'
 DOWNLOADS = os.path.expanduser('~/Downloads'); os.makedirs(DOWNLOADS, exist_ok=True)
-VERSION = 7
+VERSION = 8
 ENV = dict(os.environ, DISPLAY=DISPLAY)
 
 def run(cmd, data=None, timeout=15):
@@ -46,6 +46,32 @@ def cdp_eval(expr, match=None, await_promise=True):
     r = m.get('result', {})
     if 'exceptionDetails' in r: raise ValueError(r['exceptionDetails'].get('text', 'script error'))
     return r.get('result', {}).get('value')
+
+def cdp_call(method, params, match=None):
+    ws = websocket.create_connection(tab(match)['webSocketDebuggerUrl'], timeout=60, suppress_origin=True)
+    try:
+        ws.send(json.dumps({'id': 1, 'method': method, 'params': params}))
+        while True:
+            m = json.loads(ws.recv())
+            if m.get('id') == 1: break
+    finally:
+        ws.close()
+    if 'error' in m: raise ValueError(m['error'].get('message', 'DevTools error'))
+    return m.get('result', {})
+
+def capture(a):
+    """A screenshot of a region of a tab (CSS px), lossless PNG, saved under ~/Downloads (so it goes to Drive)."""
+    clip = {k: float(a[k]) for k in ('x', 'y', 'w', 'h')}
+    r = cdp_call('Page.captureScreenshot', {'format': 'png', 'captureBeyondViewport': True,
+                 'clip': {'x': clip['x'], 'y': clip['y'], 'width': clip['w'], 'height': clip['h'], 'scale': float(a.get('scale', 1))}},
+                 a.get('tab'))
+    rel = os.path.normpath(a['save']).lstrip('/')
+    if rel.startswith('..'): raise ValueError('save must stay inside ~/Downloads')
+    p = os.path.join(DOWNLOADS, rel); os.makedirs(os.path.dirname(p), exist_ok=True)
+    data = base64.b64decode(r['data'])
+    with open(p + '.part', 'wb') as f: f.write(data)
+    os.replace(p + '.part', p)
+    return {'path': p, 'bytes': len(data)}
 
 # claude.ai (2.11.2026): the composer is a contenteditable tiptap/ProseMirror; answers are [data-testid=assistant-message],
 # a streaming one sits in [data-is-streaming=true].
@@ -90,6 +116,7 @@ import threading
 JOURNAL = os.path.expanduser('~/.config/chromium-vm/downloads.json')
 GDRIVE = 'gdrive:Chromium Downloads'          # rclone remote, scope drive.file, account of the Chrome profile
 jlock = threading.Lock()
+STATE = {'moving': ''}     # what is moving right now (the health line will read it)
 PARTIAL = ('.crdownload', '.part', '.tmp', '.download')
 
 def jload():
@@ -115,8 +142,12 @@ def watch_downloads():
     while True:
         time.sleep(2)
         try:
-            names = [n for n in os.listdir(DOWNLOADS) if not n.startswith('.') and not n.endswith(PARTIAL)
-                     and os.path.isfile(os.path.join(DOWNLOADS, n))]
+            names = []
+            for root, dirs, files in os.walk(DOWNLOADS):
+                dirs[:] = [d for d in dirs if not d.startswith('.')]
+                for f in files:
+                    if not f.startswith('.') and not f.endswith(PARTIAL):
+                        names.append(os.path.relpath(os.path.join(root, f), DOWNLOADS))
             with jlock:
                 j = jload()
                 for n in names:
@@ -139,9 +170,13 @@ def gdrive_pending():
         todo = [n for n, f in (jload() or {'files': {}})['files'].items() if f.get('gdrive') in ('waiting', 'failed', 'sending')]
     for n in todo:
         p = os.path.join(DOWNLOADS, n)
-        if not os.path.exists(p): continue
+        if not os.path.exists(p):
+            with jlock:
+                j = jload(); j['files'][n]['gdrive'] = 'gone'; jsave(j)
+            continue
         with jlock:
             j = jload(); j['files'][n]['gdrive'] = 'sending'; jsave(j)
+        STATE['moving'] = f'→ Google Drive: {n}'
         # rclone 1.60 sometimes stays after the upload is done (2.11.2026): a deadline by size, then a check.
         limit = 120 + os.path.getsize(p) // 200_000
         try:
@@ -157,7 +192,15 @@ def gdrive_pending():
                 ok = False
         with jlock:
             j = jload(); f = j['files'].get(n)
-            if f: f['gdrive'] = 'done' if ok else 'failed'; jsave(j)
+            STATE['moving'] = ''
+            if f:
+                f['gdrive'] = 'done' if ok else 'failed'
+                if ok:   # Drive has it: gone from the VM (Marko, 2.11.2026: "transferred to the drive ... delete it")
+                    try: os.remove(p); f['deleted'] = True
+                    except OSError: pass
+                    d = os.path.dirname(p)
+                    while d != DOWNLOADS and not os.listdir(d): os.rmdir(d); d = os.path.dirname(d)
+                jsave(j)
 
 def downloads_since(seq):
     with jlock:
@@ -188,6 +231,8 @@ ACTIONS = {
                 lambda a: claude_ask(a['text'], a.get('send', True), int(a.get('wait', 180)), a.get('tab', 'claude.ai'))),
   'downloads': ('finished Chrome downloads after number `since` (0 = all), with their Drive state', {'since': 'int'},
                 lambda a: downloads_since(int(a.get('since', 0)))),
+  'capture':   ('screenshot of a tab region (CSS px x,y,w,h, scale) saved as PNG under ~/Downloads/<save>; goes to Drive', 
+                {'tab': 'str', 'x': 'num', 'y': 'num', 'w': 'num', 'h': 'num', 'scale': 'num', 'save': 'relative path'}, capture),
   'claude_last':('the last Claude answer on a claude.ai tab', {'tab': 'str'}, lambda a: cdp_eval(CLAUDE_LAST, a.get('tab', 'claude.ai'))),
 }
 
