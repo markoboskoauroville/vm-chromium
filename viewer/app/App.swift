@@ -4,7 +4,7 @@
 // Marko, 2.11.2026: "let's build the Swift viewer for the Chromium virtual machine ... clipboard and drag-and-drop".
 import AppKit
 
-let VERSION = 7
+let VERSION = 10
 let APP_NAME = "Chromium Virtual Machine (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -16,6 +16,10 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     let screen = ScreenView(frame: NSRect(x: 0, y: 0, width: 1280, height: 800))
     var overlay: SettingsOverlay!
     // the keys held for the Mac (never sent to the VM): F1 Speechify, F2 Voice to Text (Marko, 2.11.2026)
+    // F2 (Voice to Text, a Carbon hotkey) is pressed again into the Mac while the viewer suspends the hotkeys; F1
+    // (Speechify) also hears keys through its own event tap, so it already got the real press: pressing it again toggled
+    // its dictation straight off (test 2.11.2026). For F1 the viewer only keeps the key from the VM.
+    static let pressAgain: Set<UInt16> = [120]
     static var heldKeys: Set<UInt16> {
         get { Set((UserDefaults.standard.array(forKey: "heldKeys") as? [Int] ?? [122, 120]).map { UInt16($0) }) }
         set { UserDefaults.standard.set(newValue.map { Int($0) }, forKey: "heldKeys") }
@@ -115,6 +119,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         screen.heldForMac = App.heldKeys
         screen.onMacKey = { [weak self] code in self?.passToMac(code) }
         screen.onClick = { [weak self] in self?.overlay.close() }
+        screen.onTypeText = { [weak self] text in self?.typeOnVM(text) }
         screen.onDropFiles = { [weak self] in self?.upload($0) }
         screen.beforePaste = { [weak self] go in self?.pushClipboard(go) ?? go() }
         window.center()
@@ -137,6 +142,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
             overlay.refreshKeys()
             flash("F-key held for the Mac: allow \(APP_NAME) in Accessibility (PERMISSIONS)"); return
         }
+        guard App.pressAgain.contains(code) else { return }
         HotKeys.capture(false)
         let src = CGEventSource(stateID: .hidSystemState)
         for down in [true, false] {
@@ -272,6 +278,14 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
             })
         }
         next()
+    }
+
+    /// text a Mac app (Voice to Text, Speechify) wrote into the picture: on the VM's clipboard, then ⌃V there
+    func typeOnVM(_ text: String) {
+        lastClipText = text
+        // vm-agent v12 paste_text: the clipboard, then Ctrl+Shift+V into a terminal (Claude Code), Ctrl+V elsewhere
+        agent.call("paste_text", ["text": text]) { [weak self] _, err in
+            if let err { DispatchQueue.main.async { self?.flash("dictation not pasted on the VM: \(err)") } } }
     }
 
     /// the connection line in the panel; when it is bad, also the note beside the gear

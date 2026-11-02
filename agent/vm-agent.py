@@ -27,7 +27,7 @@ def cdp_open(path, method=None, timeout=5):
         except urllib.error.URLError:
             if i == len(order) - 1: raise
 DOWNLOADS = os.path.expanduser('~/Downloads'); os.makedirs(DOWNLOADS, exist_ok=True)
-VERSION = 11
+VERSION = 12
 ENV = dict(os.environ, DISPLAY=DISPLAY)
 
 def run(cmd, data=None, timeout=15):
@@ -262,6 +262,23 @@ def downloads_since(seq):
     new = sorted(({'name': n, **f} for n, f in j['files'].items() if f.get('seq', 0) > seq), key=lambda f: f['seq'])
     return {'seq': j['seq'], 'files': new}
 
+def paste_text(a):
+    """Text from the Mac's dictation (viewer v8, Marko 2.11.2026): on the clipboard, then pasted the way the window in
+    front takes it: a terminal (Claude Code) with Ctrl+Shift+V (its Ctrl+V is Claude Code's image paste), the rest Ctrl+V."""
+    t = a['text']
+    p = subprocess.Popen(['xclip', '-selection', 'clipboard'], stdin=subprocess.PIPE, env=ENV,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    p.communicate(t.encode())
+    time.sleep(0.05)
+    try:
+        wid = run(['xdotool', 'getactivewindow']).decode().strip()
+        cls = run(['xprop', '-id', wid, 'WM_CLASS']).decode().lower()
+    except Exception:
+        cls = ''
+    keys = 'ctrl+shift+v' if ('terminal' in cls or 'xterm' in cls) else 'ctrl+v'
+    run(['xdotool', 'key', '--clearmodifiers', keys])
+    return {'keys': keys, 'chars': len(t)}
+
 # ---- actions ---------------------------------------------------------------------------------------------------
 ACTIONS = {
   'clip_get':  ('the VM clipboard as text', {}, lambda a: run(['xclip', '-selection', 'clipboard', '-o']).decode(errors='replace')),
@@ -270,6 +287,7 @@ ACTIONS = {
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).communicate(a['text'].encode()), 'ok')[1]),
   'type':      ('types text into the focused window', {'text': 'str'},
                 lambda a: (run(['xdotool', 'type', '--delay', '12', '--file', '-'], a['text'].encode(), 120), len(a['text']))[1]),
+  'paste_text':('puts text on the clipboard and pastes it into the window in front (terminal: Ctrl+Shift+V)', {'text': 'str'}, paste_text),
   'key':       ('presses keys, xdotool names: Return, ctrl+v, ctrl+l', {'keys': 'str'},
                 lambda a: (run(['xdotool', 'key'] + a['keys'].split()), 'ok')[1]),
   'ls':        ('files in ~/Downloads on the VM', {}, lambda a: sorted(os.listdir(DOWNLOADS))),

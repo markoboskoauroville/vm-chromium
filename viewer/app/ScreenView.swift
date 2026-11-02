@@ -11,6 +11,45 @@ final class ScreenView: NSView {
     var onMacKey: ((UInt16) -> Void)?                       // one of them was pressed: hand it to the Mac
     var onClick: (() -> Void)?                              // a click on the picture (closes the settings panel)
     static let ownMark: Int64 = 0x4D414E54                  // "MANT": a key this app pressed into the Mac itself
+    var onTypeText: ((String) -> Void)?                     // text a Mac app wrote into this view: paste it on the VM
+    private var typed = ""                                  // what Mac apps wrote here (read back by them as the value)
+
+    // MARK: a text area for the Mac's dictation (v8, Marko 2.11.2026: "Text simply does not arrive"). Voice to Text and
+    // Speechify write into the focused text field through Accessibility (AXSelectedText) and read the value back; a
+    // plain view is no field, so they wrote nowhere. The picture now says it is a text area: what is written here goes
+    // to the VM's clipboard and is pasted where the VM's cursor is.
+    override func isAccessibilityElement() -> Bool { true }
+    override func accessibilityRole() -> NSAccessibility.Role? { .textArea }
+    override func accessibilityRoleDescription() -> String? { "text area" }
+    override func accessibilityLabel() -> String? { "Chromium VM screen" }
+    override func isAccessibilityFocused() -> Bool { window?.firstResponder === self }
+    override func accessibilityValue() -> Any? { typed }
+    override func setAccessibilityValue(_ v: Any?) {
+        guard let new = v as? String else { return }
+        let add = new.hasPrefix(typed) ? String(new.dropFirst(typed.count)) : new
+        typed = new; if !add.isEmpty { onTypeText?(add) }
+    }
+    override func accessibilitySelectedText() -> String? { "" }
+    override func setAccessibilitySelectedText(_ t: String?) {
+        guard let t, !t.isEmpty else { return }
+        typed += t; if typed.count > 4000 { typed = String(typed.suffix(2000)) }
+        onTypeText?(t)
+    }
+    override func accessibilitySelectedTextRange() -> NSRange { NSRange(location: typed.utf16.count, length: 0) }
+    override func accessibilityNumberOfCharacters() -> Int { typed.utf16.count }
+    override func isAccessibilitySelectorAllowed(_ s: Selector) -> Bool {
+        if s == NSSelectorFromString("setAccessibilitySelectedText:") || s == NSSelectorFromString("setAccessibilityValue:") { return true }
+        return super.isAccessibilitySelectorAllowed(s)
+    }
+
+    /// ⌃V on the VM (⌘ is Ctrl there), whatever modifiers are held on the Mac
+    func pasteOnVM() {
+        let held = mods
+        for k in held { rfb?.key(k, down: false) }
+        rfb?.key(ScreenView.ctrl, down: true); rfb?.key(0x76, down: true)
+        rfb?.key(0x76, down: false); rfb?.key(ScreenView.ctrl, down: false)
+        for k in held { rfb?.key(k, down: true) }
+    }
     private var buttons: UInt8 = 0
     private var downKeys: [UInt16: UInt32] = [:]
     private var mods: Set<UInt32> = []
@@ -119,6 +158,13 @@ final class ScreenView: NSView {
         if heldForMac.contains(e.keyCode) {
             if !e.isARepeat && e.cgEvent?.getIntegerValueField(.eventSourceUserData) != ScreenView.ownMark { onMacKey?(e.keyCode) }
             return
+        }
+        // ⌘V with text on the Mac clipboard (v9): the text itself goes to the VM and is pasted the way the window in front
+        // takes it (vm-agent paste_text). Read now: Speechify and Voice to Text put the old clipboard back right after
+        // their ⌘V, and their ⌘V comes without a ⌘ flagsChanged, so a forwarded key arrived as a bare "v" (test 2.11.2026).
+        if e.modifierFlags.contains(.command) && e.keyCode == 9 && !e.isARepeat,
+           let text = NSPasteboard.general.string(forType: .string), !text.isEmpty, let onTypeText {
+            onTypeText(text); return
         }
         guard let ks = keysym(e) else { return }
         let f = e.modifierFlags

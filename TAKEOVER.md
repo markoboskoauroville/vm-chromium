@@ -101,3 +101,12 @@
   its power button (the status bar keeps its last 26 px free: GEAR in chromium-vm-statusbar.py); the panel opens above
   it; per key a choice F1 Speechify MAC | VM, F2 Voice to Text MAC | VM; notes and PERMISSIONS in a pill above the gear.
   Accessibility granted by Marko 21:11. Not yet tried by hand: dictating with F1/F2 into the VM, the panel, reboot.
+- 2.11.2026 (~20:20 CT): **viewer v10 + vm-agent v12**, Marko: "Text simply does not arrive. Please test it yourself."
+  Three causes, all fixed and tested end to end by Claude (BlackHole input + say, scratch xfce4-terminal on the VM):
+  (1) the picture was no text field, so Voice to Text's Accessibility insert landed nowhere → ScreenView is an AXTextArea
+  whose AXSelectedText/AXValue writes go to the VM; (2) F1: Speechify also has an event tap and got the real press, so
+  re-pressing toggled it off → only F2 (Voice to Text, Carbon hotkey) is pressed again (App.pressAgain); (3) a program's
+  ⌘V comes without a ⌘ flagsChanged and arrived as a bare "v"; the terminal pastes on Ctrl+Shift+V → ⌘V with text takes
+  the Mac clipboard at once and calls vm-agent `paste_text` (clipboard, then Ctrl+Shift+V into a terminal, Ctrl+V else).
+  Results: F2 "Voice to text writes into the terminal." and Chrome's address bar; F1 pasted what Speechify heard on its
+  own microphone. Speechify ignores the system input (it records its own chosen mic).
