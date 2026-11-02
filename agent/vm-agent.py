@@ -73,6 +73,17 @@ def capture(a):
     os.replace(p + '.part', p)
     return {'path': p, 'bytes': len(data)}
 
+def vm_status():
+    growing = []
+    for root, dirs, files in os.walk(DOWNLOADS):
+        for f in files:
+            if f.endswith('.crdownload'):
+                growing.append({'name': f[:-len('.crdownload')], 'bytes': os.path.getsize(os.path.join(root, f))})
+    with jlock:
+        j = jload() or {'files': {}}
+    queue = sum(1 for f in j['files'].values() if f.get('gdrive') in ('waiting', 'failed', 'sending'))
+    return {'moving': STATE.get('moving', ''), 'downloading': growing, 'drive_queue': queue}
+
 # claude.ai (2.11.2026): the composer is a contenteditable tiptap/ProseMirror; answers are [data-testid=assistant-message],
 # a streaming one sits in [data-is-streaming=true].
 CLAUDE_JS = r'''
@@ -231,6 +242,8 @@ ACTIONS = {
                 lambda a: claude_ask(a['text'], a.get('send', True), int(a.get('wait', 180)), a.get('tab', 'claude.ai'))),
   'downloads': ('finished Chrome downloads after number `since` (0 = all), with their Drive state', {'since': 'int'},
                 lambda a: downloads_since(int(a.get('since', 0)))),
+  'status':    ('what is moving now: Chrome downloads in progress, the Drive copy, the Drive queue', {},
+                lambda a: vm_status()),
   'capture':   ('screenshot of a tab region (CSS px x,y,w,h, scale) saved as PNG under ~/Downloads/<save>; goes to Drive', 
                 {'tab': 'str', 'x': 'num', 'y': 'num', 'w': 'num', 'h': 'num', 'scale': 'num', 'save': 'relative path'}, capture),
   'claude_last':('the last Claude answer on a claude.ai tab', {'tab': 'str'}, lambda a: cdp_eval(CLAUDE_LAST, a.get('tab', 'claude.ai'))),

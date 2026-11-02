@@ -53,3 +53,5 @@ Go and hammer my Gemini account. Let's generate images until it says that it's d
 
 ## 2.11.2026, Marko (the health line: where and how)
 "I want the status bar to be at the bottom of the virtual machine, not at the top as you suggested. Make it transparent at the bottom with a hard shadow so I can see the letters"
+"make it colorful. Let the colors speak"
+"please change the font of this status line. Make it a terminal font. Also, make everything orange and white. The variable name is orange and the variable itself is white. Vice versa: white is the variable name, and orange is the variable itself. What's annoying is that when numbers are running, everything is shifting. Every variable and every number should have a fixed place, so it's not taking my attention. Also, in Disk, there are no more disks now. We have SSDs, so name it SSD"
