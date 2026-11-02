@@ -106,3 +106,6 @@ Then: "only one keyboard shortcut, and that's Command-Tab. That's only one for s
 
 **Request (2.11.2026, ~18:45 CT).** Marko: "also, for our app Chromium virtual machine, make the whole top part, which is not part of the virtual machine, like the title. The full-screen, reconnect on/off disappears when I put the mouse at the top, then it comes back, but otherwise it's after hiding"
 **Status:** saved first.
+
+**Request (2.11.2026, ~18:55 CT).** Marko: "I will never log in. I need to jump between applications, and this is so difficult in this environment. Can you build in some window manager so I can have parallel windows? I have a rectangle on my computer. Can you build it here so I can just press some shortcuts, and then the windows are jumping around rising because now it's very difficult"
+**Status:** saved first; passed to the agent building the VM desktop (dock + Cmd-Tab).
