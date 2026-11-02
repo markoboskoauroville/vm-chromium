@@ -109,7 +109,7 @@ def log(s):
     line = time.strftime('%H:%M:%S ') + s
     print(line, flush=True); open(LOG, 'a').write(line + '\n')
 
-NEWEST = '''(() => { const im = [...document.querySelectorAll('model-response img')].filter(i => i.naturalWidth >= 700 && i.complete
+NEWEST = '''(() => { const im = [...document.querySelectorAll('generated-image img, model-response img')].filter(i => i.naturalWidth >= 700 && i.complete
   && i.closest('generated-image') && !i.closest('[data-chromium-vm-overlay]'));
   const t = document.body.innerText.toLowerCase();
   return {n: im.length, w: im.length ? im[im.length-1].naturalWidth : 0, h: im.length ? im[im.length-1].naturalHeight : 0,
@@ -140,7 +140,7 @@ def one(tab, name, scene):
         return 'timeout'
     time.sleep(2); st = ev(NEWEST, tab); w, h = st['w'], st['h']
     # the picture alone, top-left, at its natural size (1 image pixel = 1 screen pixel), on black
-    ev(f'''(() => {{ const im = [...document.querySelectorAll('model-response img')].filter(i => i.naturalWidth >= 700 && i.complete);
+    ev(f'''(() => {{ const im = [...document.querySelectorAll('generated-image img, model-response img')].filter(i => i.naturalWidth >= 700 && i.complete);
         const src = im[im.length-1]; const d = document.createElement('div'); d.dataset.chromiumVmOverlay = 1;
         d.style.cssText = 'position:fixed;left:0;top:0;width:{w}px;height:{h}px;z-index:2147483647;background:#000';
         const c = src.cloneNode(); c.removeAttribute('srcset');

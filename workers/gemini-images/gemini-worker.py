@@ -80,7 +80,7 @@ def gemini_tab(account):
         call('cdp', method='Target.closeTarget', params={'targetId': tid}, tab='browser')
     raise RuntimeError(f'no Chrome profile signed in to Gemini as {account}')
 
-NEWEST = '''(() => { const im = [...document.querySelectorAll('model-response img')].filter(i => i.naturalWidth >= 700 && i.complete);
+NEWEST = '''(() => { const im = [...document.querySelectorAll('generated-image img, model-response img')].filter(i => i.naturalWidth >= 700 && i.complete);
   const t = document.body.innerText.toLowerCase();
   return {n: im.length, w: im.length ? im[im.length-1].naturalWidth : 0, h: im.length ? im[im.length-1].naturalHeight : 0,
           busy: !!document.querySelector('[aria-label="Stop response"]'), tail: t.slice(0, 30000)}; })()'''   # the whole page text: the limit notice sits above the box
@@ -124,7 +124,7 @@ def one(tab, batch, item, refs):
     else:
         return 'timeout', st
     time.sleep(2); st = ev(NEWEST, tab); w, h = st['w'], st['h']
-    ev(f'''(() => {{ const im = [...document.querySelectorAll('model-response img')].filter(i => i.naturalWidth >= 700 && i.complete);
+    ev(f'''(() => {{ const im = [...document.querySelectorAll('generated-image img, model-response img')].filter(i => i.naturalWidth >= 700 && i.complete);
         const d = document.createElement('div'); d.dataset.chromiumVmOverlay = 1;
         d.style.cssText = 'position:fixed;left:0;top:0;width:{w}px;height:{h}px;z-index:2147483647;background:#000';
         const c = im[im.length-1].cloneNode(); c.removeAttribute('srcset');
