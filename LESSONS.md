@@ -18,3 +18,5 @@
   `[data-testid=assistant-message]` with the text in `.prose`, streaming flag `[data-is-streaming=true]`,
   send `button[aria-label="Send message"]`. insertText through execCommand works on the composer.
   A new chat's url changes after the first send: follow the tab by its DevTools id, not its url.
+- 2.11.2026: Stream.getStreamsToHost streams that are not scheduled on a run loop open in the background: writing
+  before `.open` fails silently and Xvnc logs "reading version failed: not an RFB client". Wait for `.open`.

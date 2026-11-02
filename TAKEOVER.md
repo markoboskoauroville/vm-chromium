@@ -17,3 +17,7 @@
   ~/.config/chromium-vm-chrome (DevTools needs a non-default folder); ~/.config/google-chrome and ~/.config/chromium
   are the old copies. Next: the Swift viewer (2b) using the same agent (clipboard, drag and drop), then Stage 3.
   The Claude *extension* (side panel) is not driven yet; only claude.ai tabs.
+- 2.11.2026 (Mac session): **Chromium Virtual Machine (Mantra) v1** built (viewer/), in /Applications and the Star
+  (folder Mac). Verified by me: connects, picture right, VM resizes to the window (1280×798), clipboard both ways with
+  Č ć ž š đ, a file through the door's send_file (same path as a drop) landed in the VM's Downloads, door answers.
+  Not yet verified: Marko's hand on keys, mouse, scroll, a real drag from Finder.
