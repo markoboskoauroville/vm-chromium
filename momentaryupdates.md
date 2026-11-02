@@ -6,3 +6,6 @@
 
 ## 2.11.2026, Marko (to this session, after the safety check blocked sudo setup.sh on the VM)
 "YES AND ADD PERMANENT PERMISSION"
+
+## 2.11.2026, Marko
+"Let's do it with Mac screen sharing. I want to test this Chrome."
