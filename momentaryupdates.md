@@ -99,3 +99,5 @@ All requests above done except: AutoplayAllowed needs one Chrome restart (asked,
 
 **Request (2.11.2026, ~18:30 CT, Mac session "MPA-ACADEMY").** Marko: "I have a better idea. Install Claude Code in a virtual machine, and then talk with that one to do work there. Same as I have here in the terminal. It can be in a virtual machine. Let's do that"
 **Status:** saved first.
+**Status:** Claude Code 2.1.316 installed on chromium-vm (native installer, ~/.local/bin/claude), tmux installed.
+Then (the VM DOCK): "build me some doc[k], same as doc[k] on the macOS. I can switch between terminal and Chrome for now. So I can see this Chrome Google C[laude] Code." / "very simply, when I hover down, it jumps as a dock on the macOS" / "only two. You can imagine that screens. They're not icons. They are screens. There is a screen of C[laude] Code, which I can click, and there is a screen of Google Chrome, which I can click" / "NOT DOC DOK DOCK DOCK"
