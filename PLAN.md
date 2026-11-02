@@ -39,6 +39,13 @@ phone (its ENTER on CHROMIUM-VM).
   MANTRA_REMOTE is the model) with full screen (⌘F) and ✕; Tailscale must be on (say so if not).
   If a first working step is wanted the same day: v1 may open macOS Screen Sharing at vnc://100.102.86.30:5901 while
   the own viewer is built, said plainly.
+- **Free copy and paste between the Mac and the VM (feature request, Marko, 2.11.2026).** Apple's Screen Sharing
+  greys out Use Shared Clipboard / Get / Send Clipboard against a Linux VNC server, so the own viewer must do it:
+  Mac → VM: on every Mac clipboard change (NSPasteboard changeCount) send RFB ClientCutText; VM → Mac: on
+  ServerCutText put the text on NSPasteboard. Xvnc 1.13 already syncs CLIPBOARD and PRIMARY (SendCutText,
+  AcceptCutText, SetPrimary on by default). UTF-8 via the Extended Clipboard pseudo-encoding (0xC0A1E5CE),
+  Latin-1 fallback. Test: copy on the Mac, Ctrl+V in Chromium; Ctrl+C in Chromium, ⌘V on the Mac.
+  Until then: `vmpaste` (Mac clipboard typed into the VM's focused field) and `vmcopy` (VM clipboard → Mac).
 - A row in the Star, folder **Mac** (STAR_SWIFT rows.json, key `chromiumvm`), registry entries, README/TAKEOVER/LESSONS.
 
 ## Stage 3: the phone
