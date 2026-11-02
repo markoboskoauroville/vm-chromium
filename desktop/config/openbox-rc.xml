@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- chromium-vm: openbox (2.11.2026). Marko: windows side by side, snapped with Rectangle's keys; every window opens
      maximized, no title bars; Command-Tab (Super+Tab, bound by the dock) is the only switching key: openbox binds no
-     Alt+Tab and no other key than the Rectangle set below. The bottom 22 px are the status bar's (margin). -->
+     Alt+Tab and no other key than the Rectangle set below. The status bar floats over the bottom-right corner, only as wide as its text (2.11.2026); no margin. -->
 <openbox_config xmlns="http://openbox.org/3.4/rc">
   <resistance><strength>0</strength><screen_edge_strength>0</screen_edge_strength></resistance>
   <focus><focusNew>yes</focusNew><followMouse>no</followMouse></focus>
   <placement><policy>Smart</policy><center>yes</center></placement>
   <theme><name>Clearlooks</name><keepBorder>no</keepBorder><animateIconify>no</animateIconify></theme>
   <desktops><number>1</number></desktops>
-  <margins><top>0</top><bottom>22</bottom><left>0</left><right>0</right></margins>
+  <margins><top>0</top><bottom>0</bottom><left>0</left><right>0</right></margins>
   <keyboard>
     <keybind key="C-A-Left"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap left</command></action></keybind>  <!-- Left half -->
     <keybind key="C-A-Right"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap right</command></action></keybind>  <!-- Right half -->

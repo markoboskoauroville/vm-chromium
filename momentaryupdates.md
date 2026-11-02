@@ -113,3 +113,6 @@ Then: "I managed to install Claude Code. Now it's there, and you can use it to d
 
 **Request (2.11.2026, ~18:32 CT).** Marko: "virtual machine window layout: remove thirds, and instead of thirds, give me two layouts which contain Claude and Chrome"
 **Status:** saved first.
+
+**Request (2.11.2026, ~18:45 CT).** Marko: "please, in the virtual machine, limit the background and clicking area to status down 2.1, exactly how long the text is, not more" (the status bar at the bottom: its band and click area only as wide as its text)
+**Status:** saved first.

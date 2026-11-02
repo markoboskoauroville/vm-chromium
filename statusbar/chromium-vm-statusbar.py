@@ -189,17 +189,28 @@ class Bar(Gtk.Window):
         else:
             Settings(self).show_all()
 
+    # Marko, 2.11.2026: "limit the background and clicking area ... exactly how long the text is, not more": the bar is
+    # only as wide as its text, in the bottom-right corner; the rest of the bottom edge belongs to the windows
+    def text_width(self):
+        cr = cairo.Context(cairo.ImageSurface(cairo.FORMAT_ARGB32, 1, 1))
+        cr.select_font_face('DejaVu Sans Mono', cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+        cr.set_font_size(self.conf['size'])
+        now = sum(cr.text_extents(t).x_advance for t, c in self.seg if c == 'now')
+        status = sum(cr.text_extents(t).x_advance for t, c in self.seg if c != 'now')
+        return int(10 + now + (24 if now else 0) + status + 10)
+
     def place(self):
-        sc = Gdk.Screen.get_default(); w, h = sc.get_width(), sc.get_height()
-        self.move(0, h - self.conf['height']); self.resize(w, self.conf['height'])
+        sc = Gdk.Screen.get_default(); sw, sh = sc.get_width(), sc.get_height()
+        w = min(sw, max(40, self.text_width())); self.bx = sw - w
+        self.move(self.bx, sh - self.conf['height']); self.resize(w, self.conf['height'])
 
     def tick(self):
         sc = Gdk.Screen.get_default()
-        if self.get_size() != (sc.get_width(), self.conf['height']): self.place()
         try:
             self.seg = segments(self.readings.read(), self.conf['show'])
         except Exception as e:
             self.seg = [(f'status bar: {e}', 'value')]
+        if self.get_size() != (min(sc.get_width(), max(40, self.text_width())), self.conf['height']): self.place()
         self.reshape(); self.queue_draw()
         if self.get_window(): self.get_window().raise_()      # stay above Chrome
         return True
@@ -253,7 +264,7 @@ class Bar(Gtk.Window):
         if under is not None:
             try:
                 sh = Gdk.Screen.get_default().get_height()
-                pb = Gdk.pixbuf_get_from_window(under, 0, sh - h, w, h)
+                pb = Gdk.pixbuf_get_from_window(under, getattr(self, 'bx', 0), sh - h, w, h)
             except Exception:
                 pb = None
         if pb is not None:
