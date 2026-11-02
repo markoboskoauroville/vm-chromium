@@ -1,0 +1,14 @@
+[Unit]
+Description=chromium-vm worker: Gemini images from the batch on Google Drive, on its own, at Gemini's pace
+After=chromium-vm-agent.service chromium-vm-session.service
+Wants=chromium-vm-agent.service
+
+[Service]
+Type=simple
+User=@VM_USER@
+ExecStart=/usr/bin/python3 /usr/local/lib/chromium-vm/workers/gemini-worker.py
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target

@@ -88,3 +88,5 @@ Context: two Gemini jobs ran in parallel on chromium-vm (life story on [address 
 
 ## 2.11.2026, Marko (the worker on the VM)
 "Yes, please continue automatically. But actually, I don't want you to be connected. Create an extension or no, create Chrome which is going to run it for you and you are going to be disconnected. Let's test this. So make the whole script with all the prompts what needs to be attached. You need to prepare in the Google Drive, prepare everything, the whole batch of tasks, and then make a worker inside my virtual environment which is going to do it exactly at that time and run it. And then next time when I run you, you're going to check the results."
+"or even better, instead of checking results, write results in the— automatically in the same folder where the pictures are in text file"
+"so let's start our adventure in creating different workers for our virtual environment"

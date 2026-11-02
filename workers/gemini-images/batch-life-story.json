@@ -1,0 +1,1096 @@
+{
+ "name": "life-story",
+ "account": "[address removed]",
+ "folder": "Gemini/life-story",
+ "who": "The man in every scene is the man in the two attached reference photos: Marko, slim, completely bald head, clean-shaven, sometimes glasses; keep his face exactly as in the photos. He likes loose Indian kurta shirts in white, magenta or orange. Only one person looks like him; others are different people.",
+ "style": "Photorealistic cinematic photograph, natural light, landscape 16:9, rich warm colours, shallow depth of field, no text, no logos.",
+ "refs": "Gemini/_batch/refs",
+ "refs_per_image": 2,
+ "pause_seconds": [
+  60,
+  150
+ ],
+ "items": [
+  {
+   "name": "31-singing-bowls",
+   "scene": "Marko in an orange kurta sits cross-legged playing large brass singing bowls in a bright room with Tibetan paintings, eyes half closed, sound healing."
+  },
+  {
+   "name": "32-candle-dj",
+   "scene": "Marko in a white linen kurta plays a DJ set at a mixer surrounded by many candles in an old stone room with arched windows, eyes closed, deep in the music."
+  },
+  {
+   "name": "33-matrimandir-white",
+   "scene": "Marko dressed all in white sits in meditation on the grass in front of the huge golden sphere of the Matrimandir in Auroville, morning light."
+  },
+  {
+   "name": "34-frame-drum-dark",
+   "scene": "Marko in black plays a big frame drum in a dim wooden room, warm lamp light on the drum skin, concentrated."
+  },
+  {
+   "name": "35-yoga-class",
+   "scene": "Marko teaches a calm yoga class in a bright hall with big windows onto a garden, students on mats, gentle morning light."
+  },
+  {
+   "name": "36-white-shawl",
+   "scene": "Marko wrapped in a white shawl sits in meditation on a veranda at dawn, green garden behind, peaceful."
+  },
+  {
+   "name": "37-ecstatic-dance-croatia",
+   "scene": "An ecstatic dance gathering on the Croatian coast at sunset, people dancing barefoot on a wooden deck by the sea, Marko as the DJ with headphones, joyful."
+  },
+  {
+   "name": "38-kirtan-hall-of-light",
+   "scene": "A kirtan evening in a hall with warm lights: Marko sings and plays harmonium, a woman sings beside him, people sit on cushions and sing along."
+  },
+  {
+   "name": "39-dome-acrobatics",
+   "scene": "Marko balances standing on top of a geodesic dome climbing frame against a deep blue sky, arms open, playful and strong."
+  },
+  {
+   "name": "40-headstand",
+   "scene": "Marko holds a perfect yoga headstand in a quiet room with a warm wall lamp, calm and focused."
+  },
+  {
+   "name": "41-macro-photographer",
+   "scene": "Marko lies on the ground in a tropical garden photographing a small lizard with a macro lens, flowers around him, soft green light."
+  },
+  {
+   "name": "42-night-sky-palms",
+   "scene": "Marko stands with a camera on a tripod under a deep blue night sky full of stars, silhouettes of palm trees, Auroville at night."
+  },
+  {
+   "name": "43-filming-matrimandir",
+   "scene": "Marko films with a cinema camera on a tripod near the golden disks of the Matrimandir, black and white mood, concentrated."
+  },
+  {
+   "name": "44-djembe-lake",
+   "scene": "Marko and a friend play djembe drums together on the shore of a calm lake at dusk, reflections on the water."
+  },
+  {
+   "name": "45-fire-ceremony",
+   "scene": "A night fire ceremony: a big bonfire in a circle of people, Marko playing frame drum, sparks rising, warm faces."
+  },
+  {
+   "name": "46-tea-ceremony",
+   "scene": "Marko pours tea in a slow tea ceremony at a low wooden table with small bowls, morning sun, serene."
+  },
+  {
+   "name": "47-live-stream",
+   "scene": "Marko in an orange shirt works at a laptop with headphones streaming a live music session, a friend smiling beside him, red table, cables and routers."
+  },
+  {
+   "name": "48-winter-forest",
+   "scene": "Marko walks in a snowy forest in Croatia in winter, warm jacket, low sun between the trees, quiet."
+  },
+  {
+   "name": "49-dance-of-the-soul",
+   "scene": "Marko plays a DJ set as DJ Mantra at a sunset festival on the sea in Zadar, Croatia, dancers in flowing clothes, golden light on the water."
+  },
+  {
+   "name": "50-moon-lake-meditation",
+   "scene": "Marko meditates on a rock by a mountain lake under a big full moon rising, blue night, stillness."
+  },
+  {
+   "name": "51-rhythm-awareness",
+   "scene": "Marko teaches a rhythm awareness class: people in a circle clapping and stepping, frame drums on the floor, bright studio."
+  },
+  {
+   "name": "52-temple-sunset",
+   "scene": "Marko sits on the steps of a small white South Indian temple at sunset, sky orange and blue, contemplative."
+  },
+  {
+   "name": "53-cat-nap",
+   "scene": "Marko reads on a sofa while an orange cat sleeps on his lap, afternoon light through a curtain, cosy."
+  },
+  {
+   "name": "54-sound-bath-festival",
+   "scene": "A sound bath at a festival tent: people lying on mats, Marko playing gong and singing bowls, colourful fabrics, evening light."
+  },
+  {
+   "name": "01-adriatic-boy",
+   "scene": "Marko as a boy of about seven (a child version of the man in the photos) sits on the stone shore of the Adriatic sea in Rijeka, Croatia, in the 1980s, tapping a small round hand drum, the Kvarner bay and the mountains behind him, late afternoon."
+  },
+  {
+   "name": "02-courtyard-teen",
+   "scene": "Marko as a teenager (a young version of the man in the photos) plays a hand drum in an old stone courtyard of a Croatian coastal town, friends listening on the steps, 1990s summer evening."
+  },
+  {
+   "name": "03-young-dj",
+   "scene": "A young man in his twenties DJs with vinyl records in a crowded club in the late 1990s, headphones on one ear, lights in smoke, joy on his face."
+  },
+  {
+   "name": "04-home-studio",
+   "scene": "A young music producer in a small home studio full of synthesizers and a mixing desk at night, a frame drum hanging on the wall."
+  },
+  {
+   "name": "05-train-to-india",
+   "scene": "A European man in his thirties with a backpack looks out of an open Indian train window at green rice fields and palm trees, golden morning light."
+  },
+  {
+   "name": "06-auroville-arrival",
+   "scene": "A man arrives on a red earth road in Auroville, South India, at sunrise, the golden sphere of the Matrimandir far away between tall trees."
+  },
+  {
+   "name": "07-sunrise-yoga",
+   "scene": "A man practises yoga at sunrise on a mat on red earth in a tropical garden in Auroville, a deep forward bend, mist and birds."
+  },
+  {
+   "name": "08-banyan-yoga",
+   "scene": "A man holds a calm yoga balance pose under a huge banyan tree with hanging roots, soft green light, peaceful."
+  },
+  {
+   "name": "09-learning-daf",
+   "scene": "A man learns the frame drum from an older master teacher, both sitting cross-legged on a carpet in a sunlit courtyard, the teacher showing the hand position."
+  },
+  {
+   "name": "10-hands-on-the-drum",
+   "scene": "Close-up of a man's hands playing a large frame drum with metal rings inside the frame, motion in the fingers, warm side light."
+  },
+  {
+   "name": "11-drum-circle-fire",
+   "scene": "A circle of people playing frame drums around a fire at night under the stars in a tropical clearing, faces lit orange."
+  },
+  {
+   "name": "12-kirtan-night",
+   "scene": "A kirtan band at night: a man playing frame drum, a woman at a harmonium, people singing with closed eyes, candles and flowers on the floor."
+  },
+  {
+   "name": "13-sound-healing",
+   "scene": "A sound healing session: a man walks slowly between people lying on yoga mats, playing a frame drum softly, evening light through bamboo walls."
+  },
+  {
+   "name": "14-recording-drums",
+   "scene": "A man records a frame drum in front of a studio microphone, headphones on, eyes closed, the mixing screen glowing in the background."
+  },
+  {
+   "name": "15-teaching-online",
+   "scene": "A man teaches frame drumming online from his veranda, a laptop camera in front of him showing a grid of students, a drum in his hands, tropical plants behind."
+  },
+  {
+   "name": "16-filmmaker",
+   "scene": "A man films barefoot dancers on a red earth field in Auroville with a small cinema camera on a gimbal, golden hour."
+  },
+  {
+   "name": "17-ecstatic-dance",
+   "scene": "A DJ plays for an outdoor ecstatic dance at sunset under a big tree, dancers moving freely in colourful clothes, a frame drum beside the decks."
+  },
+  {
+   "name": "18-building-apps",
+   "scene": "A man works late at night on a laptop full of code on a wooden table, a cup of chai, a frame drum leaning against the wall, a lamp and a gecko on the wall."
+  },
+  {
+   "name": "19-monsoon-veranda",
+   "scene": "A man sits on a veranda during monsoon rain in South India, laptop closed, a frame drum on his lap, watching the rain, contented."
+  },
+  {
+   "name": "20-garden-meditation",
+   "scene": "A man meditates cross-legged in a quiet garden of an Indian township, the golden sphere of the Matrimandir reflected in a pond behind him, early morning."
+  },
+  {
+   "name": "21-forest-bicycle",
+   "scene": "A man rides an old bicycle on a red earth path through a green forest in Auroville, a frame drum in a bag on his back, dappled light."
+  },
+  {
+   "name": "22-making-a-drum",
+   "scene": "A man makes a frame drum by hand, stretching a natural skin over a round wooden frame in a workshop, tools and drums around him."
+  },
+  {
+   "name": "23-concert-stage",
+   "scene": "A man plays a frame drum on a small stage in a warmly lit concert hall, the audience in the dark, one spotlight, dust in the light."
+  },
+  {
+   "name": "24-children-workshop",
+   "scene": "A man leads a drumming workshop for laughing children sitting in a circle with small frame drums in an open-air school in India."
+  },
+  {
+   "name": "25-night-of-mantras",
+   "scene": "A night of mantras: a small group chants with a frame drum among dozens of oil lamps on a stone floor, deep blue night outside."
+  },
+  {
+   "name": "26-ganges-dawn",
+   "scene": "A man meditates at dawn on the stone steps of the Ganges in Rishikesh, mist on the river, a frame drum beside him, temple bells far away."
+  },
+  {
+   "name": "27-kvarner-sunset",
+   "scene": "A man in his fifties plays a frame drum on a pebble beach on the Kvarner coast of Croatia at sunset, islands on the horizon."
+  },
+  {
+   "name": "28-passing-it-on",
+   "scene": "An older man with grey hair teaches young drummers to play frame drums in a stone courtyard, all smiling, afternoon light."
+  },
+  {
+   "name": "29-three-worlds",
+   "scene": "Still life on a wooden floor: a yoga mat rolled out, a large frame drum, an open laptop and a mala of beads, morning light through a window."
+  },
+  {
+   "name": "30-rooftop-stars",
+   "scene": "A man plays a frame drum on a flat rooftop under a sky full of stars and the Milky Way, a small lamp beside him, warm night."
+  },
+  {
+   "name": "31-singing-bowls-v2",
+   "scene": "Marko in an orange kurta sits cross-legged playing large brass singing bowls in a bright room with Tibetan paintings, eyes half closed, sound healing. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "32-candle-dj-v2",
+   "scene": "Marko in a white linen kurta plays a DJ set at a mixer surrounded by many candles in an old stone room with arched windows, eyes closed, deep in the music. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "33-matrimandir-white-v2",
+   "scene": "Marko dressed all in white sits in meditation on the grass in front of the huge golden sphere of the Matrimandir in Auroville, morning light. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "34-frame-drum-dark-v2",
+   "scene": "Marko in black plays a big frame drum in a dim wooden room, warm lamp light on the drum skin, concentrated. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "35-yoga-class-v2",
+   "scene": "Marko teaches a calm yoga class in a bright hall with big windows onto a garden, students on mats, gentle morning light. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "36-white-shawl-v2",
+   "scene": "Marko wrapped in a white shawl sits in meditation on a veranda at dawn, green garden behind, peaceful. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "37-ecstatic-dance-croatia-v2",
+   "scene": "An ecstatic dance gathering on the Croatian coast at sunset, people dancing barefoot on a wooden deck by the sea, Marko as the DJ with headphones, joyful. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "38-kirtan-hall-of-light-v2",
+   "scene": "A kirtan evening in a hall with warm lights: Marko sings and plays harmonium, a woman sings beside him, people sit on cushions and sing along. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "39-dome-acrobatics-v2",
+   "scene": "Marko balances standing on top of a geodesic dome climbing frame against a deep blue sky, arms open, playful and strong. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "40-headstand-v2",
+   "scene": "Marko holds a perfect yoga headstand in a quiet room with a warm wall lamp, calm and focused. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "41-macro-photographer-v2",
+   "scene": "Marko lies on the ground in a tropical garden photographing a small lizard with a macro lens, flowers around him, soft green light. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "42-night-sky-palms-v2",
+   "scene": "Marko stands with a camera on a tripod under a deep blue night sky full of stars, silhouettes of palm trees, Auroville at night. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "43-filming-matrimandir-v2",
+   "scene": "Marko films with a cinema camera on a tripod near the golden disks of the Matrimandir, black and white mood, concentrated. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "44-djembe-lake-v2",
+   "scene": "Marko and a friend play djembe drums together on the shore of a calm lake at dusk, reflections on the water. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "45-fire-ceremony-v2",
+   "scene": "A night fire ceremony: a big bonfire in a circle of people, Marko playing frame drum, sparks rising, warm faces. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "46-tea-ceremony-v2",
+   "scene": "Marko pours tea in a slow tea ceremony at a low wooden table with small bowls, morning sun, serene. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "47-live-stream-v2",
+   "scene": "Marko in an orange shirt works at a laptop with headphones streaming a live music session, a friend smiling beside him, red table, cables and routers. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "48-winter-forest-v2",
+   "scene": "Marko walks in a snowy forest in Croatia in winter, warm jacket, low sun between the trees, quiet. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "49-dance-of-the-soul-v2",
+   "scene": "Marko plays a DJ set as DJ Mantra at a sunset festival on the sea in Zadar, Croatia, dancers in flowing clothes, golden light on the water. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "50-moon-lake-meditation-v2",
+   "scene": "Marko meditates on a rock by a mountain lake under a big full moon rising, blue night, stillness. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "51-rhythm-awareness-v2",
+   "scene": "Marko teaches a rhythm awareness class: people in a circle clapping and stepping, frame drums on the floor, bright studio. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "52-temple-sunset-v2",
+   "scene": "Marko sits on the steps of a small white South Indian temple at sunset, sky orange and blue, contemplative. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "53-cat-nap-v2",
+   "scene": "Marko reads on a sofa while an orange cat sleeps on his lap, afternoon light through a curtain, cosy. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "54-sound-bath-festival-v2",
+   "scene": "A sound bath at a festival tent: people lying on mats, Marko playing gong and singing bowls, colourful fabrics, evening light. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "01-adriatic-boy-v2",
+   "scene": "Marko as a boy of about seven (a child version of the man in the photos) sits on the stone shore of the Adriatic sea in Rijeka, Croatia, in the 1980s, tapping a small round hand drum, the Kvarner bay and the mountains behind him, late afternoon. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "02-courtyard-teen-v2",
+   "scene": "Marko as a teenager (a young version of the man in the photos) plays a hand drum in an old stone courtyard of a Croatian coastal town, friends listening on the steps, 1990s summer evening. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "03-young-dj-v2",
+   "scene": "A young man in his twenties DJs with vinyl records in a crowded club in the late 1990s, headphones on one ear, lights in smoke, joy on his face. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "04-home-studio-v2",
+   "scene": "A young music producer in a small home studio full of synthesizers and a mixing desk at night, a frame drum hanging on the wall. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "05-train-to-india-v2",
+   "scene": "A European man in his thirties with a backpack looks out of an open Indian train window at green rice fields and palm trees, golden morning light. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "06-auroville-arrival-v2",
+   "scene": "A man arrives on a red earth road in Auroville, South India, at sunrise, the golden sphere of the Matrimandir far away between tall trees. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "07-sunrise-yoga-v2",
+   "scene": "A man practises yoga at sunrise on a mat on red earth in a tropical garden in Auroville, a deep forward bend, mist and birds. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "08-banyan-yoga-v2",
+   "scene": "A man holds a calm yoga balance pose under a huge banyan tree with hanging roots, soft green light, peaceful. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "09-learning-daf-v2",
+   "scene": "A man learns the frame drum from an older master teacher, both sitting cross-legged on a carpet in a sunlit courtyard, the teacher showing the hand position. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "10-hands-on-the-drum-v2",
+   "scene": "Close-up of a man's hands playing a large frame drum with metal rings inside the frame, motion in the fingers, warm side light. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "11-drum-circle-fire-v2",
+   "scene": "A circle of people playing frame drums around a fire at night under the stars in a tropical clearing, faces lit orange. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "12-kirtan-night-v2",
+   "scene": "A kirtan band at night: a man playing frame drum, a woman at a harmonium, people singing with closed eyes, candles and flowers on the floor. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "13-sound-healing-v2",
+   "scene": "A sound healing session: a man walks slowly between people lying on yoga mats, playing a frame drum softly, evening light through bamboo walls. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "14-recording-drums-v2",
+   "scene": "A man records a frame drum in front of a studio microphone, headphones on, eyes closed, the mixing screen glowing in the background. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "15-teaching-online-v2",
+   "scene": "A man teaches frame drumming online from his veranda, a laptop camera in front of him showing a grid of students, a drum in his hands, tropical plants behind. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "16-filmmaker-v2",
+   "scene": "A man films barefoot dancers on a red earth field in Auroville with a small cinema camera on a gimbal, golden hour. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "17-ecstatic-dance-v2",
+   "scene": "A DJ plays for an outdoor ecstatic dance at sunset under a big tree, dancers moving freely in colourful clothes, a frame drum beside the decks. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "18-building-apps-v2",
+   "scene": "A man works late at night on a laptop full of code on a wooden table, a cup of chai, a frame drum leaning against the wall, a lamp and a gecko on the wall. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "19-monsoon-veranda-v2",
+   "scene": "A man sits on a veranda during monsoon rain in South India, laptop closed, a frame drum on his lap, watching the rain, contented. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "20-garden-meditation-v2",
+   "scene": "A man meditates cross-legged in a quiet garden of an Indian township, the golden sphere of the Matrimandir reflected in a pond behind him, early morning. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "21-forest-bicycle-v2",
+   "scene": "A man rides an old bicycle on a red earth path through a green forest in Auroville, a frame drum in a bag on his back, dappled light. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "22-making-a-drum-v2",
+   "scene": "A man makes a frame drum by hand, stretching a natural skin over a round wooden frame in a workshop, tools and drums around him. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "23-concert-stage-v2",
+   "scene": "A man plays a frame drum on a small stage in a warmly lit concert hall, the audience in the dark, one spotlight, dust in the light. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "24-children-workshop-v2",
+   "scene": "A man leads a drumming workshop for laughing children sitting in a circle with small frame drums in an open-air school in India. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "25-night-of-mantras-v2",
+   "scene": "A night of mantras: a small group chants with a frame drum among dozens of oil lamps on a stone floor, deep blue night outside. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "26-ganges-dawn-v2",
+   "scene": "A man meditates at dawn on the stone steps of the Ganges in Rishikesh, mist on the river, a frame drum beside him, temple bells far away. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "27-kvarner-sunset-v2",
+   "scene": "A man in his fifties plays a frame drum on a pebble beach on the Kvarner coast of Croatia at sunset, islands on the horizon. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "28-passing-it-on-v2",
+   "scene": "An older man with grey hair teaches young drummers to play frame drums in a stone courtyard, all smiling, afternoon light. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "29-three-worlds-v2",
+   "scene": "Still life on a wooden floor: a yoga mat rolled out, a large frame drum, an open laptop and a mala of beads, morning light through a window. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "30-rooftop-stars-v2",
+   "scene": "A man plays a frame drum on a flat rooftop under a sky full of stars and the Milky Way, a small lamp beside him, warm night. (a different moment of the same scene, another camera angle)"
+  },
+  {
+   "name": "31-singing-bowls-v3",
+   "scene": "Marko in an orange kurta sits cross-legged playing large brass singing bowls in a bright room with Tibetan paintings, eyes half closed, sound healing. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "32-candle-dj-v3",
+   "scene": "Marko in a white linen kurta plays a DJ set at a mixer surrounded by many candles in an old stone room with arched windows, eyes closed, deep in the music. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "33-matrimandir-white-v3",
+   "scene": "Marko dressed all in white sits in meditation on the grass in front of the huge golden sphere of the Matrimandir in Auroville, morning light. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "34-frame-drum-dark-v3",
+   "scene": "Marko in black plays a big frame drum in a dim wooden room, warm lamp light on the drum skin, concentrated. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "35-yoga-class-v3",
+   "scene": "Marko teaches a calm yoga class in a bright hall with big windows onto a garden, students on mats, gentle morning light. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "36-white-shawl-v3",
+   "scene": "Marko wrapped in a white shawl sits in meditation on a veranda at dawn, green garden behind, peaceful. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "37-ecstatic-dance-croatia-v3",
+   "scene": "An ecstatic dance gathering on the Croatian coast at sunset, people dancing barefoot on a wooden deck by the sea, Marko as the DJ with headphones, joyful. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "38-kirtan-hall-of-light-v3",
+   "scene": "A kirtan evening in a hall with warm lights: Marko sings and plays harmonium, a woman sings beside him, people sit on cushions and sing along. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "39-dome-acrobatics-v3",
+   "scene": "Marko balances standing on top of a geodesic dome climbing frame against a deep blue sky, arms open, playful and strong. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "40-headstand-v3",
+   "scene": "Marko holds a perfect yoga headstand in a quiet room with a warm wall lamp, calm and focused. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "41-macro-photographer-v3",
+   "scene": "Marko lies on the ground in a tropical garden photographing a small lizard with a macro lens, flowers around him, soft green light. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "42-night-sky-palms-v3",
+   "scene": "Marko stands with a camera on a tripod under a deep blue night sky full of stars, silhouettes of palm trees, Auroville at night. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "43-filming-matrimandir-v3",
+   "scene": "Marko films with a cinema camera on a tripod near the golden disks of the Matrimandir, black and white mood, concentrated. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "44-djembe-lake-v3",
+   "scene": "Marko and a friend play djembe drums together on the shore of a calm lake at dusk, reflections on the water. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "45-fire-ceremony-v3",
+   "scene": "A night fire ceremony: a big bonfire in a circle of people, Marko playing frame drum, sparks rising, warm faces. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "46-tea-ceremony-v3",
+   "scene": "Marko pours tea in a slow tea ceremony at a low wooden table with small bowls, morning sun, serene. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "47-live-stream-v3",
+   "scene": "Marko in an orange shirt works at a laptop with headphones streaming a live music session, a friend smiling beside him, red table, cables and routers. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "48-winter-forest-v3",
+   "scene": "Marko walks in a snowy forest in Croatia in winter, warm jacket, low sun between the trees, quiet. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "49-dance-of-the-soul-v3",
+   "scene": "Marko plays a DJ set as DJ Mantra at a sunset festival on the sea in Zadar, Croatia, dancers in flowing clothes, golden light on the water. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "50-moon-lake-meditation-v3",
+   "scene": "Marko meditates on a rock by a mountain lake under a big full moon rising, blue night, stillness. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "51-rhythm-awareness-v3",
+   "scene": "Marko teaches a rhythm awareness class: people in a circle clapping and stepping, frame drums on the floor, bright studio. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "52-temple-sunset-v3",
+   "scene": "Marko sits on the steps of a small white South Indian temple at sunset, sky orange and blue, contemplative. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "53-cat-nap-v3",
+   "scene": "Marko reads on a sofa while an orange cat sleeps on his lap, afternoon light through a curtain, cosy. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "54-sound-bath-festival-v3",
+   "scene": "A sound bath at a festival tent: people lying on mats, Marko playing gong and singing bowls, colourful fabrics, evening light. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "01-adriatic-boy-v3",
+   "scene": "Marko as a boy of about seven (a child version of the man in the photos) sits on the stone shore of the Adriatic sea in Rijeka, Croatia, in the 1980s, tapping a small round hand drum, the Kvarner bay and the mountains behind him, late afternoon. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "02-courtyard-teen-v3",
+   "scene": "Marko as a teenager (a young version of the man in the photos) plays a hand drum in an old stone courtyard of a Croatian coastal town, friends listening on the steps, 1990s summer evening. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "03-young-dj-v3",
+   "scene": "A young man in his twenties DJs with vinyl records in a crowded club in the late 1990s, headphones on one ear, lights in smoke, joy on his face. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "04-home-studio-v3",
+   "scene": "A young music producer in a small home studio full of synthesizers and a mixing desk at night, a frame drum hanging on the wall. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "05-train-to-india-v3",
+   "scene": "A European man in his thirties with a backpack looks out of an open Indian train window at green rice fields and palm trees, golden morning light. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "06-auroville-arrival-v3",
+   "scene": "A man arrives on a red earth road in Auroville, South India, at sunrise, the golden sphere of the Matrimandir far away between tall trees. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "07-sunrise-yoga-v3",
+   "scene": "A man practises yoga at sunrise on a mat on red earth in a tropical garden in Auroville, a deep forward bend, mist and birds. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "08-banyan-yoga-v3",
+   "scene": "A man holds a calm yoga balance pose under a huge banyan tree with hanging roots, soft green light, peaceful. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "09-learning-daf-v3",
+   "scene": "A man learns the frame drum from an older master teacher, both sitting cross-legged on a carpet in a sunlit courtyard, the teacher showing the hand position. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "10-hands-on-the-drum-v3",
+   "scene": "Close-up of a man's hands playing a large frame drum with metal rings inside the frame, motion in the fingers, warm side light. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "11-drum-circle-fire-v3",
+   "scene": "A circle of people playing frame drums around a fire at night under the stars in a tropical clearing, faces lit orange. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "12-kirtan-night-v3",
+   "scene": "A kirtan band at night: a man playing frame drum, a woman at a harmonium, people singing with closed eyes, candles and flowers on the floor. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "13-sound-healing-v3",
+   "scene": "A sound healing session: a man walks slowly between people lying on yoga mats, playing a frame drum softly, evening light through bamboo walls. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "14-recording-drums-v3",
+   "scene": "A man records a frame drum in front of a studio microphone, headphones on, eyes closed, the mixing screen glowing in the background. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "15-teaching-online-v3",
+   "scene": "A man teaches frame drumming online from his veranda, a laptop camera in front of him showing a grid of students, a drum in his hands, tropical plants behind. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "16-filmmaker-v3",
+   "scene": "A man films barefoot dancers on a red earth field in Auroville with a small cinema camera on a gimbal, golden hour. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "17-ecstatic-dance-v3",
+   "scene": "A DJ plays for an outdoor ecstatic dance at sunset under a big tree, dancers moving freely in colourful clothes, a frame drum beside the decks. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "18-building-apps-v3",
+   "scene": "A man works late at night on a laptop full of code on a wooden table, a cup of chai, a frame drum leaning against the wall, a lamp and a gecko on the wall. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "19-monsoon-veranda-v3",
+   "scene": "A man sits on a veranda during monsoon rain in South India, laptop closed, a frame drum on his lap, watching the rain, contented. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "20-garden-meditation-v3",
+   "scene": "A man meditates cross-legged in a quiet garden of an Indian township, the golden sphere of the Matrimandir reflected in a pond behind him, early morning. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "21-forest-bicycle-v3",
+   "scene": "A man rides an old bicycle on a red earth path through a green forest in Auroville, a frame drum in a bag on his back, dappled light. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "22-making-a-drum-v3",
+   "scene": "A man makes a frame drum by hand, stretching a natural skin over a round wooden frame in a workshop, tools and drums around him. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "23-concert-stage-v3",
+   "scene": "A man plays a frame drum on a small stage in a warmly lit concert hall, the audience in the dark, one spotlight, dust in the light. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "24-children-workshop-v3",
+   "scene": "A man leads a drumming workshop for laughing children sitting in a circle with small frame drums in an open-air school in India. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "25-night-of-mantras-v3",
+   "scene": "A night of mantras: a small group chants with a frame drum among dozens of oil lamps on a stone floor, deep blue night outside. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "26-ganges-dawn-v3",
+   "scene": "A man meditates at dawn on the stone steps of the Ganges in Rishikesh, mist on the river, a frame drum beside him, temple bells far away. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "27-kvarner-sunset-v3",
+   "scene": "A man in his fifties plays a frame drum on a pebble beach on the Kvarner coast of Croatia at sunset, islands on the horizon. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "28-passing-it-on-v3",
+   "scene": "An older man with grey hair teaches young drummers to play frame drums in a stone courtyard, all smiling, afternoon light. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "29-three-worlds-v3",
+   "scene": "Still life on a wooden floor: a yoga mat rolled out, a large frame drum, an open laptop and a mala of beads, morning light through a window. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "30-rooftop-stars-v3",
+   "scene": "A man plays a frame drum on a flat rooftop under a sky full of stars and the Milky Way, a small lamp beside him, warm night. (the same scene years later, a softer light)"
+  },
+  {
+   "name": "31-singing-bowls-v4",
+   "scene": "Marko in an orange kurta sits cross-legged playing large brass singing bowls in a bright room with Tibetan paintings, eyes half closed, sound healing. (the same scene at another time of day)"
+  },
+  {
+   "name": "32-candle-dj-v4",
+   "scene": "Marko in a white linen kurta plays a DJ set at a mixer surrounded by many candles in an old stone room with arched windows, eyes closed, deep in the music. (the same scene at another time of day)"
+  },
+  {
+   "name": "33-matrimandir-white-v4",
+   "scene": "Marko dressed all in white sits in meditation on the grass in front of the huge golden sphere of the Matrimandir in Auroville, morning light. (the same scene at another time of day)"
+  },
+  {
+   "name": "34-frame-drum-dark-v4",
+   "scene": "Marko in black plays a big frame drum in a dim wooden room, warm lamp light on the drum skin, concentrated. (the same scene at another time of day)"
+  },
+  {
+   "name": "35-yoga-class-v4",
+   "scene": "Marko teaches a calm yoga class in a bright hall with big windows onto a garden, students on mats, gentle morning light. (the same scene at another time of day)"
+  },
+  {
+   "name": "36-white-shawl-v4",
+   "scene": "Marko wrapped in a white shawl sits in meditation on a veranda at dawn, green garden behind, peaceful. (the same scene at another time of day)"
+  },
+  {
+   "name": "37-ecstatic-dance-croatia-v4",
+   "scene": "An ecstatic dance gathering on the Croatian coast at sunset, people dancing barefoot on a wooden deck by the sea, Marko as the DJ with headphones, joyful. (the same scene at another time of day)"
+  },
+  {
+   "name": "38-kirtan-hall-of-light-v4",
+   "scene": "A kirtan evening in a hall with warm lights: Marko sings and plays harmonium, a woman sings beside him, people sit on cushions and sing along. (the same scene at another time of day)"
+  },
+  {
+   "name": "39-dome-acrobatics-v4",
+   "scene": "Marko balances standing on top of a geodesic dome climbing frame against a deep blue sky, arms open, playful and strong. (the same scene at another time of day)"
+  },
+  {
+   "name": "40-headstand-v4",
+   "scene": "Marko holds a perfect yoga headstand in a quiet room with a warm wall lamp, calm and focused. (the same scene at another time of day)"
+  },
+  {
+   "name": "41-macro-photographer-v4",
+   "scene": "Marko lies on the ground in a tropical garden photographing a small lizard with a macro lens, flowers around him, soft green light. (the same scene at another time of day)"
+  },
+  {
+   "name": "42-night-sky-palms-v4",
+   "scene": "Marko stands with a camera on a tripod under a deep blue night sky full of stars, silhouettes of palm trees, Auroville at night. (the same scene at another time of day)"
+  },
+  {
+   "name": "43-filming-matrimandir-v4",
+   "scene": "Marko films with a cinema camera on a tripod near the golden disks of the Matrimandir, black and white mood, concentrated. (the same scene at another time of day)"
+  },
+  {
+   "name": "44-djembe-lake-v4",
+   "scene": "Marko and a friend play djembe drums together on the shore of a calm lake at dusk, reflections on the water. (the same scene at another time of day)"
+  },
+  {
+   "name": "45-fire-ceremony-v4",
+   "scene": "A night fire ceremony: a big bonfire in a circle of people, Marko playing frame drum, sparks rising, warm faces. (the same scene at another time of day)"
+  },
+  {
+   "name": "46-tea-ceremony-v4",
+   "scene": "Marko pours tea in a slow tea ceremony at a low wooden table with small bowls, morning sun, serene. (the same scene at another time of day)"
+  },
+  {
+   "name": "47-live-stream-v4",
+   "scene": "Marko in an orange shirt works at a laptop with headphones streaming a live music session, a friend smiling beside him, red table, cables and routers. (the same scene at another time of day)"
+  },
+  {
+   "name": "48-winter-forest-v4",
+   "scene": "Marko walks in a snowy forest in Croatia in winter, warm jacket, low sun between the trees, quiet. (the same scene at another time of day)"
+  },
+  {
+   "name": "49-dance-of-the-soul-v4",
+   "scene": "Marko plays a DJ set as DJ Mantra at a sunset festival on the sea in Zadar, Croatia, dancers in flowing clothes, golden light on the water. (the same scene at another time of day)"
+  },
+  {
+   "name": "50-moon-lake-meditation-v4",
+   "scene": "Marko meditates on a rock by a mountain lake under a big full moon rising, blue night, stillness. (the same scene at another time of day)"
+  },
+  {
+   "name": "51-rhythm-awareness-v4",
+   "scene": "Marko teaches a rhythm awareness class: people in a circle clapping and stepping, frame drums on the floor, bright studio. (the same scene at another time of day)"
+  },
+  {
+   "name": "52-temple-sunset-v4",
+   "scene": "Marko sits on the steps of a small white South Indian temple at sunset, sky orange and blue, contemplative. (the same scene at another time of day)"
+  },
+  {
+   "name": "53-cat-nap-v4",
+   "scene": "Marko reads on a sofa while an orange cat sleeps on his lap, afternoon light through a curtain, cosy. (the same scene at another time of day)"
+  },
+  {
+   "name": "54-sound-bath-festival-v4",
+   "scene": "A sound bath at a festival tent: people lying on mats, Marko playing gong and singing bowls, colourful fabrics, evening light. (the same scene at another time of day)"
+  },
+  {
+   "name": "01-adriatic-boy-v4",
+   "scene": "Marko as a boy of about seven (a child version of the man in the photos) sits on the stone shore of the Adriatic sea in Rijeka, Croatia, in the 1980s, tapping a small round hand drum, the Kvarner bay and the mountains behind him, late afternoon. (the same scene at another time of day)"
+  },
+  {
+   "name": "02-courtyard-teen-v4",
+   "scene": "Marko as a teenager (a young version of the man in the photos) plays a hand drum in an old stone courtyard of a Croatian coastal town, friends listening on the steps, 1990s summer evening. (the same scene at another time of day)"
+  },
+  {
+   "name": "03-young-dj-v4",
+   "scene": "A young man in his twenties DJs with vinyl records in a crowded club in the late 1990s, headphones on one ear, lights in smoke, joy on his face. (the same scene at another time of day)"
+  },
+  {
+   "name": "04-home-studio-v4",
+   "scene": "A young music producer in a small home studio full of synthesizers and a mixing desk at night, a frame drum hanging on the wall. (the same scene at another time of day)"
+  },
+  {
+   "name": "05-train-to-india-v4",
+   "scene": "A European man in his thirties with a backpack looks out of an open Indian train window at green rice fields and palm trees, golden morning light. (the same scene at another time of day)"
+  },
+  {
+   "name": "06-auroville-arrival-v4",
+   "scene": "A man arrives on a red earth road in Auroville, South India, at sunrise, the golden sphere of the Matrimandir far away between tall trees. (the same scene at another time of day)"
+  },
+  {
+   "name": "07-sunrise-yoga-v4",
+   "scene": "A man practises yoga at sunrise on a mat on red earth in a tropical garden in Auroville, a deep forward bend, mist and birds. (the same scene at another time of day)"
+  },
+  {
+   "name": "08-banyan-yoga-v4",
+   "scene": "A man holds a calm yoga balance pose under a huge banyan tree with hanging roots, soft green light, peaceful. (the same scene at another time of day)"
+  },
+  {
+   "name": "09-learning-daf-v4",
+   "scene": "A man learns the frame drum from an older master teacher, both sitting cross-legged on a carpet in a sunlit courtyard, the teacher showing the hand position. (the same scene at another time of day)"
+  },
+  {
+   "name": "10-hands-on-the-drum-v4",
+   "scene": "Close-up of a man's hands playing a large frame drum with metal rings inside the frame, motion in the fingers, warm side light. (the same scene at another time of day)"
+  },
+  {
+   "name": "11-drum-circle-fire-v4",
+   "scene": "A circle of people playing frame drums around a fire at night under the stars in a tropical clearing, faces lit orange. (the same scene at another time of day)"
+  },
+  {
+   "name": "12-kirtan-night-v4",
+   "scene": "A kirtan band at night: a man playing frame drum, a woman at a harmonium, people singing with closed eyes, candles and flowers on the floor. (the same scene at another time of day)"
+  },
+  {
+   "name": "13-sound-healing-v4",
+   "scene": "A sound healing session: a man walks slowly between people lying on yoga mats, playing a frame drum softly, evening light through bamboo walls. (the same scene at another time of day)"
+  },
+  {
+   "name": "14-recording-drums-v4",
+   "scene": "A man records a frame drum in front of a studio microphone, headphones on, eyes closed, the mixing screen glowing in the background. (the same scene at another time of day)"
+  },
+  {
+   "name": "15-teaching-online-v4",
+   "scene": "A man teaches frame drumming online from his veranda, a laptop camera in front of him showing a grid of students, a drum in his hands, tropical plants behind. (the same scene at another time of day)"
+  },
+  {
+   "name": "16-filmmaker-v4",
+   "scene": "A man films barefoot dancers on a red earth field in Auroville with a small cinema camera on a gimbal, golden hour. (the same scene at another time of day)"
+  },
+  {
+   "name": "17-ecstatic-dance-v4",
+   "scene": "A DJ plays for an outdoor ecstatic dance at sunset under a big tree, dancers moving freely in colourful clothes, a frame drum beside the decks. (the same scene at another time of day)"
+  },
+  {
+   "name": "18-building-apps-v4",
+   "scene": "A man works late at night on a laptop full of code on a wooden table, a cup of chai, a frame drum leaning against the wall, a lamp and a gecko on the wall. (the same scene at another time of day)"
+  },
+  {
+   "name": "19-monsoon-veranda-v4",
+   "scene": "A man sits on a veranda during monsoon rain in South India, laptop closed, a frame drum on his lap, watching the rain, contented. (the same scene at another time of day)"
+  },
+  {
+   "name": "20-garden-meditation-v4",
+   "scene": "A man meditates cross-legged in a quiet garden of an Indian township, the golden sphere of the Matrimandir reflected in a pond behind him, early morning. (the same scene at another time of day)"
+  },
+  {
+   "name": "21-forest-bicycle-v4",
+   "scene": "A man rides an old bicycle on a red earth path through a green forest in Auroville, a frame drum in a bag on his back, dappled light. (the same scene at another time of day)"
+  },
+  {
+   "name": "22-making-a-drum-v4",
+   "scene": "A man makes a frame drum by hand, stretching a natural skin over a round wooden frame in a workshop, tools and drums around him. (the same scene at another time of day)"
+  },
+  {
+   "name": "23-concert-stage-v4",
+   "scene": "A man plays a frame drum on a small stage in a warmly lit concert hall, the audience in the dark, one spotlight, dust in the light. (the same scene at another time of day)"
+  },
+  {
+   "name": "24-children-workshop-v4",
+   "scene": "A man leads a drumming workshop for laughing children sitting in a circle with small frame drums in an open-air school in India. (the same scene at another time of day)"
+  },
+  {
+   "name": "25-night-of-mantras-v4",
+   "scene": "A night of mantras: a small group chants with a frame drum among dozens of oil lamps on a stone floor, deep blue night outside. (the same scene at another time of day)"
+  },
+  {
+   "name": "26-ganges-dawn-v4",
+   "scene": "A man meditates at dawn on the stone steps of the Ganges in Rishikesh, mist on the river, a frame drum beside him, temple bells far away. (the same scene at another time of day)"
+  },
+  {
+   "name": "27-kvarner-sunset-v4",
+   "scene": "A man in his fifties plays a frame drum on a pebble beach on the Kvarner coast of Croatia at sunset, islands on the horizon. (the same scene at another time of day)"
+  },
+  {
+   "name": "28-passing-it-on-v4",
+   "scene": "An older man with grey hair teaches young drummers to play frame drums in a stone courtyard, all smiling, afternoon light. (the same scene at another time of day)"
+  },
+  {
+   "name": "29-three-worlds-v4",
+   "scene": "Still life on a wooden floor: a yoga mat rolled out, a large frame drum, an open laptop and a mala of beads, morning light through a window. (the same scene at another time of day)"
+  },
+  {
+   "name": "30-rooftop-stars-v4",
+   "scene": "A man plays a frame drum on a flat rooftop under a sky full of stars and the Milky Way, a small lamp beside him, warm night. (the same scene at another time of day)"
+  },
+  {
+   "name": "31-singing-bowls-v5",
+   "scene": "Marko in an orange kurta sits cross-legged playing large brass singing bowls in a bright room with Tibetan paintings, eyes half closed, sound healing. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "32-candle-dj-v5",
+   "scene": "Marko in a white linen kurta plays a DJ set at a mixer surrounded by many candles in an old stone room with arched windows, eyes closed, deep in the music. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "33-matrimandir-white-v5",
+   "scene": "Marko dressed all in white sits in meditation on the grass in front of the huge golden sphere of the Matrimandir in Auroville, morning light. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "34-frame-drum-dark-v5",
+   "scene": "Marko in black plays a big frame drum in a dim wooden room, warm lamp light on the drum skin, concentrated. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "35-yoga-class-v5",
+   "scene": "Marko teaches a calm yoga class in a bright hall with big windows onto a garden, students on mats, gentle morning light. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "36-white-shawl-v5",
+   "scene": "Marko wrapped in a white shawl sits in meditation on a veranda at dawn, green garden behind, peaceful. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "37-ecstatic-dance-croatia-v5",
+   "scene": "An ecstatic dance gathering on the Croatian coast at sunset, people dancing barefoot on a wooden deck by the sea, Marko as the DJ with headphones, joyful. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "38-kirtan-hall-of-light-v5",
+   "scene": "A kirtan evening in a hall with warm lights: Marko sings and plays harmonium, a woman sings beside him, people sit on cushions and sing along. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "39-dome-acrobatics-v5",
+   "scene": "Marko balances standing on top of a geodesic dome climbing frame against a deep blue sky, arms open, playful and strong. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "40-headstand-v5",
+   "scene": "Marko holds a perfect yoga headstand in a quiet room with a warm wall lamp, calm and focused. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "41-macro-photographer-v5",
+   "scene": "Marko lies on the ground in a tropical garden photographing a small lizard with a macro lens, flowers around him, soft green light. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "42-night-sky-palms-v5",
+   "scene": "Marko stands with a camera on a tripod under a deep blue night sky full of stars, silhouettes of palm trees, Auroville at night. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "43-filming-matrimandir-v5",
+   "scene": "Marko films with a cinema camera on a tripod near the golden disks of the Matrimandir, black and white mood, concentrated. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "44-djembe-lake-v5",
+   "scene": "Marko and a friend play djembe drums together on the shore of a calm lake at dusk, reflections on the water. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "45-fire-ceremony-v5",
+   "scene": "A night fire ceremony: a big bonfire in a circle of people, Marko playing frame drum, sparks rising, warm faces. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "46-tea-ceremony-v5",
+   "scene": "Marko pours tea in a slow tea ceremony at a low wooden table with small bowls, morning sun, serene. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "47-live-stream-v5",
+   "scene": "Marko in an orange shirt works at a laptop with headphones streaming a live music session, a friend smiling beside him, red table, cables and routers. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "48-winter-forest-v5",
+   "scene": "Marko walks in a snowy forest in Croatia in winter, warm jacket, low sun between the trees, quiet. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "49-dance-of-the-soul-v5",
+   "scene": "Marko plays a DJ set as DJ Mantra at a sunset festival on the sea in Zadar, Croatia, dancers in flowing clothes, golden light on the water. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "50-moon-lake-meditation-v5",
+   "scene": "Marko meditates on a rock by a mountain lake under a big full moon rising, blue night, stillness. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "51-rhythm-awareness-v5",
+   "scene": "Marko teaches a rhythm awareness class: people in a circle clapping and stepping, frame drums on the floor, bright studio. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "52-temple-sunset-v5",
+   "scene": "Marko sits on the steps of a small white South Indian temple at sunset, sky orange and blue, contemplative. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "53-cat-nap-v5",
+   "scene": "Marko reads on a sofa while an orange cat sleeps on his lap, afternoon light through a curtain, cosy. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "54-sound-bath-festival-v5",
+   "scene": "A sound bath at a festival tent: people lying on mats, Marko playing gong and singing bowls, colourful fabrics, evening light. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "01-adriatic-boy-v5",
+   "scene": "Marko as a boy of about seven (a child version of the man in the photos) sits on the stone shore of the Adriatic sea in Rijeka, Croatia, in the 1980s, tapping a small round hand drum, the Kvarner bay and the mountains behind him, late afternoon. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "02-courtyard-teen-v5",
+   "scene": "Marko as a teenager (a young version of the man in the photos) plays a hand drum in an old stone courtyard of a Croatian coastal town, friends listening on the steps, 1990s summer evening. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "03-young-dj-v5",
+   "scene": "A young man in his twenties DJs with vinyl records in a crowded club in the late 1990s, headphones on one ear, lights in smoke, joy on his face. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "04-home-studio-v5",
+   "scene": "A young music producer in a small home studio full of synthesizers and a mixing desk at night, a frame drum hanging on the wall. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "05-train-to-india-v5",
+   "scene": "A European man in his thirties with a backpack looks out of an open Indian train window at green rice fields and palm trees, golden morning light. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "06-auroville-arrival-v5",
+   "scene": "A man arrives on a red earth road in Auroville, South India, at sunrise, the golden sphere of the Matrimandir far away between tall trees. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "07-sunrise-yoga-v5",
+   "scene": "A man practises yoga at sunrise on a mat on red earth in a tropical garden in Auroville, a deep forward bend, mist and birds. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "08-banyan-yoga-v5",
+   "scene": "A man holds a calm yoga balance pose under a huge banyan tree with hanging roots, soft green light, peaceful. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "09-learning-daf-v5",
+   "scene": "A man learns the frame drum from an older master teacher, both sitting cross-legged on a carpet in a sunlit courtyard, the teacher showing the hand position. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "10-hands-on-the-drum-v5",
+   "scene": "Close-up of a man's hands playing a large frame drum with metal rings inside the frame, motion in the fingers, warm side light. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "11-drum-circle-fire-v5",
+   "scene": "A circle of people playing frame drums around a fire at night under the stars in a tropical clearing, faces lit orange. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "12-kirtan-night-v5",
+   "scene": "A kirtan band at night: a man playing frame drum, a woman at a harmonium, people singing with closed eyes, candles and flowers on the floor. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "13-sound-healing-v5",
+   "scene": "A sound healing session: a man walks slowly between people lying on yoga mats, playing a frame drum softly, evening light through bamboo walls. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "14-recording-drums-v5",
+   "scene": "A man records a frame drum in front of a studio microphone, headphones on, eyes closed, the mixing screen glowing in the background. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "15-teaching-online-v5",
+   "scene": "A man teaches frame drumming online from his veranda, a laptop camera in front of him showing a grid of students, a drum in his hands, tropical plants behind. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "16-filmmaker-v5",
+   "scene": "A man films barefoot dancers on a red earth field in Auroville with a small cinema camera on a gimbal, golden hour. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "17-ecstatic-dance-v5",
+   "scene": "A DJ plays for an outdoor ecstatic dance at sunset under a big tree, dancers moving freely in colourful clothes, a frame drum beside the decks. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "18-building-apps-v5",
+   "scene": "A man works late at night on a laptop full of code on a wooden table, a cup of chai, a frame drum leaning against the wall, a lamp and a gecko on the wall. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "19-monsoon-veranda-v5",
+   "scene": "A man sits on a veranda during monsoon rain in South India, laptop closed, a frame drum on his lap, watching the rain, contented. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "20-garden-meditation-v5",
+   "scene": "A man meditates cross-legged in a quiet garden of an Indian township, the golden sphere of the Matrimandir reflected in a pond behind him, early morning. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "21-forest-bicycle-v5",
+   "scene": "A man rides an old bicycle on a red earth path through a green forest in Auroville, a frame drum in a bag on his back, dappled light. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "22-making-a-drum-v5",
+   "scene": "A man makes a frame drum by hand, stretching a natural skin over a round wooden frame in a workshop, tools and drums around him. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "23-concert-stage-v5",
+   "scene": "A man plays a frame drum on a small stage in a warmly lit concert hall, the audience in the dark, one spotlight, dust in the light. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "24-children-workshop-v5",
+   "scene": "A man leads a drumming workshop for laughing children sitting in a circle with small frame drums in an open-air school in India. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "25-night-of-mantras-v5",
+   "scene": "A night of mantras: a small group chants with a frame drum among dozens of oil lamps on a stone floor, deep blue night outside. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "26-ganges-dawn-v5",
+   "scene": "A man meditates at dawn on the stone steps of the Ganges in Rishikesh, mist on the river, a frame drum beside him, temple bells far away. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "27-kvarner-sunset-v5",
+   "scene": "A man in his fifties plays a frame drum on a pebble beach on the Kvarner coast of Croatia at sunset, islands on the horizon. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "28-passing-it-on-v5",
+   "scene": "An older man with grey hair teaches young drummers to play frame drums in a stone courtyard, all smiling, afternoon light. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "29-three-worlds-v5",
+   "scene": "Still life on a wooden floor: a yoga mat rolled out, a large frame drum, an open laptop and a mala of beads, morning light through a window. (a close-up portrait moment within this scene)"
+  },
+  {
+   "name": "30-rooftop-stars-v5",
+   "scene": "A man plays a frame drum on a flat rooftop under a sky full of stars and the Milky Way, a small lamp beside him, warm night. (a close-up portrait moment within this scene)"
+  }
+ ],
+ "note": "Marko, 2.11.2026: one tab, one image at a time, a new chat each time, never a download button: a 1:1 DevTools screenshot. Names already in the Drive folder (or in _wrong) are done or skipped."
+}

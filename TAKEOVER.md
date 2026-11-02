@@ -49,3 +49,8 @@
   account /u/0, folder Gemini/life-story; MPA: /u/1, Gemini/MPA-Academy).
   Next: try the focus actions on a router tab when the jobs are done; a finer download owner would need vm-agent to
   listen to Browser.downloadWillBegin (frameId → tab), only if the serialized claim proves too coarse.
+- 2.11.2026 (Mac session): **workers/** started. First: **gemini-images** (service chromium-vm-worker-gemini on the
+  VM): the batch on Drive (Chromium Downloads/Gemini/_batch/batch.json, 270 items = 54 scenes + 4 variations; refs/
+  = 14 face photos from his Instagram), one tab of the profile signed in as [address removed], two random refs,
+  1:1 DevTools capture, human pace 60–150 s, stops at "Your limit resets at …", sleeps until then + 5 min,
+  RESULTS.txt in Gemini/life-story on Drive. Measured: ~37 images per limit window on a free account.
