@@ -31,7 +31,8 @@ PARTS = [  # key, label in the settings
 DEFAULT = {'show': {k: True for k, _ in PARTS} | {'tail': False, 'clock': False}, 'size': 13, 'height': 22}
 
 # Two colours (Marko, 2.11.2026: "white is the variable name, and orange is the variable itself").
-COL = {'name': (1.0, 1.0, 1.0), 'value': (1.0, 0.58, 0.10), 'now': (0.35, 0.95, 0.45)}   # green: what is moving now
+COL = {'name': (1.0, 1.0, 1.0), 'value': (1.0, 0.58, 0.10), 'now': (0.35, 0.95, 0.45),
+       'down': (0.35, 0.95, 0.45), 'up': (1.0, 0.30, 0.30)}   # NET: download green, upload red (Marko)   # green: what is moving now
 
 def load_conf():
     c = json.loads(json.dumps(DEFAULT))
@@ -49,13 +50,15 @@ def human(n, width=6):
             return (f'{n:.0f}' if unit in ('B ', 'KB') else f'{n:.1f}').rjust(width) + ' ' + unit
         n /= 1024
 
-def speed(arrow, n):
-    """'↓6.0KB/s' right-aligned in a fixed width: the arrow stays with its number, nothing else moves."""
-    for unit in ('B', 'KB', 'MB', 'GB'):
-        if n < 1000 or unit == 'GB': break
-        n /= 1024
-    v = f'{n:.0f}' if unit in ('B', 'KB') and n >= 100 or unit == 'B' else f'{n:.1f}'
-    return f'{arrow}{v}{unit}/s'.rjust(9)
+def bits(n):
+    """Bytes per second as bits, no arrow, no '/s' (Marko: "the colours make the difference"); a fixed width so the
+    neighbours never move: '12.3Mb', ' 950Kb'."""
+    n *= 8
+    for unit in ('b', 'Kb', 'Mb', 'Gb'):
+        if n < 1000 or unit == 'Gb': break
+        n /= 1000
+    v = f'{n:.0f}' if n >= 100 or unit == 'b' else f'{n:.1f}'
+    return f'{v}{unit}'.rjust(6)
 
 class Readings:
     def __init__(self):
@@ -103,8 +106,7 @@ def segments(r, show):
     """[(text, 'name'|'value')]. Every field has a fixed width; what changes in length (what is moving) comes last."""
     seg = []
     def part(name, value):
-        if seg: seg.append((' ', 'name'))
-        seg.extend([(name, 'name'), (value, 'value')])          # the colours separate them: no space (Marko)
+        seg.extend([(name, 'name')] + (value if isinstance(value, list) else [(value, 'value')]))   # no spaces (Marko)
     if show.get('cpu'):
         part('CPU', f"{r['cpu']:3.0f}%")
     if show.get('ram'):
@@ -114,7 +116,7 @@ def segments(r, show):
     for key, dev, name in (('net', NET, 'NET'), ('tail', 'tailscale0', 'TAILSCALE')):
         if show.get(key):
             d, u = r['speeds'].get(dev, (0, 0))
-            part(name, speed('↓', d) + speed('↑', u))
+            part(name, [(bits(d), 'down'), (bits(u), 'up')])
     if show.get('uptime'):
         h = int(r['up'] // 3600)
         part('UP', (f'{h // 24:2d}d{h % 24:02d}h' if h >= 24 else f'{h:2d}h{int(r["up"] % 3600 // 60):02d}m'))

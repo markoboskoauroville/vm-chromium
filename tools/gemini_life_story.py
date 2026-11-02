@@ -108,10 +108,12 @@ def one(tab, name, scene):
         const c = src.cloneNode(); c.removeAttribute('srcset');
         c.style.cssText = 'width:{w}px;height:{h}px;max-width:none;max-height:none;display:block';
         d.appendChild(c); document.body.appendChild(d); return true; }})()''', tab)
-    cdp('Emulation.setDeviceMetricsOverride', tab, width=max(1280, w), height=max(800, h), deviceScaleFactor=1, mobile=False)
-    time.sleep(1.5)
+    vp = ev('({w: innerWidth, h: innerHeight})', tab)
+    big = w > vp['w'] or h > vp['h']      # only then a bigger page for a moment (Marko saw it as a stretched screen)
+    if big: cdp('Emulation.setDeviceMetricsOverride', tab, width=max(vp['w'], w), height=max(vp['h'], h), deviceScaleFactor=1, mobile=False)
+    time.sleep(1.5 if big else 0.5)
     r = call('capture', tab=tab, x=0, y=0, w=w, h=h, scale=1, save=f'Gemini/life-story/{name}.png')
-    cdp('Emulation.clearDeviceMetricsOverride', tab)
+    if big: cdp('Emulation.clearDeviceMetricsOverride', tab)
     ev('document.querySelectorAll("[data-chromium-vm-overlay]").forEach(e => e.remove())', tab)
     return f"saved {w}x{h} {r['bytes']} bytes"
 
