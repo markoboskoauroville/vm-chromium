@@ -75,3 +75,4 @@ Go and hammer my Gemini account. Let's generate images until it says that it's d
 "I am in the loop. When I switch to Tribal Jam Collective, it brings me to a login window, and then I log into my account. Again, I am at My Marko Bosko, so I'm not able to switch my own profile"
 "also, what is annoying on these profiles is that the video starts automatically when I'm scrolling, also taking my data. Please disable this auto-starting of videos on everything that's on the screen"
 "Please make my status line clickable. If I click on the speed, it is going to do a speed test with internet upload and download, and it's going to show it on screen for 5 seconds, then it's going to go back to momentarily speeds."
+"please just keep on generating until we hit the limit of the account, and then you note how much the limit is, so we know for the future. And you just don't go too fast. Go in the normal speed of the human"

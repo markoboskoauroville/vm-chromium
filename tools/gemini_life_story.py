@@ -147,19 +147,30 @@ def one(tab, name, scene):
     ev('document.querySelectorAll("[data-chromium-vm-overlay]").forEach(e => e.remove())', tab)
     return f"saved {w}x{h} {r['bytes']} bytes"
 
+VARIATIONS = ['a different moment of the same scene, another camera angle', 'the same scene years later, a softer light',
+              'the same scene at another time of day', 'a close-up portrait moment within this scene']
+
 if __name__ == '__main__':
+    # Marko, 2.11.2026: "keep on generating until we hit the limit of the account ... note how much the limit is ...
+    # Go in the normal speed of the human": a pause of 60-150 s between images; after the list, variations, until
+    # Gemini says the day is done. The count of images made today is written into the log.
     tab = sys.argv[1]; start = int(sys.argv[2]) if len(sys.argv) > 2 else 0
-    # the scenes from his real life first (index 30 on), then the rest of the story
     order = SCENES[30:] + SCENES[:30] if os.environ.get('REAL_FIRST') else SCENES
     skip = set(os.environ.get("SKIP", "").split(","))
-    for name, scene in order[start:]:
-        if name in skip: continue
+    made_before = int(os.environ.get('MADE_TODAY', '0'))
+    made = 0
+    rounds = [(n, sc) for n, sc in order[start:] if n not in skip]
+    for v in VARIATIONS:
+        rounds += [(f'{n}-v{VARIATIONS.index(v) + 2}', f'{sc} ({v})') for n, sc in SCENES[30:] + SCENES[:30]]
+    for name, scene in rounds:
         try:
             res = one(tab, name, scene)
         except Exception as e:
             res = f'error {e}'
-        log(f'{name}: {res}')
+        if res.startswith('saved'): made += 1
+        log(f'{name}: {res}  (today: {made_before + made})')
         if res == 'limit':
-            log('Gemini says the day is done: stopping.'); break
-        time.sleep(3)
+            log(f'Gemini says the day is done: stopping. LIMIT REACHED after {made_before + made} images today '
+                f'on this account.'); break
+        time.sleep(random.uniform(60, 150))      # a human pace
     log('finished')
