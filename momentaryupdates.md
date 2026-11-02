@@ -68,3 +68,6 @@ Go and hammer my Gemini account. Let's generate images until it says that it's d
 "please again, instead of \"there are no spaces,\" that's fine. Make pipes between each section. Make a pipe without any space, a black pipe"
 "now, the first information must be the most important. Net should be the first information. Remove the net text. I know it's net. Second information is free SSD space, and then the rest will follow"
 "for RAM measuring unit, it can also go out of the status line. RAM can be just now. It's 3.8/11.6. That's it"
+
+## 2.11.2026, Marko
+"now this looks good. Now I opened all the pages with images so you can use them for referencing in Gemini but I am confused with the third tab. I want to switch to my Travelgem Collective page, which is under the same account, but I cannot switch. I don't know how to do so. You just need to switch that and put images from that account then you find my face and use it to generate an image, and continue generating with the method we already agreed on You can also scan all these images and see the situation from my life, and you can emulate them through Gemini please, let's go. Ready for action"
