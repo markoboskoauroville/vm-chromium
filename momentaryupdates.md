@@ -41,3 +41,10 @@
 
 ## 2.11.2026, Marko (dark mode)
 "also, you can see that my Chromium is in dark mode only half the time, when the user interface is. But the pages have no dark mode. So anything I open now, can it become dark mode? If possible, switch all my Google services: Sheets, Documents, Email, Drive, everything, to dark mode. Please do it. Check if everything is in dark mode, and if not, switch it to dark mode"
+
+## 2.11.2026, Marko (Drive only; Gemini on the VM)
+"Anything that is downloaded to the machine once is converted or transferred to my drive. Basically, don't transfer anything to my computer. I'm going to manually transfer it.
+
+We are saving the SIM. That's very smart, saving the SIM. Then we are going to only transfer to Google Drive in the background and delete it from the virtual machine. It's gone from the virtual machine, transferred to the drive. If I wish, I can get it, or I will ask you to get what we need just for the test.
+
+Go and hammer my Gemini account. Let's generate images until it says that it's done for today, and then we can transfer them to G Drive. We need to do this as we're doing on this computer, which is only generate images. Then don't download. You need to take a screenshot and then save the screenshot. That's the idea, and then transfer it to G Drive. Can also make a folder for such tasks. When you transfer something in Gemini inside the Downloads Chrome folder, you make a Gemini folder. So we are always straight about these things."
