@@ -1,0 +1,21 @@
+#!/bin/bash
+# Starts Xvnc for chromium-vm on the Tailscale address only (never 0.0.0.0).
+set -euo pipefail
+. /etc/chromium-vm.conf
+
+# At boot tailscaled may not have the address yet: wait for it (max 3 min, then systemd retries).
+for _ in $(seq 180); do
+  ip -4 -o addr show | grep -q "inet ${VNC_IP}/" && break
+  sleep 1
+done
+ip -4 -o addr show | grep -q "inet ${VNC_IP}/" || { echo "no ${VNC_IP} yet (is Tailscale up?)" >&2; exit 1; }
+
+PASSWD="$HOME/.config/chromium-vm/vncpasswd"
+[ -s "$PASSWD" ] || { echo "no VNC password: run 'vncpasswd $PASSWD' as $USER" >&2; exit 1; }
+
+exec /usr/bin/Xvnc ":${DISPLAY_NUM}" \
+  -interface "${VNC_IP}" -rfbport "${VNC_PORT}" \
+  -SecurityTypes VncAuth -rfbauth "$PASSWD" \
+  -geometry "${GEOMETRY}" -depth 24 -dpi "${DPI}" \
+  -AcceptSetDesktopSize=1 -AlwaysShared \
+  -desktop chromium-vm -nolisten tcp

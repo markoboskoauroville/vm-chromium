@@ -1,0 +1,14 @@
+[Unit]
+Description=chromium-vm: Chromium and nothing else on the Xvnc screen
+BindsTo=chromium-vm-xvnc.service
+After=chromium-vm-xvnc.service
+
+[Service]
+Type=simple
+User=@VM_USER@
+ExecStart=/usr/local/lib/chromium-vm/chromium-vm-session
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=chromium-vm-xvnc.service

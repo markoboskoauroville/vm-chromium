@@ -1,0 +1,14 @@
+[Unit]
+Description=chromium-vm: Xvnc screen on the Tailscale address
+After=network-online.target tailscaled.service user@@VM_UID@.service
+Wants=network-online.target tailscaled.service
+
+[Service]
+Type=simple
+User=@VM_USER@
+ExecStart=/usr/local/lib/chromium-vm/start-xvnc
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

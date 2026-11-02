@@ -1,0 +1,58 @@
+#!/bin/bash
+# chromium-vm's whole "desktop": a frameless window manager and Chromium, started again whenever it closes.
+set -uo pipefail
+. /etc/chromium-vm.conf
+export DISPLAY=":${DISPLAY_NUM}"
+uid=$(id -u)
+if [ -d "/run/user/$uid" ]; then
+  export XDG_RUNTIME_DIR="/run/user/$uid"
+  [ -S "$XDG_RUNTIME_DIR/bus" ] && export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+fi
+
+case "$CHROMIUM_SOURCE" in
+  snap) CHROMIUM=/snap/bin/chromium; PROFILE="$HOME/snap/chromium/common/chromium" ;;
+  *)    CHROMIUM=/usr/bin/chromium;  PROFILE="$HOME/.config/chromium" ;;
+esac
+
+# Wait for the X server.
+for _ in $(seq 100); do xdpyinfo >/dev/null 2>&1 && break; sleep 0.2; done
+xdpyinfo >/dev/null 2>&1 || { echo "display $DISPLAY not up" >&2; exit 1; }
+
+xsetroot -solid '#202124' 2>/dev/null || true
+xset s off -dpms 2>/dev/null || true
+
+# matchbox: no titlebar, no panel; one window fills the screen, dialogs float over it.
+matchbox-window-manager -use_titlebar no -use_cursor yes &
+wm=$!
+
+# Keep Chromium filling the screen when the client changes the size (Mac window, phone portrait).
+(
+  last=""
+  while sleep 1; do
+    size=$(xdpyinfo 2>/dev/null | awk '/dimensions:/{print $2}')
+    [ -n "$size" ] || continue
+    if [ "$size" != "$last" ]; then
+      last=$size
+      w=${size%x*}; h=${size#*x}
+      for id in $(xdotool search --onlyvisible --class chromium 2>/dev/null); do
+        xdotool windowmove "$id" 0 0 windowsize "$id" "$w" "$h" 2>/dev/null || true
+      done
+    fi
+  done
+) &
+watcher=$!
+trap 'kill $wm $watcher 2>/dev/null' EXIT
+
+while true; do
+  # A kill or a reboot is not a crash to Chromium's user: no "restore pages?" bubble, the tabs just come back.
+  prefs="$PROFILE/Default/Preferences"
+  [ -f "$prefs" ] && sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/; s/"exited_cleanly":false/"exited_cleanly":true/' "$prefs"
+  rm -f "$PROFILE"/Singleton{Lock,Socket,Cookie}
+
+  "$CHROMIUM" \
+    --start-maximized --no-first-run --no-default-browser-check \
+    --disable-session-crashed-bubble --restore-last-session \
+    --password-store=basic --ozone-platform=x11 \
+    --disable-dev-shm-usage
+  sleep 1
+done
