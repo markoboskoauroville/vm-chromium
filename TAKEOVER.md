@@ -54,3 +54,9 @@
   = 14 face photos from his Instagram), one tab of the profile signed in as [address removed], two random refs,
   1:1 DevTools capture, human pace 60–150 s, stops at "Your limit resets at …", sleeps until then + 5 min,
   RESULTS.txt in Gemini/life-story on Drive. Measured: ~37 images per limit window on a free account.
+- **Closed 2.11.2026 ~17:00 CT (Mac session "chromium vm machine at oracle cloud").** Running by itself on the VM:
+  Chrome + Xvnc + session, vm-agent v10 (:8890), status bar, worker chromium-vm-worker-gemini (233 images to make,
+  first one made alone 16:15 CT). Open: Chrome restart to load AutoplayAllowed=false (policy file is in place);
+  Instagram tribal.jam.collective needs its own login; the Mantra Remote v21 connection test on the real Pixel 7
+  (installed, password saved; ENTER not yet pressed); the Mac viewer's keys/mouse/drag never hand-tested by Marko.
+  Next session: read Drive "Chromium Downloads/Gemini/life-story/RESULTS.txt" first.

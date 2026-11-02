@@ -33,3 +33,16 @@ Sessions and jobs go through **vm-router** on the Mac (127.0.0.1:8891): each ses
 (/u/N) and Downloads folder, clipboard / type / key one at a time, Gemini image requests paced per account, an event
 log. `vmr -s NAME …`, or `VMR_NAME=NAME cvm …`; the app **VM Router (Mantra)** (Star, folder Mac) shows it.
 Details: [router/README.md](router/README.md).
+
+## Also on the VM (2.11.2026)
+
+- **Google Chrome 156 (arm64)**, not Chromium: profile sign-in and Sync. Profiles: "Your Chromium" (auroville.community)
+  and "Marko" ([address removed]). Dark everywhere (`--force-dark-mode`, `WebContentsForceDark`, Mode Dark).
+- **Downloads → Google Drive only**: every finished download (subfolders too) goes to Drive "Chromium Downloads/…"
+  and is deleted from the VM (vm-agent). Nothing comes to the Mac by itself (SIM).
+- **Status bar** (statusbar/, service chromium-vm-statusbar): one line at the bottom, 50% see-through band, mono,
+  right-aligned: download (green) upload (red) | SSD free | CPU | RAM | UP; what is moving, in green, from the left.
+  Click on the speeds: a speed test (5 s). Click elsewhere: settings.
+- **Workers** (workers/): programs that run on their own. First: gemini-images (batch on Drive, RESULTS.txt beside
+  the pictures, sleeps until Gemini's limit resets).
+- **The Mac viewer**: Chromium Virtual Machine (Mantra) v3 (viewer/), Star folder Mac.

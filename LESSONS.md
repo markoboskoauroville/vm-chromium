@@ -54,3 +54,10 @@
   reference preview (inside user-query-file-preview): tell them apart with closest('generated-image'), never by blob:.
 - 2.11.2026 router app: OFF quits only the window's app, not the router: relaunch after a build presses OFF, and a
   build must never cut the sessions' running jobs.
+- 2.11.2026: Gemini on the VM: the pasted references are 1024×1024 `img` in `user-query`; take the result only from
+  `generated-image img` / `model-response img`. A background tab never finishes the picture: bring the tab to front.
+  "Your limit resets at H:MM PM" (Chrome's clock = UTC on the VM) is the limit; ~37 images per window, free account.
+- 2.11.2026: never `pkill -f`/`pgrep -f` with words that are in your own command line (ssh shell, zsh -c): it hits
+  itself; and zsh does not split `$(pgrep …)` into several pids. Use `ps ax -o pid,args | grep -E "python3? …[x]"`.
+- 2.11.2026: the session's resize watcher matched every window whose class contained "chromium" and stretched the
+  status bar over the screen: match Chrome's class exactly, give helpers their own prgname.
