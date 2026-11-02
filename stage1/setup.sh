@@ -43,11 +43,16 @@ if [ "$SOURCE" = chrome ]; then
   # Ubuntu ships /etc/apparmor.d/chrome (userns for /opt/google/chrome/chrome): make sure it is loaded.
   [ -f /etc/apparmor.d/chrome ] && apparmor_parser -r /etc/apparmor.d/chrome
   # First switch from Chromium: carry the profile (tabs, cookies, Google sign-in) over once.
-  if [ -d "$VM_HOME/.config/chromium" ] && [ ! -d "$VM_HOME/.config/google-chrome" ]; then
-    systemctl stop chromium-vm-session.service 2>/dev/null || true
-    sleep 2
-    cp -a "$VM_HOME/.config/chromium" "$VM_HOME/.config/google-chrome"
-    rm -f "$VM_HOME/.config/google-chrome"/Singleton{Lock,Socket,Cookie}
+  # The profile lives in ~/.config/chromium-vm-chrome (Chrome 136+ allows DevTools only off the default folder).
+  # Carry it over once: from google-chrome (2.11.2026 layout), else from the old Chromium profile.
+  NEW="$VM_HOME/.config/chromium-vm-chrome"
+  if [ ! -d "$NEW" ]; then
+    for OLD in "$VM_HOME/.config/google-chrome" "$VM_HOME/.config/chromium"; do
+      if [ -d "$OLD" ]; then
+        systemctl stop chromium-vm-session.service 2>/dev/null || true; sleep 2
+        cp -a "$OLD" "$NEW"; rm -f "$NEW"/Singleton{Lock,Socket,Cookie}; break
+      fi
+    done
   fi
 elif [ "$SOURCE" = deb ]; then
   add-apt-repository -y ppa:xtradeb/apps

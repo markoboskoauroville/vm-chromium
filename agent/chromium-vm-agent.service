@@ -1,0 +1,14 @@
+[Unit]
+Description=chromium-vm: vm-agent, the API door (clipboard, keys, files, Chrome DevTools, claude.ai) on the Tailscale address
+After=chromium-vm-xvnc.service tailscaled.service
+Wants=chromium-vm-xvnc.service
+
+[Service]
+Type=simple
+User=@VM_USER@
+ExecStart=/usr/bin/python3 /usr/local/lib/chromium-vm/vm-agent.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

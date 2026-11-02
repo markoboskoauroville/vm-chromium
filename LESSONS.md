@@ -12,3 +12,9 @@
   (`setup.sh --chromium chrome`, the default now). Ubuntu's /etc/apparmor.d/chrome already allows its sandbox.
   The profile was copied ~/.config/chromium → ~/.config/google-chrome once; tabs and cookies came along
   (both use --password-store=basic).
+- 2.11.2026: Chrome 136+ ignores --remote-debugging-port on the default profile folder; give it --user-data-dir.
+- 2.11.2026: `xclip` setting the clipboard forks and keeps the SSH channel open: redirect its stdout/stderr.
+- 2.11.2026: claude.ai DOM: composer `div[contenteditable].ProseMirror` (tiptap), answers
+  `[data-testid=assistant-message]` with the text in `.prose`, streaming flag `[data-is-streaming=true]`,
+  send `button[aria-label="Send message"]`. insertText through execCommand works on the composer.
+  A new chat's url changes after the first send: follow the tab by its DevTools id, not its url.

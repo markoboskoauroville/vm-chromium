@@ -13,3 +13,16 @@ A cloud session is not on the tailnet. To let it reach chromium-vm, Marko gives 
    Tailscale SSH to chromium-vm. Never pasted into a chat.
 3. **This repository** in the environment's GitHub access.
 Without these, the cloud session writes the files here and the local session on the Mac runs them.
+
+## The fast channel (2.11.2026): vm-agent + `cvm`
+
+Built by the principle in MANTRA_MANIFEST modules/build-the-tool.md: no screenshots, no typing by hand.
+
+- **vm-agent** on the VM (`agent/`, systemd `chromium-vm-agent`): 100.102.86.30:8890, Tailscale only, token in
+  `X-Mantra-Token` (VM: ~/.config/chromium-vm/agent-token; Mac: ~/Downloads/API/chromium-vm-agent.txt).
+  `/health`, `/api`, `POST /api/<action>`, `PUT|GET /files/<name>` (the VM's ~/Downloads).
+  Chrome runs with its profile in ~/.config/chromium-vm-chrome and DevTools on 127.0.0.1:9222 (VM only).
+- **`cvm`** on the Mac (`mac/cvm` → ~/.local/bin/cvm): `cvm new` (fresh claude.ai chat, becomes cvm's tab),
+  `cvm ask "..."` (answer as text, ~7 s), `cvm paste` / `cvm type` / `cvm key`, `cvm clip` / `cvm clip set`,
+  `cvm put` / `cvm get` / `cvm ls`, `cvm tabs` / `cvm open` / `cvm text` / `cvm eval`, `cvm shot` (last resort).
+- Install on the VM: copy the repo over (`tar | ssh`, the repo is private), `sudo ./stage1/setup.sh && sudo ./agent/install.sh`.

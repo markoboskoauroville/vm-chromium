@@ -9,8 +9,12 @@ if [ -d "/run/user/$uid" ]; then
   [ -S "$XDG_RUNTIME_DIR/bus" ] && export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
 fi
 
+EXTRA=()
 case "$CHROMIUM_SOURCE" in
-  chrome) CHROMIUM=/usr/bin/google-chrome-stable; PROFILE="$HOME/.config/google-chrome" ;;
+  # Chrome 136+ refuses DevTools on the default profile folder, so the profile lives in its own folder.
+  chrome) CHROMIUM=/usr/bin/google-chrome-stable; PROFILE="$HOME/.config/chromium-vm-chrome"
+          EXTRA=(--user-data-dir="$PROFILE" --remote-debugging-address=127.0.0.1 --remote-debugging-port=9222
+                 --remote-allow-origins=http://127.0.0.1) ;;
   snap) CHROMIUM=/snap/bin/chromium; PROFILE="$HOME/snap/chromium/common/chromium" ;;
   *)    CHROMIUM=/usr/bin/chromium;  PROFILE="$HOME/.config/chromium" ;;
 esac
@@ -54,6 +58,6 @@ while true; do
     --start-maximized --no-first-run --no-default-browser-check \
     --disable-session-crashed-bubble --restore-last-session \
     --password-store=basic --ozone-platform=x11 \
-    --disable-dev-shm-usage
+    --disable-dev-shm-usage "${EXTRA[@]}"
   sleep 1
 done

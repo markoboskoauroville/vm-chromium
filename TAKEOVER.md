@@ -12,3 +12,8 @@
   choice); check.sh 6/6, sandbox on. Mac Screen Sharing works (no shared clipboard with a Linux VNC server: the
   viewer's feature request in PLAN.md; `vmpaste` / `vmcopy` on the Mac meanwhile). Old Chromium profile kept in
   ~/.config/chromium on the VM.
+- 2.11.2026 (Mac session): **vm-agent v4 + cvm** live. Verified: tabs, clipboard both ways, file put/get, page text,
+  `cvm ask` round trip in a fresh claude.ai chat (6.8 s, "received"). Chrome profile moved to
+  ~/.config/chromium-vm-chrome (DevTools needs a non-default folder); ~/.config/google-chrome and ~/.config/chromium
+  are the old copies. Next: the Swift viewer (2b) using the same agent (clipboard, drag and drop), then Stage 3.
+  The Claude *extension* (side panel) is not driven yet; only claude.ai tabs.

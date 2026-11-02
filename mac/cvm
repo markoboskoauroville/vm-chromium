@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+"""cvm: talk to chromium-vm directly through its vm-agent (Tailscale 100.102.86.30:8890). Short text answers.
+  cvm ask "text"        message Claude on the VM, wait, print the answer (tab: $CVM_TAB, else the
+                        tab cvm opened last with `cvm new`, else the first claude.ai tab)
+  cvm new               open a fresh claude.ai chat on the VM and make it cvm's tab
+  cvm type "text"       type into the focused box   (cvm paste: the Mac clipboard)
+  cvm key Return        press keys (xdotool names)
+  cvm clip              VM clipboard -> Mac clipboard     cvm clip set: Mac clipboard -> VM clipboard
+  cvm put FILE...       Mac files -> ~/Downloads on the VM     cvm get NAME [DEST]   and back     cvm ls
+  cvm tabs | cvm open URL | cvm text [TAB] [MAX] | cvm eval JS [TAB] | cvm shot [FILE]   (shot: the last resort)
+  cvm api               the agent's actions
+"""
+import base64, json, os, subprocess, sys, urllib.request, urllib.parse
+BASE = 'http://100.102.86.30:8890'
+TOKEN = open(os.path.expanduser('~/Downloads/API/chromium-vm-agent.txt')).read().strip()
+
+def req(method, path, body=None, raw=None, timeout=300):
+    data = raw if raw is not None else (json.dumps(body).encode() if body is not None else None)
+    r = urllib.request.Request(BASE + path, data=data, method=method, headers={'X-Mantra-Token': TOKEN})
+    try:
+        with urllib.request.urlopen(r, timeout=timeout) as f: return f.read()
+    except urllib.error.HTTPError as e: return e.read()
+    except urllib.error.URLError as e: sys.exit(f'cvm: chromium-vm not reachable ({e.reason}); is Tailscale on?')
+
+def act(name, **a):
+    r = json.loads(req('POST', '/api/' + name, a))
+    if not r.get('ok'): sys.exit('cvm: ' + r.get('error', '?'))
+    return r['result']
+
+def out(x): print(x if isinstance(x, str) else json.dumps(x, ensure_ascii=False, indent=1))
+pb = lambda: subprocess.run(['pbpaste'], capture_output=True).stdout.decode()
+
+c, args = (sys.argv[1] if len(sys.argv) > 1 else 'help'), sys.argv[2:]
+TABF = os.path.expanduser('~/.config/cvm-tab')
+def cur_tab():
+    return os.environ.get('CVM_TAB') or (open(TABF).read().strip() if os.path.exists(TABF) else 'claude.ai')
+if c == 'ask':
+    r = act('claude_ask', text=' '.join(args) if args else sys.stdin.read(), tab=cur_tab()); out(r.get('answer', r))
+elif c == 'new':
+    tid = act('open', url='https://claude.ai/new'); os.makedirs(os.path.dirname(TABF), exist_ok=True)
+    open(TABF, 'w').write(tid); print('cvm tab:', tid)
+elif c == 'type': act('type', text=' '.join(args)); print('typed')
+elif c == 'paste': t = pb(); act('type', text=t); print(f'typed {len(t)} characters')
+elif c == 'key': act('key', keys=' '.join(args)); print('ok')
+elif c == 'clip':
+    if args[:1] == ['set']: t = pb(); act('clip_set', text=t); print(f'{len(t)} characters on the VM clipboard')
+    else: t = act('clip_get'); subprocess.run(['pbcopy'], input=t.encode()); print(f'{len(t)} characters on the Mac clipboard')
+elif c == 'put':
+    for p in args:
+        r = json.loads(req('PUT', '/files/' + urllib.parse.quote(os.path.basename(p)), raw=open(p, 'rb').read(), timeout=3600))
+        print(r['result']['path'], r['result']['bytes'], 'bytes') if r.get('ok') else sys.exit('cvm: ' + r['error'])
+elif c == 'get':
+    d = req('GET', '/files/' + urllib.parse.quote(args[0])); dest = args[1] if len(args) > 1 else args[0]
+    open(dest, 'wb').write(d); print(dest, len(d), 'bytes')
+elif c == 'ls': out(act('ls'))
+elif c == 'tabs': out(act('tabs'))
+elif c == 'open': out(act('open', url=args[0]))
+elif c == 'text': out(act('page_text', **({'tab': args[0]} if args else {}), **({'max': int(args[1])} if len(args) > 1 else {})))
+elif c == 'eval': out(act('eval', js=args[0], **({'tab': args[1]} if len(args) > 1 else {})))
+elif c == 'shot':
+    f = args[0] if args else '/tmp/cvm-shot.jpg'; open(f, 'wb').write(base64.b64decode(act('shot'))); print(f)
+elif c == 'api': out([f"{a['name']}: {a['does']}" for a in json.loads(req('GET', '/api'))['actions']])
+else: print(__doc__)
