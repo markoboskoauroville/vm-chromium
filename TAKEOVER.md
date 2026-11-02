@@ -66,3 +66,26 @@
   gemini_mpa_drums.py SKIP=… MADE_BEFORE=13 TARGET=55 on tab auroville.community /u/1), life story finished its day (55 real,
   gmail limit until 20:35 CT). TO RESUME: `sudo systemctl start chromium-vm-worker-gemini.service`; reopen Gemini tabs; rerun the
   cover script, then the drums with the SKIP list (see tools/gemini_mpa_drums.log).
+- 2.11.2026 ~19:30 CT (Mac session, subagent of "chromium vm"): **the desktop**: openbox instead of matchbox, three
+  programs and the dock (desktop/, README "The desktop"). Claude Code in xfce4-terminal + tmux `claude`; **Claude =
+  the official Claude Desktop for Linux beta** (Anthropic's apt repo, claude-desktop 4.4212.0 arm64, key fingerprint
+  31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE; no community repackage); Chrome unchanged. Dock: three live screens +
+  three layout displays (Halves, Thirds, Chrome + 2). Keys: **⌘Tab arrives as Super_L+Tab** (keysym 0xffeb) — only
+  since viewer v5; before, ⌘ was always sent as Control_L and macOS ate ⌘Tab, so it never reached the VM. ⌃ arrives
+  as Control_L, ⌥ as Alt_L only with arrows/Return/Backspace … and, since v5, with every key while ⌃ is held, so the
+  Rectangle set (Ctrl+Alt+…) works. The viewer suspends the Mac's global hotkeys while it is the active app
+  (CGSSetGlobalHotKeyOperatingMode), otherwise macOS ⌘Tab and the Mac's own Rectangle take the keys first.
+  vm-agent v11: the DevTools HTTP 500 since the 16:56 Chrome restart was Chrome 156 listening on [::1]:9222 (it
+  ignores --remote-debugging-address) while the agent asked 127.0.0.1; the agent now tries both. Default browser on
+  the VM = the session's Chrome (chromium-vm-chrome.desktop); Claude Desktop's sign-in kept in a plain gnome-keyring.
+  VERIFIED with screenshots (scratchpad of that session): Claude Code full screen + the dock peeking with three live
+  thumbnails after Super+Tab; the dock on hover over the Claude app; the dock with six tiles over Halves; Super+Tab
+  cycling Claude Code → Claude → Chrome; Ctrl+Alt+Right / U / BackSpace / Return measured by window geometry;
+  `cvm tabs` and `cvm eval` after the changes. Marko himself used the dock (Halves) and logged Claude Code in.
+  NOT verified: ⌘Tab and ⌃⌥keys pressed by Marko's hand through viewer v5 (needs his keyboard: the hotkey suspension
+  cannot be tested without taking his focus); the dock click on a program tile by xdotool (Marko was working on the
+  screen, signing Claude Desktop in); a screen-size change under openbox (maximized windows should follow).
+  Known: Claude Desktop will not go below 600 px wide, so in a third (518 px on a 1554 px screen) it is wider than its
+  slot; chromium-vm-snap keeps it inside the screen, overlapping its neighbour. The second session restart (openbox)
+  brought Chrome back on the profile picker; opening profile Default (`google-chrome-stable --user-data-dir=… 
+  --profile-directory=Default`) restored the 10 tabs. chromium-vm-worker-gemini left stopped.

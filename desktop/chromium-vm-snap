@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+"""chromium-vm-snap ACTION: Rectangle on the VM (Marko, 2.11.2026: "Rectangle-style keyboard shortcuts").
+Called by openbox's keybindings (Ctrl+Alt+key = ⌃⌥key from the Mac viewer). Snaps the active window inside the
+work area (screen less the status bar), like Rectangle's defaults:
+left right top bottom | max center | tl tr bl br | third1 third2 third3 | two1 two2 | restore
+`layout halves|thirds|big` arranges all three programs at once (the dock's layout displays, Marko 2.11.2026):
+halves = Claude Code left | Chrome right; thirds = Claude Code | Claude | Chrome; big = Chrome on the first two
+thirds, Claude Code top right, Claude bottom right.
+The geometry before the first snap is kept in ~/.cache/chromium-vm/snap.json, so `restore` brings it back."""
+import json, os, subprocess, sys
+
+STATE = os.path.expanduser('~/.cache/chromium-vm/snap.json')
+BAR = 22
+
+def sh(*a):
+    return subprocess.run(a, capture_output=True, text=True, timeout=3).stdout
+
+APPS = {'code': lambda i, c: c == 'Xfce4-terminal', 'claude': lambda i, c: c.lower() == 'com.anthropic.claude',
+        'chrome': lambda i, c: c == 'Google-chrome' and 'chromium-vm-chrome' in i}
+LAYOUTS = {'halves': [('code', 'left'), ('chrome', 'right')],
+           'thirds': [('code', 'third1'), ('claude', 'third2'), ('chrome', 'third3')],
+           'big': [('chrome', 'two1'), ('code', 'r3top'), ('claude', 'r3bot')]}
+
+def app_windows():
+    """The topmost normal, mapped window of each program (by WM_CLASS, from openbox's stacking list)."""
+    out = {}
+    try:
+        stack = sh('xprop', '-root', '_NET_CLIENT_LIST_STACKING').split('#', 1)[1].replace(',', ' ').split()
+    except Exception:
+        return out
+    for wid in stack:
+        p = sh('xprop', '-id', wid, 'WM_CLASS', '_NET_WM_WINDOW_TYPE', 'WM_STATE')
+        if 'Iconic' in p or ('_NET_WM_WINDOW_TYPE_NORMAL' not in p and '_NET_WM_WINDOW_TYPE(' in p): continue
+        try: inst, cls = [x.strip().strip('"') for x in p.split('WM_CLASS(STRING) = ')[1].splitlines()[0].split('", "')]
+        except Exception: continue
+        for name, test in APPS.items():
+            if test(inst, cls): out[name] = str(int(wid, 16))
+    return out
+
+def main():
+    act = sys.argv[1] if len(sys.argv) > 1 else ''
+    if act == 'layout':
+        wins = app_windows(); plan = LAYOUTS.get(sys.argv[2] if len(sys.argv) > 2 else '', [])
+        for name, rect in plan:
+            if name in wins: place(wins[name], rect)
+        for name, _ in plan:
+            if name in wins: sh('xdotool', 'windowactivate', wins[name])
+        return
+    wid = sh('xdotool', 'getactivewindow').strip()
+    if wid: place(wid, act)
+
+def place(wid, act):
+    W, H = map(int, sh('xdotool', 'getdisplaygeometry').split())
+    try:   # openbox puts its margins into _NET_WORKAREA
+        wa = [int(v) for v in sh('xprop', '-root', '_NET_WORKAREA').split('=')[1].replace(',', ' ').split()[:4]]
+        X0, Y0, AW, AH = wa
+    except Exception:
+        X0, Y0, AW, AH = 0, 0, W, H - BAR
+    g = {}
+    for line in sh('xdotool', 'getwindowgeometry', '--shell', wid).splitlines():
+        k, _, v = line.partition('='); g[k] = int(v) if v.lstrip('-').isdigit() else v
+    cur = [g.get('X', 0), g.get('Y', 0), g.get('WIDTH', AW), g.get('HEIGHT', AH)]
+    try: st = json.load(open(STATE))
+    except Exception: st = {}
+    h2, w2, w3 = AH // 2, AW // 2, AW // 3
+    R = {'left': (0, 0, w2, AH), 'right': (AW - w2, 0, w2, AH), 'top': (0, 0, AW, h2), 'bottom': (0, AH - h2, AW, h2),
+         'max': (0, 0, AW, AH), 'tl': (0, 0, w2, h2), 'tr': (AW - w2, 0, w2, h2), 'bl': (0, AH - h2, w2, h2),
+         'br': (AW - w2, AH - h2, w2, h2), 'third1': (0, 0, w3, AH), 'third2': (w3, 0, w3, AH),
+         'third3': (AW - w3, 0, w3, AH), 'two1': (0, 0, AW - w3, AH), 'two2': (w3, 0, AW - w3, AH),
+         'r3top': (AW - w3, 0, w3, h2), 'r3bot': (AW - w3, AH - h2, w3, h2)}
+    if act == 'restore':
+        if wid not in st: return
+        x, y, w, h = st.pop(wid); json.dump(st, open(STATE, 'w'))
+        sh('wmctrl', '-i', '-r', wid, '-b', 'remove,maximized_vert,maximized_horz')
+        sh('wmctrl', '-i', '-r', wid, '-e', f'0,{x},{y},{w},{h}'); return
+    if act == 'center':
+        w, h = min(cur[2], AW), min(cur[3], AH)
+        x, y = X0 + (AW - w) // 2, Y0 + (AH - h) // 2
+    elif act in R:
+        x, y, w, h = R[act]; x += X0; y += Y0
+    else:
+        sys.exit(f'unknown action {act!r}')
+    if wid not in st:    # the place before the first snap (Rectangle's "restore")
+        st[wid] = cur; os.makedirs(os.path.dirname(STATE), exist_ok=True); json.dump(st, open(STATE, 'w'))
+    if act == 'max':
+        sh('wmctrl', '-i', '-r', wid, '-b', 'add,maximized_vert,maximized_horz'); return
+    sh('wmctrl', '-i', '-r', wid, '-b', 'remove,maximized_vert,maximized_horz')
+    sh('wmctrl', '-i', '-r', wid, '-e', f'0,{x},{y},{w},{h}')
+    # A program with a minimum size (Claude Desktop: 600 px wide) stays bigger than the slot: keep it on the screen.
+    import time; time.sleep(0.15)
+    g2 = dict(l.partition('=')[::2] for l in sh('xdotool', 'getwindowgeometry', '--shell', wid).splitlines())
+    rw, rh = int(g2.get('WIDTH', w)), int(g2.get('HEIGHT', h))
+    nx, ny = min(x, X0 + AW - rw), min(y, Y0 + AH - rh)
+    if (nx, ny) != (x, y): sh('wmctrl', '-i', '-r', wid, '-e', f'0,{max(X0, nx)},{max(Y0, ny)},-1,-1')
+
+if __name__ == '__main__':
+    main()

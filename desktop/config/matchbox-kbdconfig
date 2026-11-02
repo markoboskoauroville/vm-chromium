@@ -1,0 +1,2 @@
+# chromium-vm: matchbox binds no keys at all (Marko, 2.11.2026: only Command-Tab switches the three screens, and the
+# dock binds that one itself as Super+Tab). matchbox's own default binds Alt+Tab, Alt+n, F11 ...: replaced by this.

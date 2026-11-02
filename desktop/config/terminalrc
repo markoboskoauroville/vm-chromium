@@ -1,0 +1,14 @@
+[Configuration]
+FontName=JetBrains Mono 13
+ColorForeground=#e8e6e3
+ColorBackground=#1a1a1a
+ColorCursor=#d97757
+ColorPalette=#1a1a1a;#e06c75;#98c379;#e5c07b;#61afef;#c678dd;#56b6c2;#d7dae0;#5c6370;#ff7b86;#b5e890;#ffd68a;#8cc8ff;#de9bf0;#7fd6e0;#ffffff
+MiscMenubarDefault=FALSE
+MiscToolbarDefault=FALSE
+MiscBordersDefault=FALSE
+MiscConfirmClose=FALSE
+MiscCursorBlinks=TRUE
+ScrollingBar=TERMINAL_SCROLLBAR_NONE
+ScrollingLines=20000
+TitleMode=TERMINAL_TITLE_HIDE

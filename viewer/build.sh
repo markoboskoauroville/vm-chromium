@@ -38,3 +38,4 @@ osascript -e "tell application \"$NAME\" to quit" >/dev/null 2>&1 || true
 sleep 1
 rm -rf "/Applications/$NAME.app"; cp -R "$APP" /Applications/
 echo "built $APP (v$V) and installed it in /Applications"
+open -g "/Applications/$NAME.app"   # the new one, in the background (never takes his focus)

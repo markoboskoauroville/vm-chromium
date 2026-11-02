@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Chrome (chromium-vm)
+Comment=The session's Google Chrome (profile ~/.config/chromium-vm-chrome): every link opened by another program lands here
+Exec=/usr/bin/google-chrome-stable --user-data-dir=@VM_HOME@/.config/chromium-vm-chrome %U
+Terminal=false
+Type=Application
+Icon=google-chrome
+Categories=Network;WebBrowser;
+MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;
+NoDisplay=true

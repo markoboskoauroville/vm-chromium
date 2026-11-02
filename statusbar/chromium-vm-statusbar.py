@@ -229,13 +229,19 @@ class Bar(Gtk.Window):
         # the band is visible now: the whole line takes the click (settings)
 
     def chrome_window(self):
-        if time.time() - self.under_at > 5 or self.under is None:
+        if time.time() - self.under_at > 1 or self.under is None:
             self.under_at = time.time()
             try:
-                ids = subprocess.run(['xdotool', 'search', '--onlyvisible', '--class', 'google-chrome'],
-                                     capture_output=True, text=True, timeout=2).stdout.split()
+                # the screen in front (the dock writes it: Claude Code, Claude or Chrome, 2.11.2026), else Chrome
+                try:
+                    ids = [open(os.path.expanduser('~/.cache/chromium-vm/front')).read().strip()]
+                except Exception:
+                    ids = subprocess.run(['xdotool', 'search', '--onlyvisible', '--class', 'google-chrome'],
+                                         capture_output=True, text=True, timeout=2).stdout.split()
                 disp = GdkX11.X11Display.get_default()
-                self.under = GdkX11.X11Window.foreign_new_for_display(disp, int(ids[-1])) if ids else None
+                wid = int(ids[-1]) if ids and ids[-1] else 0
+                if self.under is None or self.under.get_xid() != wid:
+                    self.under = GdkX11.X11Window.foreign_new_for_display(disp, wid) if wid else None
             except Exception:
                 self.under = None
         return self.under
@@ -252,6 +258,8 @@ class Bar(Gtk.Window):
                 pb = None
         if pb is not None:
             Gdk.cairo_set_source_pixbuf(cr, pb, 0, 0); cr.paint()
+        else:   # nothing under the bar (openbox keeps maximized windows above it since 2.11.2026): the desktop colour
+            cr.set_source_rgb(0.125, 0.129, 0.141); cr.paint()
         cr.set_source_rgba(0, 0, 0, 0.5); cr.paint()                 # the 50% band, like subtitles
         w, h = self.get_size(); self.paint(cr, w, h); return False
 

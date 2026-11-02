@@ -13,9 +13,21 @@ for line in open('/etc/chromium-vm.conf'):
         k, v = line.strip().split('=', 1); CONF[k] = v
 HOST = CONF.get('VNC_IP', '100.102.86.30'); PORT = int(CONF.get('AGENT_PORT', '8890'))
 TOKEN = open(os.path.expanduser('~/.config/chromium-vm/agent-token')).read().strip()
-DISPLAY = ':' + CONF.get('DISPLAY_NUM', '1'); CDP = 'http://127.0.0.1:9222'
+DISPLAY = ':' + CONF.get('DISPLAY_NUM', '1')
+# Chrome's DevTools: Chrome 156 (headful) ignores --remote-debugging-address and binds "localhost", which it may
+# resolve to [::1] (since the 2.11.2026 ~16:56 restart; /etc/hosts gives Python only 127.0.0.1 for localhost, so
+# every call failed). Try both and keep the one that answers.
+CDP_BASES = ['http://127.0.0.1:9222', 'http://[::1]:9222']; _cdp = [CDP_BASES[0]]
+def cdp_open(path, method=None, timeout=5):
+    order = [_cdp[0]] + [b for b in CDP_BASES if b != _cdp[0]]
+    for i, base in enumerate(order):
+        try:
+            r = urllib.request.urlopen(urllib.request.Request(base + path, method=method), timeout=timeout)
+            _cdp[0] = base; return json.load(r)
+        except urllib.error.URLError:
+            if i == len(order) - 1: raise
 DOWNLOADS = os.path.expanduser('~/Downloads'); os.makedirs(DOWNLOADS, exist_ok=True)
-VERSION = 10
+VERSION = 11
 ENV = dict(os.environ, DISPLAY=DISPLAY)
 
 def run(cmd, data=None, timeout=15):
@@ -24,7 +36,7 @@ def run(cmd, data=None, timeout=15):
 # ---- Chrome DevTools ---------------------------------------------------------------------------------------------
 def tabs(frames=False):
     kinds = ('page', 'iframe') if frames else ('page',)
-    return [t for t in json.load(urllib.request.urlopen(CDP + '/json', timeout=5)) if t.get('type') in kinds]
+    return [t for t in cdp_open('/json') if t.get('type') in kinds]
 
 def tab(match=None):
     ts = tabs(frames=bool(match))     # a match may name a frame too (the Claude extension's panel is a claude.ai/cic frame)
@@ -60,7 +72,7 @@ def cdp_call(method, params, match=None):
     return m.get('result', {})
 
 def browser_call(method, params):
-    url = json.load(urllib.request.urlopen(CDP + '/json/version', timeout=5))['webSocketDebuggerUrl']
+    url = cdp_open('/json/version')['webSocketDebuggerUrl']
     ws = websocket.create_connection(url, timeout=60, suppress_origin=True)
     try:
         ws.send(json.dumps({'id': 1, 'method': method, 'params': params}))
@@ -265,7 +277,7 @@ ACTIONS = {
                 lambda a: base64.b64encode(run(['sh', '-c', f'xwd -root -silent | convert xwd:- -resize {int(a.get("scale", 50))}% -quality 70 jpg:-'], timeout=30)).decode()),
   'tabs':      ('Chrome tabs: title and url', {}, lambda a: [{'title': t['title'], 'url': t['url']} for t in tabs()]),
   'open':      ('opens a url in a new tab, returns its id', {'url': 'str'},
-                lambda a: json.load(urllib.request.urlopen(urllib.request.Request(CDP + '/json/new?' + urllib.parse.quote(a['url'], safe=''), method='PUT'), timeout=10))['id']),
+                lambda a: cdp_open('/json/new?' + urllib.parse.quote(a['url'], safe=''), method='PUT', timeout=10)['id']),
   'page_text': ('the visible text of a tab (first matching url/title, else the first tab)', {'tab': 'str', 'max': 'int'},
                 lambda a: (cdp_eval('document.body.innerText', a.get('tab')) or '')[-int(a.get('max', 20000)):]),
   'eval':      ('runs JavaScript in a tab, returns the value', {'js': 'str', 'tab': 'str'}, lambda a: cdp_eval(a['js'], a.get('tab'))),

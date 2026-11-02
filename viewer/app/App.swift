@@ -4,7 +4,7 @@
 // Marko, 2.11.2026: "let's build the Swift viewer for the Chromium virtual machine ... clipboard and drag-and-drop".
 import AppKit
 
-let VERSION = 4
+let VERSION = 5
 let APP_NAME = "Chromium Virtual Machine (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -50,8 +50,14 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     func applicationShouldHandleReopen(_ s: NSApplication, hasVisibleWindows: Bool) -> Bool {
         window.makeKeyAndOrderFront(nil); return true
     }
-    func applicationDidBecomeActive(_ n: Notification) { pushClipboard {} }
-    func applicationDidResignActive(_ n: Notification) { screen.releaseAll() }
+    // v5 (Marko, 2.11.2026): ⌘Tab switches the VM's screens and ⌃⌥ + key snaps its windows like Rectangle. macOS
+    // takes ⌘Tab (and Rectangle on the Mac takes ⌃⌥←…) before any app sees them, so while this app is the active one
+    // the Mac's global hotkeys are suspended (CGSSetGlobalHotKeyOperatingMode: per connection, the WindowServer
+    // gives them back when the app resigns, quits or dies). Mac-wide ⌘Tab/Spotlight work again as soon as another
+    // app is in front.
+    func applicationDidBecomeActive(_ n: Notification) { HotKeys.capture(true); pushClipboard {} }
+    func applicationDidResignActive(_ n: Notification) { HotKeys.capture(false); screen.releaseAll() }
+    func applicationWillTerminate(_ n: Notification) { HotKeys.capture(false) }
 
     // MARK: window
 

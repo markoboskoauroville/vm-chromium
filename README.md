@@ -25,7 +25,7 @@ Built by the principle in MANTRA_MANIFEST modules/build-the-tool.md: no screensh
 - **`cvm`** on the Mac (`mac/cvm` → ~/.local/bin/cvm): `cvm new` (fresh claude.ai chat, becomes cvm's tab),
   `cvm ask "..."` (answer as text, ~7 s), `cvm paste` / `cvm type` / `cvm key`, `cvm clip` / `cvm clip set`,
   `cvm put` / `cvm get` / `cvm ls`, `cvm tabs` / `cvm open` / `cvm text` / `cvm eval`, `cvm shot` (last resort).
-- Install on the VM: copy the repo over (`tar | ssh`, the repo is private), `sudo ./stage1/setup.sh && sudo ./agent/install.sh`.
+- Install on the VM: copy the repo over (`tar | ssh`, the repo is private), `sudo ./stage1/setup.sh && sudo ./agent/install.sh && sudo ./desktop/install.sh`.
 
 ## Many sessions at once (2.11.2026): vm-router + `vmr`
 
@@ -46,3 +46,37 @@ Details: [router/README.md](router/README.md).
 - **Workers** (workers/): programs that run on their own. First: gemini-images (batch on Drive, RESULTS.txt beside
   the pictures, sleeps until Gemini's limit resets).
 - **The Mac viewer**: Chromium Virtual Machine (Mantra) v3 (viewer/), Star folder Mac.
+
+## The desktop (2.11.2026): three programs, the dock, Rectangle's keys
+
+Marko: "three screens, and I'm switching between them" / "use the same principle as with jumping displays at the
+bottom: give me three more displays with different layout" / windows side by side with Rectangle's keys. `desktop/`,
+installed with `sudo ./desktop/install.sh`; services chromium-vm-claude-code, chromium-vm-claude-app, chromium-vm-dock.
+
+- **Window manager: openbox** (desktop/config/openbox-rc.xml, started by chromium-vm-session; matchbox only as a
+  fallback). No title bars, every window opens maximized, the bottom 22 px stay the status bar's.
+- **Claude Code**: xfce4-terminal (JetBrains Mono 13, dark) with tmux session `claude` running ~/.local/bin/claude.
+- **Claude**: Anthropic's official **Claude Desktop for Linux (beta, arm64)**, apt repo downloads.claude.ai, package
+  claude-desktop 4.4212.0, software rendering. Its sign-in is kept in a plain gnome-keyring "login" keyring.
+- **Chrome**: the session's Google Chrome (profile ~/.config/chromium-vm-chrome, DevTools for vm-agent). It is also
+  the VM's default browser (chromium-vm-chrome.desktop), so sign-in links of the other programs open there.
+- **The dock**: pointer at the bottom edge → it slides up above the status bar: three live screens (Claude Code |
+  Claude | Chrome, 3 refreshes a second while shown; click = that program to the front) and, after a divider, three
+  layout displays (click = all programs arranged that way): **Halves** (Claude Code | Chrome), **Thirds** (Claude
+  Code | Claude | Chrome), **Chrome + 2** (Chrome two thirds, Claude Code top right, Claude bottom right).
+
+| Mac key (through the viewer v5) | arrives on the VM as | does |
+|---|---|---|
+| ⌘Tab | Super+Tab | next program (Claude Code → Claude → Chrome), the dock peeks; the ONLY switching key |
+| ⌃⌥← / ⌃⌥→ | Ctrl+Alt+Left / Right | left / right half |
+| ⌃⌥↑ / ⌃⌥↓ | Ctrl+Alt+Up / Down | top / bottom half |
+| ⌃⌥Return | Ctrl+Alt+Return | maximize |
+| ⌃⌥C | Ctrl+Alt+C | center |
+| ⌃⌥U / I / J / K | Ctrl+Alt+U / I / J / K | top-left / top-right / bottom-left / bottom-right quarter |
+| ⌃⌥D / F / G | Ctrl+Alt+D / F / G | first / center / last third |
+| ⌃⌥E / T | Ctrl+Alt+E / T | first / last two thirds |
+| ⌃⌥⌫ | Ctrl+Alt+BackSpace | restore the place before the first snap |
+
+Not bound on purpose: Alt+Tab and Shift+Tab (Marko: only Command-Tab; Shift+Tab is needed inside the programs,
+Claude Code uses it for its modes), and none of matchbox's/openbox's default keys. The snaps run
+`/usr/local/lib/chromium-vm/chromium-vm-snap ACTION` (also `layout halves|thirds|big`), usable over ssh too.

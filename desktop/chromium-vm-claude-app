@@ -1,0 +1,30 @@
+#!/bin/bash
+# Screen 2 of 3 (Marko, 2.11.2026): the Claude application. Anthropic's official Claude Desktop for Linux (beta,
+# Ubuntu/Debian arm64, apt repo downloads.claude.ai/claude-desktop), package claude-desktop. Not signed in here:
+# Marko signs in himself. Software rendering (no GPU on this VM). Started again whenever it quits.
+set -uo pipefail
+. /etc/chromium-vm.conf
+export DISPLAY=":${DISPLAY_NUM}"
+uid=$(id -u)
+if [ -d "/run/user/$uid" ]; then
+  export XDG_RUNTIME_DIR="/run/user/$uid"
+  [ -S "$XDG_RUNTIME_DIR/bus" ] && export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+fi
+for _ in $(seq 100); do xdpyinfo >/dev/null 2>&1 && break; sleep 0.2; done
+
+# The sign-in is kept in a keyring. Without a desktop there is none, and Claude Desktop says "session will not
+# persist". gnome-keyring will not make an empty-password keyring itself, so a plain (unencrypted, always unlocked)
+# login keyring file is written once (2.11.2026). Its secrets lie on the VM's disk in clear, like basic_text would.
+K="$HOME/.local/share/keyrings"
+if [ ! -f "$K/login.keyring" ]; then
+  mkdir -p "$K"; chmod 700 "$K"
+  printf '[keyring]\ndisplay-name=login\nctime=0\nmtime=0\nlock-on-idle=false\nlock-after=false\n' > "$K/login.keyring"
+  printf login > "$K/default"; chmod 600 "$K/login.keyring" "$K/default"
+fi
+gnome-keyring-daemon --start --components=secrets >/dev/null 2>&1 || true
+export XDG_CURRENT_DESKTOP=GNOME
+
+while true; do
+  claude-desktop --disable-gpu --password-store=gnome-libsecret
+  sleep 2
+done

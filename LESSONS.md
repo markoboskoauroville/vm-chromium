@@ -61,3 +61,22 @@
   itself; and zsh does not split `$(pgrep …)` into several pids. Use `ps ax -o pid,args | grep -E "python3? …[x]"`.
 - 2.11.2026: the session's resize watcher matched every window whose class contained "chromium" and stretched the
   status bar over the screen: match Chrome's class exactly, give helpers their own prgname.
+- 2.11.2026: Chrome 156 (headful) ignores --remote-debugging-address and binds DevTools to "localhost", which came up
+  as [::1]:9222 after a restart; Ubuntu's /etc/hosts gives Python only 127.0.0.1 for localhost (curl tries both, so
+  curl worked and the agent did not). Ask 127.0.0.1 and [::1].
+- 2.11.2026: matchbox's default kbdconfig binds Alt+Tab, Alt+n, F11 …; openbox with an own rc.xml binds only what is
+  in it. openbox `<margins><bottom>22</bottom>` keeps maximized windows above an override-redirect status bar.
+- 2.11.2026: a Mac app never sees ⌘Tab (the Dock takes it) nor another app's global hotkeys (Rectangle's ⌃⌥←):
+  CGSSetGlobalHotKeyOperatingMode(CGSMainConnectionID(), 1) while the app is active, 0 when it resigns; the mode
+  belongs to the app's connection, so a crash gives the hotkeys back. ⌃⌥ + letter composes nothing on the Mac: send
+  it as Ctrl+Alt+letter.
+- 2.11.2026: Claude Desktop for Linux (Electron) on a desktop-less VM: "session will not persist" unless a keyring
+  answers; gnome-keyring will not create an empty-password keyring by itself (`--unlock` with empty stdin does
+  nothing), but a plain keyring file ([keyring] display-name=login …, ~/.local/share/keyrings/login.keyring + default)
+  is always unlocked; launch with --password-store=gnome-libsecret. First start takes ~30 s on 2 cores (white window).
+- 2.11.2026: xdg-open on the VM sent sign-in links to the old plain Chromium (chromium.desktop was the default
+  browser): a .desktop file with the session's --user-data-dir makes the session's Chrome the default.
+- 2.11.2026: with xcompmgr (composite) running, XGetImage of an obscured window returns its full content, so live
+  thumbnails of the windows behind work; the dock reads the root window under itself BEFORE it maps (static band).
+- 2.11.2026: testing switching keys while Marko works on the same screen takes his focus away mid-typing: look first
+  (passive screenshot + getactivewindow), test when the screen is idle, give the focus back at once.

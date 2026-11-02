@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- chromium-vm: openbox (2.11.2026). Marko: windows side by side, snapped with Rectangle's keys; every window opens
+     maximized, no title bars; Command-Tab (Super+Tab, bound by the dock) is the only switching key: openbox binds no
+     Alt+Tab and no other key than the Rectangle set below. The bottom 22 px are the status bar's (margin). -->
+<openbox_config xmlns="http://openbox.org/3.4/rc">
+  <resistance><strength>0</strength><screen_edge_strength>0</screen_edge_strength></resistance>
+  <focus><focusNew>yes</focusNew><followMouse>no</followMouse></focus>
+  <placement><policy>Smart</policy><center>yes</center></placement>
+  <theme><name>Clearlooks</name><keepBorder>no</keepBorder><animateIconify>no</animateIconify></theme>
+  <desktops><number>1</number></desktops>
+  <margins><top>0</top><bottom>22</bottom><left>0</left><right>0</right></margins>
+  <keyboard>
+    <keybind key="C-A-Left"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap left</command></action></keybind>  <!-- Left half -->
+    <keybind key="C-A-Right"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap right</command></action></keybind>  <!-- Right half -->
+    <keybind key="C-A-Up"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap top</command></action></keybind>  <!-- Top half -->
+    <keybind key="C-A-Down"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap bottom</command></action></keybind>  <!-- Bottom half -->
+    <keybind key="C-A-Return"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap max</command></action></keybind>  <!-- Maximize -->
+    <keybind key="C-A-KP_Enter"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap max</command></action></keybind>  <!-- Maximize -->
+    <keybind key="C-A-c"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap center</command></action></keybind>  <!-- Center -->
+    <keybind key="C-A-u"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap tl</command></action></keybind>  <!-- Top left -->
+    <keybind key="C-A-i"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap tr</command></action></keybind>  <!-- Top right -->
+    <keybind key="C-A-j"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap bl</command></action></keybind>  <!-- Bottom left -->
+    <keybind key="C-A-k"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap br</command></action></keybind>  <!-- Bottom right -->
+    <keybind key="C-A-d"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap third1</command></action></keybind>  <!-- First third -->
+    <keybind key="C-A-f"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap third2</command></action></keybind>  <!-- Center third -->
+    <keybind key="C-A-g"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap third3</command></action></keybind>  <!-- Last third -->
+    <keybind key="C-A-e"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap two1</command></action></keybind>  <!-- First two thirds -->
+    <keybind key="C-A-t"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap two2</command></action></keybind>  <!-- Last two thirds -->
+    <keybind key="C-A-BackSpace"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap restore</command></action></keybind>  <!-- Restore -->
+  </keyboard>
+  <mouse>
+    <dragThreshold>4</dragThreshold><doubleClickTime>300</doubleClickTime>
+    <context name="Client">
+      <mousebind button="Left" action="Press"><action name="Focus"/><action name="Raise"/></mousebind>
+      <mousebind button="Middle" action="Press"><action name="Focus"/><action name="Raise"/></mousebind>
+      <mousebind button="Right" action="Press"><action name="Focus"/><action name="Raise"/></mousebind>
+    </context>
+  </mouse>
+  <menu><file>/dev/null</file></menu>
+  <applications>
+    <application type="normal"><decor>no</decor><maximized>true</maximized></application>
+    <application type="dialog"><decor>yes</decor></application>
+  </applications>
+</openbox_config>

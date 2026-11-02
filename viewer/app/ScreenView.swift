@@ -98,7 +98,7 @@ final class ScreenView: NSView {
         122: 0xffbe, 120: 0xffbf, 99: 0xffc0, 118: 0xffc1, 96: 0xffc2, 97: 0xffc3,
         98: 0xffc4, 100: 0xffc5, 101: 0xffc6, 109: 0xffc7, 103: 0xffc8, 111: 0xffc9,
     ]
-    static let ctrl: UInt32 = 0xffe3, shift: UInt32 = 0xffe1, alt: UInt32 = 0xffe9
+    static let ctrl: UInt32 = 0xffe3, shift: UInt32 = 0xffe1, alt: UInt32 = 0xffe9, superL: UInt32 = 0xffeb
 
     private func keysym(_ e: NSEvent) -> UInt32? {
         if let s = ScreenView.special[e.keyCode] { return s }
@@ -112,7 +112,19 @@ final class ScreenView: NSView {
     override func keyDown(with e: NSEvent) {
         guard let ks = keysym(e) else { return }
         let f = e.modifierFlags
-        let altWrap = f.contains(.option) && ScreenView.special[e.keyCode] != nil
+        // ⌘Tab = Super+Tab on the VM: the one key that switches its three screens (Marko, 2.11.2026). ⌘ is held as
+        // Ctrl there, so Ctrl is let go around it.
+        if f.contains(.command) && e.keyCode == 48 {
+            let held = mods.contains(ScreenView.ctrl)
+            if held { rfb?.key(ScreenView.ctrl, down: false) }
+            rfb?.key(ScreenView.superL, down: true); rfb?.key(0xff09, down: true)
+            rfb?.key(0xff09, down: false); rfb?.key(ScreenView.superL, down: false)
+            if held { rfb?.key(ScreenView.ctrl, down: true) }
+            return
+        }
+        // ⌥ goes as Alt with keys that are not characters, and with every key while ⌃ is held too (⌃⌥C, ⌃⌥U ...:
+        // the Rectangle keys of the VM's window manager), since ⌃⌥ + letter composes nothing.
+        let altWrap = f.contains(.option) && (ScreenView.special[e.keyCode] != nil || f.contains(.control))
         let go = { [weak self] in
             guard let self else { return }
             if altWrap { self.rfb?.key(ScreenView.alt, down: true) }

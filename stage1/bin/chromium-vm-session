@@ -1,5 +1,6 @@
 #!/bin/bash
-# chromium-vm's whole "desktop": a frameless window manager and Chromium, started again whenever it closes.
+# chromium-vm's desktop: the window manager (openbox) and Chrome, started again whenever it closes. The other two
+# screens (Claude Code, Claude Desktop) and the dock are their own services (desktop/).
 set -uo pipefail
 . /etc/chromium-vm.conf
 export DISPLAY=":${DISPLAY_NUM}"
@@ -32,26 +33,37 @@ xset s off -dpms 2>/dev/null || true
 # xcompmgr: a compositor, so the status bar can be see-through (alpha) without black holes (2.11.2026).
 pgrep -u "$(id -u)" -x xcompmgr >/dev/null || (xcompmgr -n >/dev/null 2>&1 &)
 
-# matchbox: no titlebar, no panel; one window fills the screen, dialogs float over it.
-matchbox-window-manager -use_titlebar no -use_cursor yes &
-wm=$!
-
-# Keep Chromium filling the screen when the client changes the size (Mac window, phone portrait).
-(
-  last=""
-  while sleep 1; do
-    size=$(xdpyinfo 2>/dev/null | awk '/dimensions:/{print $2}')
-    [ -n "$size" ] || continue
-    if [ "$size" != "$last" ]; then
-      last=$size
-      w=${size%x*}; h=${size#*x}
-      for id in $(xdotool search --onlyvisible --class '^(google-chrome|Google-chrome|chromium|Chromium)$' 2>/dev/null); do
-        xdotool windowmove "$id" 0 0 windowsize "$id" "$w" "$h" 2>/dev/null || true
-      done
-    fi
-  done
-) &
-watcher=$!
+# The window manager. openbox since 2.11.2026 (Marko: windows side by side, Rectangle's keys, every window opens
+# maximized, no title bars, the bottom 22 px left to the status bar): desktop/config/openbox-rc.xml. It binds no
+# Alt+Tab; the dock binds the only switching key, Command-Tab = Super+Tab. Maximized windows follow a new screen
+# size (Mac window, phone portrait) by themselves. matchbox stays the fallback (one window fills the screen).
+OBRC=/usr/local/lib/chromium-vm/openbox-rc.xml
+if command -v openbox >/dev/null && [ -f "$OBRC" ]; then
+  openbox --config-file "$OBRC" &
+  wm=$!
+  watcher=""
+else
+  KBD=/usr/local/lib/chromium-vm/matchbox-kbdconfig
+  KBDARGS=(); [ -f "$KBD" ] && KBDARGS=(-kbdconfig "$KBD")
+  matchbox-window-manager -use_titlebar no -use_cursor yes "${KBDARGS[@]}" &
+  wm=$!
+  # Keep the three screens filling the screen when the client changes the size (matchbox does not).
+  (
+    last=""
+    while sleep 1; do
+      size=$(xdpyinfo 2>/dev/null | awk '/dimensions:/{print $2}')
+      [ -n "$size" ] || continue
+      if [ "$size" != "$last" ]; then
+        last=$size
+        w=${size%x*}; h=${size#*x}
+        for id in $(xdotool search --onlyvisible --class '^(google-chrome|Google-chrome|chromium|Chromium|Xfce4-terminal|com\.anthropic\.Claude)$' 2>/dev/null); do
+          xdotool windowmove "$id" 0 0 windowsize "$id" "$w" "$h" 2>/dev/null || true
+        done
+      fi
+    done
+  ) &
+  watcher=$!
+fi
 trap 'kill $wm $watcher 2>/dev/null' EXIT
 
 while true; do

@@ -1,0 +1,22 @@
+#!/bin/bash
+# Screen 1 of 3 (Marko, 2.11.2026): Claude Code in a terminal, full screen. xfce4-terminal (VTE, no GPU needed),
+# JetBrains Mono, dark; tmux session "claude" so a closed terminal never loses the conversation: the next terminal
+# attaches to it again. Claude Code is not logged in by this script: Marko logs in himself.
+set -uo pipefail
+. /etc/chromium-vm.conf
+export DISPLAY=":${DISPLAY_NUM}" LANG=C.UTF-8
+uid=$(id -u)
+if [ -d "/run/user/$uid" ]; then
+  export XDG_RUNTIME_DIR="/run/user/$uid"
+  [ -S "$XDG_RUNTIME_DIR/bus" ] && export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+fi
+export PATH="$HOME/.local/bin:$PATH"
+for _ in $(seq 100); do xdpyinfo >/dev/null 2>&1 && break; sleep 0.2; done
+
+while true; do
+  xfce4-terminal --disable-server --title "Claude Code" \
+    --hide-menubar --hide-toolbar --hide-scrollbar --hide-borders --maximize \
+    --font "JetBrains Mono 13" --color-bg "#1a1a1a" --color-text "#e8e6e3" \
+    -x tmux new -A -s claude "bash -l -c '$HOME/.local/bin/claude; exec bash -l'"
+  sleep 1
+done
