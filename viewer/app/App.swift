@@ -4,7 +4,7 @@
 // Marko, 2.11.2026: "let's build the Swift viewer for the Chromium virtual machine ... clipboard and drag-and-drop".
 import AppKit
 
-let VERSION = 5
+let VERSION = 6
 let APP_NAME = "Chromium Virtual Machine (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -14,10 +14,12 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
 
     var window: NSWindow!
     let screen = ScreenView(frame: NSRect(x: 0, y: 0, width: 1280, height: 800))
-    let bar = NSStackView()
-    let status = NSTextField(labelWithString: "connecting…")
-    let note = NSTextField(labelWithString: "")
-    var onButton: NSButton!, offButton: NSButton!
+    var overlay: SettingsOverlay!
+    // the keys held for the Mac (never sent to the VM): F1 Speechify, F2 Voice to Text (Marko, 2.11.2026)
+    static var heldKeys: Set<UInt16> {
+        get { Set((UserDefaults.standard.array(forKey: "heldKeys") as? [Int] ?? [122, 120]).map { UInt16($0) }) }
+        set { UserDefaults.standard.set(newValue.map { Int($0) }, forKey: "heldKeys") }
+    }
     let agent = Agent()
     var rfb: RFB?
     var connected = false
@@ -25,10 +27,8 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     var lastPushedChange = NSPasteboard.general.changeCount
     var lastClipText = ""
     var door: Door?
-    // v4 (Marko, 2.11.2026): "the whole top part, which is not part of the virtual machine ... disappears ... when I put
-    // the mouse at the top, then it comes back": title bar and button bar float over the picture, hidden until the top edge
-    let barBox = NSVisualEffectView()
-    var chromeOn = true, hideTimer: Timer?, mouseMonitor: Any?
+    // v6 (Marko, 2.11.2026): "I don't need anything from the top bar ... in the upper left corner one setting button":
+    // no title bar, no button bar; the gear (Settings.swift) floats over the picture's top-left corner
     var downloadsTimer: Timer?
     var fetching = false
     static let downloadsFolder = URL(fileURLWithPath: NSHomeDirectory() + "/Downloads/Chromium Downloads")
@@ -97,25 +97,6 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         window.delegate = self
         window.setFrameAutosaveName("ChromiumVMWindow")
 
-        status.font = .systemFont(ofSize: 12, weight: .semibold); status.textColor = .secondaryLabelColor
-        status.lineBreakMode = .byTruncatingTail
-        status.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        note.font = .systemFont(ofSize: 12); note.textColor = .systemOrange
-        note.lineBreakMode = .byTruncatingMiddle
-        note.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        onButton = button("ON", #selector(noop)); offButton = button("OFF", #selector(off))
-        onButton.contentTintColor = .systemGreen
-        let close = NSButton(image: NSImage(systemSymbolName: "xmark", accessibilityDescription: "Close")!, target: self, action: #selector(closeWindow))
-        close.isBordered = false; close.contentTintColor = .secondaryLabelColor
-        close.widthAnchor.constraint(equalToConstant: 28).isActive = true
-        close.setAccessibilityLabel("CLOSE")
-        let spacer = NSView(); spacer.setContentHuggingPriority(.init(1), for: .horizontal)
-        for v in [onButton, offButton, status, note, spacer, button("FULL SCREEN", #selector(fullScreen)),
-                  button("RECONNECT", #selector(reconnect)), close] as [NSView] { bar.addArrangedSubview(v) }
-        bar.orientation = .horizontal; bar.spacing = 12
-        bar.edgeInsets = NSEdgeInsets(top: 0, left: 12, bottom: 0, right: 6)
-        bar.heightAnchor.constraint(equalToConstant: 30).isActive = true
-
         // the picture fills the whole window; the bar floats over its top edge, below the (transparent) title bar
         let root = NSView()
         window.contentView = root
@@ -125,55 +106,50 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
                                      screen.trailingAnchor.constraint(equalTo: root.trailingAnchor),
                                      screen.topAnchor.constraint(equalTo: root.topAnchor),
                                      screen.bottomAnchor.constraint(equalTo: root.bottomAnchor)])
-        barBox.material = .hudWindow; barBox.blendingMode = .withinWindow; barBox.state = .active
-        barBox.translatesAutoresizingMaskIntoConstraints = false; bar.translatesAutoresizingMaskIntoConstraints = false
-        barBox.addSubview(bar)
-        root.addSubview(barBox)
-        let titleH = window.frame.height - window.contentLayoutRect.height
-        NSLayoutConstraint.activate([barBox.leadingAnchor.constraint(equalTo: root.leadingAnchor),
-                                     barBox.trailingAnchor.constraint(equalTo: root.trailingAnchor),
-                                     barBox.topAnchor.constraint(equalTo: root.topAnchor, constant: max(titleH, 0)),
-                                     bar.leadingAnchor.constraint(equalTo: barBox.leadingAnchor),
-                                     bar.trailingAnchor.constraint(equalTo: barBox.trailingAnchor),
-                                     bar.topAnchor.constraint(equalTo: barBox.topAnchor),
-                                     bar.bottomAnchor.constraint(equalTo: barBox.bottomAnchor)])
-        mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] e in
-            self?.watchTop(e); return e }
+        overlay = SettingsOverlay(app: self)
+        root.addSubview(overlay)
+        NSLayoutConstraint.activate([overlay.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 10),
+                                     overlay.topAnchor.constraint(equalTo: root.topAnchor, constant: 10),
+                                     overlay.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -10),
+                                     overlay.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -10)])
+        screen.heldForMac = App.heldKeys
+        screen.onMacKey = { [weak self] code in self?.passToMac(code) }
+        screen.onClick = { [weak self] in self?.overlay.close() }
         screen.onDropFiles = { [weak self] in self?.upload($0) }
         screen.beforePaste = { [weak self] go in self?.pushClipboard(go) ?? go() }
         window.center()
         window.makeKeyAndOrderFront(nil)
         window.makeFirstResponder(screen)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in self?.setChrome(false) }
+        hideTitleBar()
     }
 
-    /// the title bar and the button bar: shown while the pointer is at the top, hidden otherwise
-    func setChrome(_ on: Bool) {
-        hideTimer?.invalidate(); hideTimer = nil
-        guard on != chromeOn else { return }
-        chromeOn = on
-        barBox.isHidden = !on
-        window.standardWindowButton(.closeButton)?.superview?.superview?.isHidden = !on   // the title bar container
-        window.titleVisibility = on ? .visible : .hidden
-    }
-    func watchTop(_ e: NSEvent) {
-        guard e.window === window, let h = window.contentView?.bounds.height else { return }
-        let y = e.locationInWindow.y
-        if y >= h - 4 { setChrome(true); return }
-        let titleH = window.frame.height - window.contentLayoutRect.height
-        if chromeOn && y < h - (titleH + 30 + 14) && hideTimer == nil {
-            hideTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in self?.setChrome(false) }
-        } else if y >= h - (titleH + 30 + 14) { hideTimer?.invalidate(); hideTimer = nil }
+    /// the title bar (traffic lights, title) never shows: everything is in the gear's panel
+    func hideTitleBar() {
+        window.titleVisibility = .hidden
+        window.standardWindowButton(.closeButton)?.superview?.superview?.isHidden = true   // the title bar container
     }
 
-    @objc func noop() {}
-    @objc func off() { NSApp.terminate(nil) }
-    @objc func closeWindow() { window.orderOut(nil) }
-    @objc func fullScreen() { window.toggleFullScreen(nil) }
+    /// A key held for the Mac (F1, F2) was pressed in the viewer. While the viewer is in front the Mac's global hotkeys
+    /// are suspended (HotKeys.swift, for ⌘Tab on the VM), so Speechify and Voice to Text never saw it: give the hotkeys
+    /// back for a moment, press the same key again into the Mac's own key stream, and take them again.
+    func passToMac(_ code: UInt16) {
+        guard CGPreflightPostEventAccess() else {
+            overlay.refreshKeys()
+            flash("F-key held for the Mac: allow \(APP_NAME) in Accessibility (PERMISSIONS)"); return
+        }
+        HotKeys.capture(false)
+        let src = CGEventSource(stateID: .hidSystemState)
+        for down in [true, false] {
+            let e = CGEvent(keyboardEventSource: src, virtualKey: CGKeyCode(code), keyDown: down)
+            e?.setIntegerValueField(.eventSourceUserData, value: ScreenView.ownMark)
+            e?.post(tap: .cghidEventTap)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { if NSApp.isActive { HotKeys.capture(true) } }
+    }
+
     @objc func reconnect() { rfb?.close(); rfb = nil; connected = false; connect() }
 
-    func windowWillEnterFullScreen(_ n: Notification) { setChrome(false) }
-    func windowDidExitFullScreen(_ n: Notification) { setChrome(false) }
+    func windowDidExitFullScreen(_ n: Notification) { hideTitleBar() }
     func windowDidResignKey(_ n: Notification) { screen.releaseAll() }
     func windowDidResize(_ n: Notification) { scheduleResize() }
 
@@ -186,17 +162,17 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
 
     func connect() {
         guard let pw = password, !pw.isEmpty else {
-            status.stringValue = "no VNC password: ~/Downloads/API/chromium-vm-vnc.txt is missing"; return
+            setStatus("no VNC password: ~/Downloads/API/chromium-vm-vnc.txt is missing", .systemOrange); return
         }
-        status.stringValue = "connecting to chromium-vm…"
+        setStatus("connecting to chromium-vm…", .secondaryLabelColor, tip: false)
         let r = RFB(); r.delegate = self; rfb = r; screen.rfb = r
         r.connect(host: VNC_HOST, port: VNC_PORT, password: pw)
     }
 
     func rfbConnected(name: String, width: Int, height: Int) {
         connected = true
-        status.stringValue = "● CHROMIUM VM  \(VNC_HOST)"
-        status.textColor = .systemGreen
+        setStatus("● CHROMIUM VM  \(VNC_HOST)", .systemGreen, tip: false)
+        if overlay.tip.textColor == .systemOrange && overlay.tip.stringValue.hasPrefix("not connected") { overlay.setTip("") }
         window.makeFirstResponder(screen)
         scheduleResize(delay: 0.2)
         pushClipboard {}
@@ -208,8 +184,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     func rfbClosed(reason: String) {
         connected = false
         let tail = reason.contains("refused") ? "" : " (is Tailscale on?)"
-        status.stringValue = "not connected: \(reason)\(tail) · trying again"
-        status.textColor = .systemOrange
+        setStatus("not connected: \(reason)\(tail) · trying again", .systemOrange)
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
             guard let self, !self.connected else { return }
             self.connect()
@@ -267,7 +242,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
                 guard !queue.isEmpty else { self.fetching = false; return }
                 let f = queue.removeFirst()
                 guard let name = f["name"] as? String, let seq = f["seq"] as? Int else { return next() }
-                self.note.stringValue = "↓ \(name)"
+                self.overlay.setTip("↓ \(name)")
                 self.agent.get(name, to: App.downloadsFolder.appendingPathComponent(name)) { err in
                     if let err { self.flash("↓ \(name): \(err)"); self.fetching = false; return }   // tried again in 3 s
                     UserDefaults.standard.set(seq, forKey: "downloadsSeq")
@@ -287,9 +262,9 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         func next() {
             guard !queue.isEmpty else { return }
             let f = queue.removeFirst()
-            note.stringValue = "↑ \(f.lastPathComponent) 0%"
+            overlay.setTip("↑ \(f.lastPathComponent) 0%")
             agent.put(f, progress: { [weak self] p in
-                self?.note.stringValue = "↑ \(f.lastPathComponent) \(Int(p * 100))%"
+                self?.overlay.setTip("↑ \(f.lastPathComponent) \(Int(p * 100))%")
             }, done: { [weak self] path, err in
                 if let err { self?.flash("\(f.lastPathComponent): \(err)") }
                 else { self?.flash("\(f.lastPathComponent) → Downloads on the VM") }
@@ -299,11 +274,17 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         next()
     }
 
+    /// the connection line in the panel; when it is bad, also the note beside the gear
+    func setStatus(_ s: String, _ c: NSColor, tip: Bool = true) {
+        overlay.statusLine.stringValue = s; overlay.statusLine.textColor = c
+        if tip { overlay.setTip(s) }
+    }
+
     func flash(_ s: String) {
-        note.stringValue = s
+        overlay.setTip(s)
         let now = s
         DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in
-            if self?.note.stringValue == now { self?.note.stringValue = "" }
+            if self?.overlay.tip.stringValue == now { self?.overlay.setTip("") }
         }
     }
 }

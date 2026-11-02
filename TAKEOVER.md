@@ -89,3 +89,11 @@
   slot; chromium-vm-snap keeps it inside the screen, overlapping its neighbour. The second session restart (openbox)
   brought Chrome back on the profile picker; opening profile Default (`google-chrome-stable --user-data-dir=… 
   --profile-directory=Default`) restored the 10 tabs. chromium-vm-worker-gemini left stopped.
+
+- 2.11.2026 (evening, hub session): **viewer v6**: no top bar at all; one gear top-left (see-through, takes its own clicks)
+  opens the panel: status, KEYS HELD FOR THIS MAC F1 Speechify | F2 Voice to Text (both on by default, never sent to the
+  VM; the viewer suspends the Mac's global hotkeys for ⌘Tab, so it re-presses the key into the Mac with the hotkeys given
+  back for 0.25 s: needs Accessibility, amber PERMISSIONS beside the gear until allowed), FULL SCREEN | RECONNECT,
+  CLOSE WINDOW | QUIT. Notes (uploads, clipboard, not connected) beside the gear. **Status bar**: a drawn power button
+  after UP, click → REBOOT | CANCEL (sudo -n systemctl reboot). **Dock**: a single program picked (tile or ⌘Tab) is
+  maximized, out of any split layout. Waiting: Marko allows Accessibility, then tries F1/F2, the panel, the power button.

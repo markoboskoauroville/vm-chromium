@@ -132,6 +132,10 @@ class Dock(Gtk.Window):
         wid = self.wins[n]
         if wid:
             subprocess.run(['xdotool', 'windowactivate', str(wid)], capture_output=True, timeout=3)
+            # one program picked (a tile or ⌘Tab) = that program alone, full: out of any split layout (Marko, 2.11.2026:
+            # "any individual app selected through this windows at the bottom ... should exit split screen mode")
+            subprocess.run(['wmctrl', '-i', '-r', str(wid), '-b', 'add,maximized_vert,maximized_horz'],
+                           capture_output=True, timeout=3)
         elif APPS[n][2]:
             subprocess.Popen(APPS[n][2], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         GLib.timeout_add(150, lambda: (self.track(), self.queue_draw(), False)[2])

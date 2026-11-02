@@ -31,7 +31,7 @@ PARTS = [  # key, label in the settings
 DEFAULT = {'show': {k: True for k, _ in PARTS} | {'tail': False, 'clock': False}, 'size': 13, 'height': 22}
 
 # Two colours (Marko, 2.11.2026: "white is the variable name, and orange is the variable itself").
-COL = {'name': (1.0, 1.0, 1.0), 'value': (1.0, 0.58, 0.10), 'now': (0.35, 0.95, 0.45),
+COL = {'power': (1.0, 1.0, 1.0), 'name': (1.0, 1.0, 1.0), 'value': (1.0, 0.58, 0.10), 'now': (0.35, 0.95, 0.45),
        'down': (0.35, 0.95, 0.45), 'up': (1.0, 0.30, 0.30), 'pipe': (0.0, 0.0, 0.0)}   # a black pipe between parts (Marko)   # NET: download green, upload red (Marko)   # green: what is moving now
 
 def load_conf():
@@ -145,6 +145,9 @@ def segments(r, show):
     if show.get('clock'):
         os.environ['TZ'] = 'Europe/Zagreb'; time.tzset()
         part('CT', time.strftime('%H:%M'))
+    # Marko, 2.11.2026: "After the app and its hours make a power button ... Only one option, just I need to confirm
+    # and that's the reboot": the last thing on the line, drawn (not a font glyph), a click asks REBOOT | CANCEL
+    part('', [('  ', 'power')])
     if show.get('moving'):
         a, items = r['agent'], []
         for g in a.get('downloading', [])[:2]:
@@ -169,7 +172,7 @@ class Bar(Gtk.Window):
         self.under = None; self.under_at = 0
         self.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.connect('draw', self.on_draw)
-        self.net_x = (0, 0)
+        self.net_x = (0, 0); self.power_x = (-1, -1)
         self.connect('button-press-event', self.on_click)
         self.place()
         Gdk.Screen.get_default().connect('size-changed', lambda *_: self.place())
@@ -183,7 +186,10 @@ class Bar(Gtk.Window):
 
     def on_click(self, _w, ev):
         a, b = self.net_x
-        if a <= ev.x <= b:
+        pa, pb = self.power_x
+        if pa - 4 <= ev.x <= pb + 6:
+            Reboot().show_all()
+        elif a <= ev.x <= b:
             if SPEEDTEST.get('state') != 'running':
                 threading.Thread(target=run_speedtest, daemon=True).start()
         else:
@@ -227,9 +233,16 @@ class Bar(Gtk.Window):
         net_start, net_end, first_pipe = x, None, True
         for text, col in status:
             if col == 'pipe' and first_pipe: net_end = x; first_pipe = False
-            if text.strip():
+            adv = cr.text_extents(text).x_advance
+            if col == 'power':                                  # ⏻: an open circle and a stroke through its gap
+                self.power_x = (x, x + adv)
+                s = self.conf['size']; r = s * 0.42; cx, cy = x + adv / 2, y - s * 0.36
+                cr.set_source_rgb(*COL['power']); cr.set_line_width(max(1.5, s / 8)); cr.new_path()
+                cr.arc(cx, cy, r, -1.15, 4.29); cr.stroke()
+                cr.move_to(cx, cy - r * 1.25); cr.line_to(cx, cy + r * 0.05); cr.stroke()
+            elif text.strip():
                 cr.set_source_rgb(*COL[col]); cr.move_to(x, y); cr.show_text(text)   # no outline (Marko, 2.11.2026)
-            x += cr.text_extents(text).x_advance
+            x += adv
         self.net_x = (net_start, net_end if net_end is not None else x)     # the speeds come first
 
     def reshape(self):
@@ -273,6 +286,24 @@ class Bar(Gtk.Window):
             cr.set_source_rgb(0.125, 0.129, 0.141); cr.paint()
         cr.set_source_rgba(0, 0, 0, 0.5); cr.paint()                 # the 50% band, like subtitles
         w, h = self.get_size(); self.paint(cr, w, h); return False
+
+class Reboot(Gtk.Window):
+    """The power button's one choice: REBOOT, confirmed. The Mac viewer reconnects by itself when the VM is back."""
+    def __init__(self):
+        super().__init__(title='Power (chromium-vm)')
+        self.set_keep_above(True); self.set_border_width(16); self.set_type_hint(Gdk.WindowTypeHint.DIALOG)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12); self.add(box)
+        t = Gtk.Label(); t.set_markup('<b>REBOOT chromium-vm?</b>\nEverything open on the VM closes; it is back in about a minute.')
+        box.pack_start(t, False, False, 0)
+        row = Gtk.Box(spacing=10)
+        go = Gtk.Button(label='REBOOT'); go.connect('clicked', self.reboot)
+        no = Gtk.Button(label='CANCEL'); no.connect('clicked', lambda *_: self.destroy())
+        row.pack_start(go, False, False, 0); row.pack_start(no, False, False, 0); box.pack_start(row, False, False, 0)
+        self.set_position(Gtk.WindowPosition.CENTER)
+
+    def reboot(self, *_):
+        self.destroy()
+        subprocess.Popen(['sudo', '-n', 'systemctl', 'reboot'], start_new_session=True)
 
 class Settings(Gtk.Window):
     def __init__(self, bar):

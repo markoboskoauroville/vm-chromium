@@ -7,6 +7,10 @@ final class ScreenView: NSView {
     var rfb: RFB?
     var onDropFiles: (([URL]) -> Void)?
     var beforePaste: ((@escaping () -> Void) -> Void)?   // push the Mac clipboard to the VM, then send ⌘V
+    var heldForMac: Set<UInt16> = []                       // key codes never sent to the VM (F1 122, F2 120)
+    var onMacKey: ((UInt16) -> Void)?                       // one of them was pressed: hand it to the Mac
+    var onClick: (() -> Void)?                              // a click on the picture (closes the settings panel)
+    static let ownMark: Int64 = 0x4D414E54                  // "MANT": a key this app pressed into the Mac itself
     private var buttons: UInt8 = 0
     private var downKeys: [UInt16: UInt32] = [:]
     private var mods: Set<UInt32> = []
@@ -64,7 +68,7 @@ final class ScreenView: NSView {
     }
     private func send(_ e: NSEvent) { let (x, y) = vmPoint(e); rfb?.pointer(x: x, y: y, buttons: buttons) }
 
-    override func mouseDown(with e: NSEvent) { window?.makeFirstResponder(self); buttons |= 1; send(e) }
+    override func mouseDown(with e: NSEvent) { onClick?(); window?.makeFirstResponder(self); buttons |= 1; send(e) }
     override func mouseUp(with e: NSEvent) { buttons &= ~1; send(e) }
     override func rightMouseDown(with e: NSEvent) { buttons |= 4; send(e) }
     override func rightMouseUp(with e: NSEvent) { buttons &= ~4; send(e) }
@@ -110,6 +114,12 @@ final class ScreenView: NSView {
     }
 
     override func keyDown(with e: NSEvent) {
+        // F1 / F2 held for the Mac (Marko, 2.11.2026: "When I'm transcribing I'm pressing F1 or F2 ... it needs to be
+        // blocked from sending it"): never to the VM; handed to Speechify / Voice to Text on the Mac
+        if heldForMac.contains(e.keyCode) {
+            if !e.isARepeat && e.cgEvent?.getIntegerValueField(.eventSourceUserData) != ScreenView.ownMark { onMacKey?(e.keyCode) }
+            return
+        }
         guard let ks = keysym(e) else { return }
         let f = e.modifierFlags
         // ⌘Tab = Super+Tab on the VM: the one key that switches its three screens (Marko, 2.11.2026). ⌘ is held as
