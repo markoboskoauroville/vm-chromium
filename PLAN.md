@@ -49,11 +49,10 @@ phone (its ENTER on CHROMIUM-VM).
 
 ## Who does what
 
-- **The local session on the Mac** ("chromium vm machine at oracle cloud", iTerm): everything that needs the Mac or
-  the tailnet: SSH to the VM, the VNC checks, the Swift app, the Star row, the phone over adb, screenshots.
-- **The cloud session** ("CHROMIUM IN VIRTUAL MACHINE"): the scripts and files in this repository (the VM setup
-  script, the systemd units, the session script, the Swift sources, the Kotlin change), reviewed and run by the local
-  session. It reaches the VM itself only when Marko has given its environment the access (see README).
+- **The cloud session "CHROMIUM IN VIRTUAL MACHINE" owns this plan** (Marko, 2.11.2026: "only send it to the cloud.
+  The plan"). It writes everything in this repository and, once its environment has the access in README, works on
+  the VM itself. What only the Mac can do (the Swift build, the Star row, the phone over adb) it asks of a Mac session
+  through the hub (session-link.md), never by itself.
 
 ## Rules that apply
 
