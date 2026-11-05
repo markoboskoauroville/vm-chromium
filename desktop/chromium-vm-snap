@@ -3,7 +3,7 @@
 Called by openbox's keybindings (Ctrl+Alt+key = ⌃⌥key from the Mac viewer). Snaps the active window inside the
 work area (screen less the status bar), like Rectangle's defaults:
 left right top bottom | max center | tl tr bl br | third1 third2 third3 | two1 two2 | restore
-`layout code-chrome|claude-chrome|code-pixel|claude-pixel` arranges all three programs at once (the dock's layout displays, Marko 2.11.2026):
+`layout code-chrome|claude-chrome|triple-pixel` arranges all three programs at once (the dock's layout displays, Marko 2.11.2026):
 halves = Claude Code left | Chrome right; cc-halves = Claude | Chrome; cc-40-60 = Claude 40% | Chrome 60%; big = Chrome on the first two
 thirds, Claude Code top right, Claude bottom right.
 The geometry before the first snap is kept in ~/.cache/chromium-vm/snap.json, so `restore` brings it back."""
@@ -22,8 +22,8 @@ APPS = {'code': lambda i, c: c == 'Xfce4-terminal', 'claude': lambda i, c: c.low
 # Claude Code or Claude on the 40 side (left), Chrome or the Pixel 7 on the 60 side (right)
 LAYOUTS = {'code-chrome': [('code', 'l40'), ('chrome', 'r60')],
            'claude-chrome': [('claude', 'l40'), ('chrome', 'r60')],
-           'code-pixel': [('code', 'l40'), ('pixel', 'r60')],
-           'claude-pixel': [('claude', 'l40'), ('pixel', 'r60')]}
+           # Marko, 5.11.2026: "only the triple view with Pixel 7 ... Claude application, Claude code, our phone", ⅓ each
+           'triple-pixel': [('claude', 'third1'), ('code', 'third2'), ('pixel', 'third3')]}
 
 def app_windows():
     """The topmost normal, mapped window of each program (by WM_CLASS, from openbox's stacking list)."""

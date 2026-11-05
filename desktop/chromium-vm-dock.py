@@ -42,8 +42,7 @@ PAD, GAP, LABEL, SEP = 14, 16, 22, 18
 LAYOUTS = [   # Marko, 5.11.2026: only these four, 40 | 60, Claude Code or Claude on the 40 side
     ('Claude Code | Chrome', 'code-chrome', [(0, 0, 0, .4, 1), (2, .4, 0, .6, 1)]),
     ('Claude | Chrome', 'claude-chrome', [(1, 0, 0, .4, 1), (2, .4, 0, .6, 1)]),
-    ('Claude Code | Pixel 7', 'code-pixel', [(0, 0, 0, .4, 1), (3, .4, 0, .6, 1)]),
-    ('Claude | Pixel 7', 'claude-pixel', [(1, 0, 0, .4, 1), (3, .4, 0, .6, 1)]),
+    ('Claude | Claude Code | Pixel 7', 'triple-pixel', [(1, 0, 0, 1/3, 1), (0, 1/3, 0, 1/3, 1), (3, 2/3, 0, 1/3, 1)]),
 ]
 NT = NA + len(LAYOUTS)      # tiles: the three programs, then the layouts
 SNAP = '/usr/local/lib/chromium-vm/chromium-vm-snap'

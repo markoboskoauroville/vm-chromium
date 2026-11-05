@@ -196,3 +196,4 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 
 "please make only the triple view with Pixel 7. Other views are gone. The first stripe on the left, 30% (33.3%), is Claude application. Next, type 33.3% is Claude code from terminal. The last stripe is our phone, other combo. Remove regarding Pixel 7, please"
 **Status:** saved first. Read as: the two Pixel splits are replaced by one triple Claude | Claude Code | Pixel 7 (⅓ each); the Chrome splits stay.
+**Status (5.11.2026, ~11:30):** done: dock = 4 apps | Claude Code | Chrome, Claude | Chrome, Claude | Claude Code | Pixel 7 (⅓ each); the two Pixel 40|60 splits removed. Seen on the VM.
