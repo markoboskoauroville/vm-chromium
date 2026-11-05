@@ -46,6 +46,7 @@ LAYOUTS = [   # Marko, 5.11.2026: only these four, 40 | 60, Claude Code or Claud
 ]
 NT = NA + len(LAYOUTS)      # tiles: the three programs, then the layouts
 SNAP = '/usr/local/lib/chromium-vm/chromium-vm-snap'
+SNAP_NAMES = ['code', 'claude', 'chrome', 'pixel']       # the snap tool's names of APPS, in the same order
 COLOURS = [(0.85, 0.47, 0.34), (0.55, 0.45, 0.85), (0.30, 0.62, 0.90), (0.36, 0.75, 0.45)]   # Claude Code, Claude, Chrome, Pixel 7
 REFRESH_MS = 330      # thumbnails while the dock is up
 
@@ -142,8 +143,9 @@ class Dock(Gtk.Window):
             # "any individual app selected through this windows at the bottom ... should exit split screen mode")
             subprocess.run(['wmctrl', '-i', '-r', str(wid), '-b', 'add,maximized_vert,maximized_horz'],
                            capture_output=True, timeout=3)
-        elif APPS[n][2]:
-            subprocess.Popen(APPS[n][2], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        else:   # 5.11.2026: no window = not running: the snap tool starts it, waits for it, shows it full
+            subprocess.Popen([SNAP, 'show', SNAP_NAMES[n]], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                             start_new_session=True)
         GLib.timeout_add(150, lambda: (self.track(), self.queue_draw(), False)[2])
 
     # ---- showing and hiding ------------------------------------------------------------------------------------
