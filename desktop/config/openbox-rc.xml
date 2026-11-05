@@ -6,7 +6,7 @@
   <resistance><strength>0</strength><screen_edge_strength>0</screen_edge_strength></resistance>
   <focus><focusNew>yes</focusNew><followMouse>no</followMouse></focus>
   <placement><policy>Smart</policy><center>yes</center></placement>
-  <theme><name>Clearlooks</name><keepBorder>no</keepBorder><animateIconify>no</animateIconify></theme>
+  <theme><name>Onyx</name><keepBorder>no</keepBorder><animateIconify>no</animateIconify></theme>
   <desktops><number>1</number></desktops>
   <margins><top>0</top><bottom>0</bottom><left>0</left><right>0</right></margins>
   <keyboard>

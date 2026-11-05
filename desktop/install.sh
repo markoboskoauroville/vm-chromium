@@ -17,6 +17,8 @@ dpkg -s claude-desktop >/dev/null 2>&1 || { apt-get update -q >/dev/null; apt-ge
 
 install -m 755 chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-snap /usr/local/lib/chromium-vm/
 install -m 644 config/openbox-rc.xml /usr/local/lib/chromium-vm/openbox-rc.xml
+# dark mode for every GTK window and dialog on the VM (Marko, 5.11.2026: "make everything dark mode"); GTK 3 and 4
+for v in 3.0 4.0; do install -D -m 644 -o "${VM_USER:-ubuntu}" -g "${VM_USER:-ubuntu}" config/gtk/settings.ini "/home/${VM_USER:-ubuntu}/.config/gtk-$v/settings.ini"; done
 install -m 755 chromium-vm-dock.py chromium-vm-pixel7-bar.py /usr/local/lib/chromium-vm/
 install -m 644 config/matchbox-kbdconfig /usr/local/lib/chromium-vm/matchbox-kbdconfig
 as_user() { sudo -u "$VM_USER" "$@"; }
