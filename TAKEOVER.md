@@ -1,6 +1,8 @@
 # TAKEOVER
 
-**5.11.2026 (~15:00, session mac-os-ses1-05-nov):** viewer **v22**: a normal Mac title bar again (close, minimize, green =
+**5.11.2026 (session mac-os-ses1-05-nov, closed):** later the same afternoon v23 ⌘W minimizes, v24 Rectangle's keys stay on the Mac (RectangleKeys.swift), v25 hover mouse baked in (Mac arrow hidden over the picture, BackgroundCursor). Installed in /Applications: **v25**. Not yet tried by Marko's hand: green/yellow, ⌘W, a Rectangle key, the hover.
+
+**5.11.2026 (~15:00):** viewer **v22**: a normal Mac title bar again (close, minimize, green =
 classic zoom to the screen's visible frame and back, never full screen; ⌃⌘F still full screen; Window menu ⌘M / Zoom).
 The window is .resizable again only so the green button is not greyed out; windowWillResize blocks every edge drag, so
 only the bottom-left grip and the zoom change its size. VM: `chromium-vm-snap` remembers each window's slot

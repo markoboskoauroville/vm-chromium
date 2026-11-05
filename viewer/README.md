@@ -16,3 +16,9 @@ signs "Mantra Apps", installs in /Applications and quits the running copy. Star:
 - **Remote door:** 127.0.0.1:8962 (MANTRA_PORTS `chromium-vm`): `/health`, `/api`, `POST /api/status|show|fullscreen|
   reconnect|send_file|push_clipboard`.
 - **Keys it reads:** ~/Downloads/API/chromium-vm-vnc.txt (VNC password) and chromium-vm-agent.txt (agent token).
+
+## v21–v25 (5.11.2026)
+- v21/v22: a normal title bar; green = classic zoom (visible frame and back), never full screen; edges still do not resize.
+- v23: ⌘W minimizes the window (never sent to the VM).
+- v24: Rectangle's shortcuts (from its own settings) stay on the Mac.
+- v25: the mouse is the VM's whenever it hovers over the picture (Mac arrow hidden), the Mac's again off the picture; no switch.

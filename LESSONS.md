@@ -106,3 +106,7 @@
   put the picture on its own sublayer with contentsGravity resizeAspect.
 - xdotool clicks at fixed rows in an Electron list drift as soon as a group folds: read the screen before each click,
   and never send a menu's shortcut letter blind (three "a" landed in a chat box, cleared before sending).
+- 5.11.2026: a snapped (not maximized) window does not follow a new Xvnc size; chromium-vm-refit re-places them by slot.
+- 5.11.2026: the green button is greyed on a window without .resizable; keep it and refuse live resizes in windowWillResize.
+- 5.11.2026: the hotkey suspension for ⌘Tab also silenced Rectangle; Rectangle's own keys are re-posted to the Mac (v24).
+- 5.11.2026: GTK's screen width goes stale after xrandr; the Pixel bar asks X for it.
