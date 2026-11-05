@@ -26,21 +26,15 @@ final class CornerGrip: NSView {
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
     override var mouseDownCanMoveWindow: Bool { false }
 
-    /// three diagonal lines in the corner, like the old macOS size box; the left one is the mirror of the right one
+    /// v17 (Marko, 5.11.2026: "Only one line ... gray color, so it's barely visible"): one long diagonal line across the
+    /// corner, no backing; the left one is the mirror of the right one
     override func draw(_ r: NSRect) {
         let s = bounds.width
-        NSColor(white: 0, alpha: 0.35).setFill()
-        let tri = NSBezierPath()
-        if kind == .move { tri.move(to: NSPoint(x: s, y: 0)); tri.line(to: NSPoint(x: s, y: s)); tri.line(to: NSPoint(x: 0, y: s)) }
-        else { tri.move(to: NSPoint(x: 0, y: 0)); tri.line(to: NSPoint(x: 0, y: s)); tri.line(to: NSPoint(x: s, y: s)) }
-        tri.close(); tri.fill()
-        NSColor(white: 1, alpha: 0.85).setStroke()
-        for d in [4.0, 8.0, 12.0] as [CGFloat] {
-            let p = NSBezierPath(); p.lineWidth = 1.4; p.lineCapStyle = .round
-            if kind == .move { p.move(to: NSPoint(x: s - d, y: s - 1.5)); p.line(to: NSPoint(x: s - 1.5, y: s - d)) }
-            else { p.move(to: NSPoint(x: d, y: s - 1.5)); p.line(to: NSPoint(x: 1.5, y: s - d)) }
-            p.stroke()
-        }
+        NSColor(white: 0.5, alpha: 0.45).setStroke()
+        let p = NSBezierPath(); p.lineWidth = 1.5; p.lineCapStyle = .round
+        if kind == .move { p.move(to: NSPoint(x: 1.5, y: s - 1.5)); p.line(to: NSPoint(x: s - 1.5, y: 1.5)) }
+        else { p.move(to: NSPoint(x: 1.5, y: 1.5)); p.line(to: NSPoint(x: s - 1.5, y: s - 1.5)) }
+        p.stroke()
     }
 
     override func resetCursorRects() {
