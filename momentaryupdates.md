@@ -151,3 +151,4 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 
 "please update My VM remote app, Swift app, running here. I need a tiny bar at the top of the window which I can click and drag my window around the screen. Or even better, make it like this: in a bottom-right corner, make one corner with lines, like it can just symbolize dragging something. Then when I click on that one, I can move my window around. On the left side, put the one for resizing. Same icon, small corner, hash. That's what I meant."
 **Status:** saved first.
+**Status (5.11.2026, 08:27):** v16 built by GitHub (run 41987138264, green), installed, running. Bottom-right hatched corner moves the window (gear just above it), bottom-left hatched corner resizes it with the top-right corner held; hidden in full screen. Drawn on screen (checked); the drag itself waits for Marko's hand.
