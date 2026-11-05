@@ -4,7 +4,7 @@
 // Marko, 2.11.2026: "let's build the Swift viewer for the Chromium virtual machine ... clipboard and drag-and-drop".
 import AppKit
 
-let VERSION = 11
+let VERSION = 12
 let APP_NAME = "Chromium Virtual Machine (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -72,6 +72,15 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         m.addItem(withTitle: "Hide \(APP_NAME)", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
         m.addItem(withTitle: "Quit \(APP_NAME)", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         appItem.submenu = m
+        // v12 (Marko, 5.11.2026: "Why can't I paste a simple password?"): an Edit menu, without it ⌘V/⌘C/⌘A do nothing in
+        // the gear's fields. The VM picture still takes ⌘V first (ScreenView.performKeyEquivalent), so the VM keeps it.
+        let editItem = NSMenuItem(); main.addItem(editItem)
+        let ed = NSMenu(title: "Edit")
+        ed.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        ed.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        ed.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        ed.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        editItem.submenu = ed
         let viewItem = NSMenuItem(); main.addItem(viewItem)
         let v = NSMenu(title: "View")
         let fs = v.addItem(withTitle: "Full Screen", action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f")

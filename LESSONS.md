@@ -93,3 +93,4 @@
   on the VM; input back to External Microphone. Speechify ignores the system input and records its own microphone.
 
 - 5.11.2026: a button in the very corner of a resizable window never gets the click; macOS uses it for resizing. Keep controls 12 pt in.
+- 5.11.2026: a Swift app with its own main menu needs an Edit menu, or ⌘C/⌘V/⌘A do nothing in its text fields.

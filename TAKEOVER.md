@@ -113,3 +113,6 @@
 
 ## v11 (5.11.2026)
 The login is under the gear: USERNAME (ubuntu) and PASSWORD, SAVE AND CONNECT writes ~/Downloads/API/chromium-vm-vnc-password.txt (the old name chromium-vm-vnc.txt is still read). A missing or refused password opens the login instead of a note. The gear sits 12 pt in from the bottom-right corner: in the corner macOS took the click for resizing the window.
+
+## v12 (5.11.2026)
+An Edit menu (Cut, Copy, Paste, Select All): without it ⌘V did nothing in the gear's PASSWORD field. The VM picture still takes ⌘V first.
