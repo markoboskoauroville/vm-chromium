@@ -193,3 +193,6 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 
 "please fix my virtual machine. Never stretch the screen. Always show me the screen in the right aspect ratio, no matter what the size is. We can have black bars"
 **Status (5.11.2026, ~11:20):** done. Cause: scrcpy 5 locked its window to the phone's shape, so in a 60 % slot it grew 3413 px tall on a 1440 px screen (a zoomed top part). Now --no-window-aspect-ratio-lock --render-fit=letterbox: the window fits its slot, the phone keeps its shape with black bars. Seen on the VM. (The Mac viewer already letterboxes since v19.)
+
+"please make only the triple view with Pixel 7. Other views are gone. The first stripe on the left, 30% (33.3%), is Claude application. Next, type 33.3% is Claude code from terminal. The last stripe is our phone, other combo. Remove regarding Pixel 7, please"
+**Status:** saved first. Read as: the two Pixel splits are replaced by one triple Claude | Claude Code | Pixel 7 (⅓ each); the Chrome splits stay.
