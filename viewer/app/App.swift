@@ -9,7 +9,6 @@ let VERSION = 21
 let APP_NAME = "VM Machine Remote (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
-@main
 /// v21: the green button and a double-click on the title bar zoom the classic way (fill the screen's visible frame and back),
 /// never full screen; the window stays without .resizable (only the bottom-left grip resizes it, v18)
 final class VMWindow: NSWindow {
@@ -18,6 +17,7 @@ final class VMWindow: NSWindow {
     override func performZoom(_ sender: Any?) { onZoom?() }
 }
 
+@main
 final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate {
     static func main() { let a = NSApplication.shared; let d = App(); a.delegate = d; a.run() }
 
