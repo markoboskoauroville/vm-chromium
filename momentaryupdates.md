@@ -207,3 +207,4 @@ Marko: "please take a screenshot of Virtual Remote Virtual Machine Remote now on
 interface looks when I maximize it. Please remove bugs and add at the top of the window a normal Mac OS thing, which I can
 use to close the window, minimize the window, or maximize the window without taking over the desktop, meaning maximize
 the classic way"
+**Status (5.11.2026, ~15:00):** done: viewer v22 (title bar, classic zoom), VM chromium-vm-refit (windows follow a new size), Pixel bar width fixed.

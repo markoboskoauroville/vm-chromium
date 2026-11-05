@@ -70,8 +70,10 @@ class Bar(Gtk.Window):
             c = b.get_style_context(); c.add_class('lit') if on else c.remove_class('lit')
 
     def place(self):
-        sw = Gdk.Screen.get_default().get_width()
-        w, _ = self.get_size(); self.move(sw - w - 14, 12)
+        # 5.11.2026: GTK kept the old screen width after the Mac window was zoomed (the bar cut on the right): ask X itself
+        try: sw = ROOT.get_geometry().width
+        except Exception: sw = Gdk.Screen.get_default().get_width()
+        w = max(self.get_size()[0], self.get_preferred_width()[1]); self.move(sw - w - 14, 12)
 
     def poll(self):
         show = pixel_in_front() or self.busy

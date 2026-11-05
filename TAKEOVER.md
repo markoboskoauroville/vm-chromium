@@ -1,5 +1,14 @@
 # TAKEOVER
 
+**5.11.2026 (~15:00, session mac-os-ses1-05-nov):** viewer **v22**: a normal Mac title bar again (close, minimize, green =
+classic zoom to the screen's visible frame and back, never full screen; ⌃⌘F still full screen; Window menu ⌘M / Zoom).
+The window is .resizable again only so the green button is not greyed out; windowWillResize blocks every edge drag, so
+only the bottom-left grip and the zoom change its size. VM: `chromium-vm-snap` remembers each window's slot
+(~/.cache/chromium-vm/slots.json) and the new service **chromium-vm-refit** (`chromium-vm-snap watch`) puts snapped
+windows back into their slots when the screen size changes (bug: after maximizing, the triple view stayed in the old
+corner). The Pixel bar reads the screen width from X (GTK kept the old width, REBOOT was cut). Verified: xrandr
+1920×1080 → thirds of 1920; AX zoom 1280×858 → 2560×1415 → back; screenshots.
+
 **5.11.2026 afternoon:** Xvnc runs without a login blacklist (`-BlacklistThreshold=1000000 -BlacklistTimeout=1`,
 stage1/bin/start-xvnc; the door is the Tailscale address only): TigerVNC's default had locked the Pixel 7 out after a
 few wrong redials. The VM's Pixel 7 (redroid, Android 15) got 40 apps from Marko's real Pixel 7 (all but the
