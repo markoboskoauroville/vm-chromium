@@ -3,8 +3,9 @@
 // (vm-agent, Agent.swift), and a remote door on 127.0.0.1 (MANTRA_MANIFEST remote-door.md, Door.swift).
 // Marko, 2.11.2026: "let's build the Swift viewer for the Chromium virtual machine ... clipboard and drag-and-drop".
 import AppKit
+import Security
 
-let VERSION = 12
+let VERSION = 13
 let APP_NAME = "Chromium Virtual Machine (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -170,23 +171,25 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
 
     // MARK: the connection
 
-    // v11 (Marko, 5.11.2026: "I rename the password text, and it says it's missing. Don't do this. Give me the option to
-    // enter username and password inside my gear icon"): the login lives in the gear's panel (LOGIN), saved to
-    // ~/Downloads/API/chromium-vm-vnc-password.txt; the old name chromium-vm-vnc.txt is still read
-    static let passwordFiles = ["chromium-vm-vnc-password.txt", "chromium-vm-vnc.txt"].map { NSHomeDirectory() + "/Downloads/API/" + $0 }
+    // v13 (Marko, 5.11.2026: "this password is only read from this setting dialog, not connected to any text file on my
+    // computer"): the password is typed under the gear (LOGIN) and kept in the Mac's Keychain, nothing else
+    static let keychainService = "community.auroville.chromiumvm.vnc"
     var password: String? {
-        for f in App.passwordFiles {
-            if let s = (try? String(contentsOfFile: f, encoding: .utf8))?.trimmingCharacters(in: .whitespacesAndNewlines), !s.isEmpty { return s }
-        }
-        return nil
+        let q: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: App.keychainService,
+                                kSecReturnData as String: true, kSecMatchLimit as String: kSecMatchLimitOne]
+        var out: AnyObject?
+        guard SecItemCopyMatching(q as CFDictionary, &out) == errSecSuccess, let d = out as? Data else { return nil }
+        return String(data: d, encoding: .utf8)
     }
     static var username: String {
         get { UserDefaults.standard.string(forKey: "vmUser") ?? "ubuntu" }
         set { UserDefaults.standard.set(newValue, forKey: "vmUser") }
     }
     func savePassword(_ pw: String) {
-        let f = App.passwordFiles[0]
-        FileManager.default.createFile(atPath: f, contents: Data(pw.utf8), attributes: [.posixPermissions: 0o600])
+        let q: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: App.keychainService]
+        SecItemDelete(q as CFDictionary)
+        var add = q; add[kSecValueData as String] = Data(pw.utf8); add[kSecAttrAccount as String] = App.username
+        SecItemAdd(add as CFDictionary, nil)
     }
 
     func connect() {

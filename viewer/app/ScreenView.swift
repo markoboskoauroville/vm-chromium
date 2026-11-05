@@ -60,7 +60,7 @@ final class ScreenView: NSView {
         super.init(frame: frame)
         wantsLayer = true
         layer?.backgroundColor = NSColor(calibratedRed: 0.125, green: 0.13, blue: 0.14, alpha: 1).cgColor
-        layer?.contentsGravity = .resize
+        layer?.contentsGravity = .resizeAspect   // v13 (Marko, 5.11.2026): never stretched, its own aspect
         layer?.magnificationFilter = .linear
         registerForDraggedTypes([.fileURL])
         addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseMoved, .activeAlways, .inVisibleRect], owner: self))
@@ -102,7 +102,10 @@ final class ScreenView: NSView {
     private func vmPoint(_ e: NSEvent) -> (Int, Int) {
         guard let rfb, bounds.width > 0, bounds.height > 0 else { return (0, 0) }
         let p = convert(e.locationInWindow, from: nil)
-        let x = Int((p.x / bounds.width) * CGFloat(rfb.width)), y = Int((p.y / bounds.height) * CGFloat(rfb.height))
+        // v13: the picture sits aspect-fitted (centred, bars at the sides or top and bottom)
+        let k = min(bounds.width / CGFloat(rfb.width), bounds.height / CGFloat(rfb.height))
+        let ox = (bounds.width - CGFloat(rfb.width) * k) / 2, oy = (bounds.height - CGFloat(rfb.height) * k) / 2
+        let x = Int((p.x - ox) / k), y = Int((p.y - oy) / k)
         return (min(max(0, x), rfb.width - 1), min(max(0, y), rfb.height - 1))
     }
     private func send(_ e: NSEvent) { let (x, y) = vmPoint(e); rfb?.pointer(x: x, y: y, buttons: buttons) }

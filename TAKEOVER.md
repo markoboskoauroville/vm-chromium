@@ -116,3 +116,6 @@ The login is under the gear: USERNAME (ubuntu) and PASSWORD, SAVE AND CONNECT wr
 
 ## v12 (5.11.2026)
 An Edit menu (Cut, Copy, Paste, Select All): without it ⌘V did nothing in the gear's PASSWORD field. The VM picture still takes ⌘V first.
+
+## v13 (5.11.2026)
+The picture is aspect-fitted (never stretched), the mouse mapped through the same rectangle. The VNC password lives only in the Keychain (service community.auroville.chromiumvm.vnc), typed under the gear; no text file is read for it.
