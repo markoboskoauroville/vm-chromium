@@ -152,3 +152,10 @@ Renamed VM Machine Remote (Mantra) (bundle id community.auroville.chromiumvm kep
 
 ## v15 (5.11.2026)
 Icon: VM / REMOTE on a black terminal tile with a green block cursor (icons6 terminal background).
+
+## 5.11.2026: viewer v26, ⌘Tab stays on the Mac
+HotKeys.capture no longer suspends the Mac's global hotkeys (always mode 0), so ⌘Tab, Spotlight, Rectangle and Speechify
+keys stay with macOS while the viewer is in front. ScreenView.keyDown: ⌥Tab → Super+Tab (the dock's program switch);
+⌘Tab that reaches the view is dropped. Marko tested by hand 5.11.2026: both work.
+Also 5.11.2026: the VM's Claude Code speaks through the Mac with `macsay` (~/.local/bin/macsay, /usr/local/bin/macsay,
+token ~/.config/mantra-door.token, rule in ~/.claude/CLAUDE.md). MANTRA_MANIFEST modules/talk-through-the-mac.md.

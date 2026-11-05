@@ -110,3 +110,10 @@
 - 5.11.2026: the green button is greyed on a window without .resizable; keep it and refuse live resizes in windowWillResize.
 - 5.11.2026: the hotkey suspension for ⌘Tab also silenced Rectangle; Rectangle's own keys are re-posted to the Mac (v24).
 - 5.11.2026: GTK's screen width goes stale after xrandr; the Pixel bar asks X for it.
+
+## 5.11.2026
+- `cvm type` types into whatever window has focus: it landed in the Pixel 7 window and opened SwiftKey settings. Focus
+  the target first (`xdotool windowactivate --sync <id>` over Tailscale SSH, ids from `xdotool search --name`), then
+  look at a `cvm shot` before pressing Return.
+- A push GitHub rejected ("fatal error in commit_refs_rules") and then accepted started no workflow run: check
+  `gh run list` after every push and dispatch it by hand when missing.
