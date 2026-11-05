@@ -12,6 +12,9 @@ SERIAL=127.0.0.1:5555
 adb connect "$SERIAL" >/dev/null 2>&1
 adb -s "$SERIAL" wait-for-device
 until [ "$(adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; do sleep 2; done
+# 5.11.2026 (Marko: "Never stretch the screen ... We can have black bars"): the window takes whatever size its slot
+# has (no aspect lock, so it never grows taller than the screen), and the phone inside keeps its own aspect with black
+# bars (render fit letterbox).
 # software decoding on two cores: 30 frames a second, the long side 1600 px; no sound (the VM has no speakers)
 exec /opt/scrcpy/bin/scrcpy -s "$SERIAL" --window-title "Pixel 7" --max-fps 30 --max-size 1600 --video-bit-rate 6M \
-  --no-audio --shortcut-mod=lalt 2>&1
+  --no-audio --shortcut-mod=lalt --no-window-aspect-ratio-lock --render-fit=letterbox 2>&1
