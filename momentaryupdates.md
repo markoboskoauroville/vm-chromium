@@ -142,3 +142,7 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 ## 5.11.2026
 
 "please change the icon of my application. Chromium Virtual Machine Mantra. Also change the name. You need to add Remote. Actually, we don't need to put Chromium. We change the name: VM-Machine-Remote. That's all. The icon should look the same. The text background is Oracle Logotype. Oracle Logotype, their logo type."
+
+## 5.11.2026
+
+"Please change the text on this application VM at the top to \"Remote Full Word\" at the bottom. Just make a black background with the green terminal entry point, or carousel, or whatever it's called, where I enter the text. It should look like the background in the clear terminal."
