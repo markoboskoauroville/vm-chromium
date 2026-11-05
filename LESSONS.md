@@ -94,3 +94,15 @@
 
 - 5.11.2026: a button in the very corner of a resizable window never gets the click; macOS uses it for resizing. Keep controls 12 pt in.
 - 5.11.2026: a Swift app with its own main menu needs an Edit menu, or ⌘C/⌘V/⌘A do nothing in its text fields.
+
+## 5.11.2026
+- The Mac's own corner resize took the bottom-right grip: a borderless window that should move from that corner must not
+  be `.resizable`; lend `.resizable` only for full screen (toggleFullScreen needs it) and take it back on exit.
+- "Stretched" was not the viewer: scrcpy 5 locks its window to the phone's shape, so in a wide slot it grew 3413 px tall
+  on a 1440 px screen. `--no-window-aspect-ratio-lock --render-fit=letterbox` keeps it inside its slot.
+- The viewer sends ⌘ as Ctrl (copy/paste on the VM), so a lone ⌘ never reached the VM as Super: the dock's Super watcher
+  needs the viewer to tap Super for a lone ⌘.
+- A layer-backed NSView that also implements draw(_:) gets its layer contents scaled on both axes during live resize:
+  put the picture on its own sublayer with contentsGravity resizeAspect.
+- xdotool clicks at fixed rows in an Electron list drift as soon as a group folds: read the screen before each click,
+  and never send a menu's shortcut letter blind (three "a" landed in a chat box, cleared before sending).

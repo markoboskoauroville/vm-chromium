@@ -1,5 +1,16 @@
 # TAKEOVER
 
+**State 5.11.2026 (session closed):** Mac viewer VM Machine Remote (Mantra) **v20** (GitHub release, /Applications):
+picture on its own aspect-fitted layer (v19, never stretched); gear → REMOTE SCREEN SIZE (FOLLOW WINDOW or the VM's
+xrandr modes via vm-agent `screen_modes`); bottom-right grey line moves the window, bottom-left resizes it (v16–v18, the
+window is not .resizable, full screen lends it); a lone ⌘ sends Super (v20). On the VM: four screens (Claude Code,
+Claude, Chrome, Pixel 7 via scrcpy 5 in /opt/scrcpy, letterboxed, `chromium-vm-pixel7` + the Pixel bar
+`chromium-vm-pixel7-bar`: PORTRAIT | LANDSCAPE, REBOOT); the dock: four app tiles + Claude Code | Chrome (40|60),
+Claude | Chrome (40|60), Claude | Claude Code | Pixel 7 (⅓ each); Command alone opens it pinned (X RECORD); a screen or a
+layout starts what has no window first (`chromium-vm-snap show|layout`, `ensure`). Deploy desktop pieces one by one:
+desktop/install.sh restarts every screen service, the Claude Code one included.
+
+
 - 2.11.2026: the repository and the plan only; nothing installed on the VM yet (fresh Ubuntu 24.04 Minimal).
 - 2.11.2026: Stage 1 files written by the cloud session (`stage1/`: setup.sh, session + Xvnc scripts, systemd units,
   policy, check.sh, measure-chromium-start.sh). Not yet run on the VM: this session has no tailnet access. Next: run
