@@ -178,3 +178,4 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 
 "in vm machine wiewer newer stretch or skvish image alwaay resize it in orioginal aspect ratio and under setting menu please giv me remote session screen resolution options based on avelable remote hardware settingd"
 **Status:** saved first.
+**Status (5.11.2026, ~09:30):** v19 installed: the picture on its own aspect-fitted layer (never stretched); gear → REMOTE SCREEN SIZE (FOLLOW WINDOW or the VM's xrandr modes via vm-agent screen_modes). The menu itself waits for Marko's click.
