@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 17
+let VERSION = 18
 let APP_NAME = "VM Machine Remote (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -84,7 +84,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         editItem.submenu = ed
         let viewItem = NSMenuItem(); main.addItem(viewItem)
         let v = NSMenu(title: "View")
-        let fs = v.addItem(withTitle: "Full Screen", action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f")
+        let fs = v.addItem(withTitle: "Full Screen", action: #selector(toggleFull), keyEquivalent: "f"); fs.target = self
         fs.keyEquivalentModifierMask = [.command, .control]
         v.addItem(withTitle: "Reconnect", action: #selector(reconnect), keyEquivalent: "")
         viewItem.submenu = v
@@ -102,7 +102,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
 
     func buildWindow() {
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1280, height: 830),
-                          styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
+                          styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView], backing: .buffered, defer: false)
         window.titlebarAppearsTransparent = true
         window.acceptsMouseMovedEvents = true
         window.title = APP_NAME
@@ -165,7 +165,15 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
 
     @objc func reconnect() { rfb?.close(); rfb = nil; connected = false; connect() }
 
-    func windowDidExitFullScreen(_ n: Notification) { hideTitleBar(); showGrips(true) }
+    // v18 (Marko, 5.11.2026: "the right gripper is still resizing. You need to limit the right gripper to only move"): macOS's
+    // own edge and corner resizing took the bottom-right corner, so the window is not .resizable any more; only the
+    // bottom-left grip resizes it (Grips.swift). Full screen needs .resizable: it is lent for full screen and taken back.
+    @objc func toggleFull() {
+        if !window.styleMask.contains(.fullScreen) { window.styleMask.insert(.resizable) }
+        window.toggleFullScreen(nil)
+    }
+    func windowDidExitFullScreen(_ n: Notification) { window.styleMask.remove(.resizable); hideTitleBar(); showGrips(true) }
+    func windowDidFailToEnterFullScreen(_ w: NSWindow) { window.styleMask.remove(.resizable) }
     func windowWillEnterFullScreen(_ n: Notification) { showGrips(false) }
     /// the move and resize corners (Grips.swift) mean nothing in full screen
     func showGrips(_ on: Bool) { overlay.moveGrip.isHidden = !on; overlay.resizeGrip.isHidden = !on }

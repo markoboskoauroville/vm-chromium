@@ -77,7 +77,7 @@ final class Door {
         case "show":
             app.window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true); reply(200, ["ok": true, "result": "shown"])
         case "fullscreen":
-            app.window.toggleFullScreen(nil); reply(200, ["ok": true, "result": "toggled"])
+            app.toggleFull(); reply(200, ["ok": true, "result": "toggled"])
         case "reconnect":
             app.reconnect(); reply(200, ["ok": true, "result": "reconnecting"])
         case "push_clipboard":

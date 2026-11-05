@@ -222,7 +222,7 @@ final class SettingsOverlay: Solid {
         _ = CGRequestPostEventAccess()
         NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
     }
-    @objc func fullScreen() { close(); app?.window.toggleFullScreen(nil) }
+    @objc func fullScreen() { close(); app?.toggleFull() }
     @objc func reconnect() { close(); app?.reconnect() }
     @objc func closeWindow() { close(); app?.window.orderOut(nil) }
     @objc func quit() { NSApp.terminate(nil) }
