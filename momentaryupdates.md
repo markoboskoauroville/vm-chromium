@@ -171,3 +171,6 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 
 "Android emulation is very bad. Running some old emulation from Android, and I cannot click anything. It's useless. It's frozen, and I want to have some overlay on the screen just to control this emulator: change orientation and reboot it. Please make this, and make the latest Android version there"
 **Status:** saved first.
+
+"change vm machine remote when use press apple or aommand or win key do poen bottom pop up with app switcher and keep it open until user clisks one option then auto close"
+**Status:** saved first.
