@@ -157,3 +157,11 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 
 "You didn't understand me. These grippers, right? The gripper should be moving. Just make the biggest line, not small hash. Only one line. On the left side, it should be resizing. Only one line. That's the design. This hashing is just annoying. Make it gray color, so it's barely visible. Only that one line, gray color"
 **Status:** saved first.
+
+## 5.11.2026
+
+"the app is still not perfect. Remote controller the right gripper is still resizing. You need to limit the right gripper to only move"
+**Status:** v18 (no system edge resizing; the left corner resizes), installed 5.11.2026.
+
+"now you need to modify my virtual machine machine itself. It needs to have now a fourth app. We have Claude Code, Claude, Chrome, and that third app is Pixel 7. Make it always run, and I can switch to it"
+**Status:** saved first.
