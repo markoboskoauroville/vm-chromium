@@ -120,11 +120,11 @@ final class ScreenView: NSView {
     }
     private func send(_ e: NSEvent) { let (x, y) = vmPoint(e); rfb?.pointer(x: x, y: y, buttons: buttons) }
 
-    override func mouseDown(with e: NSEvent) { onClick?(); window?.makeFirstResponder(self); buttons |= 1; send(e) }
+    override func mouseDown(with e: NSEvent) { cmdAlone = false; onClick?(); window?.makeFirstResponder(self); buttons |= 1; send(e) }
     override func mouseUp(with e: NSEvent) { buttons &= ~1; send(e) }
-    override func rightMouseDown(with e: NSEvent) { buttons |= 4; send(e) }
+    override func rightMouseDown(with e: NSEvent) { cmdAlone = false; buttons |= 4; send(e) }
     override func rightMouseUp(with e: NSEvent) { buttons &= ~4; send(e) }
-    override func otherMouseDown(with e: NSEvent) { buttons |= 2; send(e) }
+    override func otherMouseDown(with e: NSEvent) { cmdAlone = false; buttons |= 2; send(e) }
     override func otherMouseUp(with e: NSEvent) { buttons &= ~2; send(e) }
     override func mouseMoved(with e: NSEvent) { send(e) }
     override func mouseDragged(with e: NSEvent) { send(e) }
@@ -132,6 +132,7 @@ final class ScreenView: NSView {
     override func otherMouseDragged(with e: NSEvent) { send(e) }
 
     override func scrollWheel(with e: NSEvent) {
+        cmdAlone = false
         // Trackpad deltas are fine-grained: one wheel click on the VM per ~12 points.
         let step: CGFloat = e.hasPreciseScrollingDeltas ? 12 : 1
         scrollAcc += e.scrollingDeltaY; scrollAccX += e.scrollingDeltaX
@@ -179,6 +180,7 @@ final class ScreenView: NSView {
            let text = NSPasteboard.general.string(forType: .string), !text.isEmpty, let onTypeText {
             onTypeText(text); return
         }
+        cmdAlone = false
         guard let ks = keysym(e) else { return }
         let f = e.modifierFlags
         // ⌘Tab = Super+Tab on the VM: the one key that switches its three screens (Marko, 2.11.2026). ⌘ is held as
@@ -208,8 +210,24 @@ final class ScreenView: NSView {
         if let ks = downKeys.removeValue(forKey: e.keyCode) { rfb?.key(ks, down: false) }
     }
 
+    /// v20 (Marko, 5.11.2026: "I want this pop-up from the bottom to switch applications ... clicking only on the
+    /// Command button"): ⌘ pressed and let go alone (no key, no click, no other modifier in between) taps Super on the
+    /// VM, which opens its dock (apps and layouts) until one is clicked. ⌘ with a key still goes as Ctrl, as before.
+    private var cmdAlone = false
+    func notAlone() { cmdAlone = false }
+
     override func flagsChanged(with e: NSEvent) {
         let f = e.modifierFlags
+        let others: NSEvent.ModifierFlags = [.control, .option, .shift, .function]
+        if e.keyCode == 0x37 || e.keyCode == 0x36 {
+            if f.contains(.command) { cmdAlone = f.intersection(others).isEmpty }
+            else if cmdAlone {
+                cmdAlone = false
+                DispatchQueue.main.async { [weak self] in
+                    self?.rfb?.key(ScreenView.superL, down: true); self?.rfb?.key(ScreenView.superL, down: false)
+                }
+            }
+        } else { cmdAlone = false }
         var want: Set<UInt32> = []
         if f.contains(.command) || f.contains(.control) { want.insert(ScreenView.ctrl) }
         if f.contains(.shift) { want.insert(ScreenView.shift) }
@@ -220,6 +238,7 @@ final class ScreenView: NSView {
 
     /// Everything with ⌘ goes to the VM, except ⌘Q (quit), ⌃⌘F (full screen) and ⌘H (hide).
     override func performKeyEquivalent(with e: NSEvent) -> Bool {
+        cmdAlone = false
         guard window?.firstResponder === self, e.type == .keyDown else { return false }
         let k = e.charactersIgnoringModifiers?.lowercased()
         if e.modifierFlags.contains(.command) && (k == "q" || k == "h" || (k == "f" && e.modifierFlags.contains(.control))) { return false }

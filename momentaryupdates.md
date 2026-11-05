@@ -179,3 +179,6 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 "in vm machine wiewer newer stretch or skvish image alwaay resize it in orioginal aspect ratio and under setting menu please giv me remote session screen resolution options based on avelable remote hardware settingd"
 **Status:** saved first.
 **Status (5.11.2026, ~09:30):** v19 installed: the picture on its own aspect-fitted layer (never stretched); gear → REMOTE SCREEN SIZE (FOLLOW WINDOW or the VM's xrandr modes via vm-agent screen_modes). The menu itself waits for Marko's click.
+
+"after that, you check if, for my virtual machine remote controller on this computer application, there are any updates pending. I'm missing the feature when I press Command. I want this pop-up from the bottom to switch applications and have different layouts pop up by switching, clicking only on the Command button automatically"
+**Status:** saved first. Cause: the viewer sends ⌘ as Ctrl, so a lone ⌘ never reached the VM as Super; v20 taps Super for a lone ⌘.
