@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 23
+let VERSION = 24
 let APP_NAME = "VM Machine Remote (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -69,7 +69,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     // the Mac's global hotkeys are suspended (CGSSetGlobalHotKeyOperatingMode: per connection, the WindowServer
     // gives them back when the app resigns, quits or dies). Mac-wide ⌘Tab/Spotlight work again as soon as another
     // app is in front.
-    func applicationDidBecomeActive(_ n: Notification) { HotKeys.capture(true); pushClipboard {} }
+    func applicationDidBecomeActive(_ n: Notification) { RectangleKeys.load(); HotKeys.capture(true); pushClipboard {} }
     func applicationDidResignActive(_ n: Notification) { HotKeys.capture(false); screen.releaseAll() }
     func applicationWillTerminate(_ n: Notification) { HotKeys.capture(false) }
 
@@ -144,6 +144,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
                                      overlay.bottomAnchor.constraint(equalTo: root.bottomAnchor)])
         screen.heldForMac = App.heldKeys
         screen.onMacKey = { [weak self] code in self?.passToMac(code) }
+        screen.onRectangleKey = { [weak self] e in self?.passRectangle(e) }
         screen.onClick = { [weak self] in self?.overlay.close() }
         screen.onTypeText = { [weak self] text in self?.typeOnVM(text) }
         screen.onDropFiles = { [weak self] in self?.upload($0) }
@@ -192,6 +193,29 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
             let e = CGEvent(keyboardEventSource: src, virtualKey: CGKeyCode(code), keyDown: down)
             e?.setIntegerValueField(.eventSourceUserData, value: ScreenView.ownMark)
             e?.post(tap: .cghidEventTap)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { if NSApp.isActive { HotKeys.capture(true) } }
+    }
+
+    /// v24: a Rectangle shortcut pressed in the viewer: the Mac's hotkeys on for a moment, the same combination pressed
+    /// again into the Mac's key stream, so Rectangle (a global hotkey) gets it and moves this window
+    func passRectangle(_ e: NSEvent) {
+        guard CGPreflightPostEventAccess() else {
+            overlay.refreshKeys(); flash("Rectangle keys: allow \(APP_NAME) in Accessibility (PERMISSIONS)"); return
+        }
+        HotKeys.capture(false)
+        let src = CGEventSource(stateID: .hidSystemState)
+        var flags = CGEventFlags()
+        let m = e.modifierFlags
+        if m.contains(.control) { flags.insert(.maskControl) }
+        if m.contains(.option) { flags.insert(.maskAlternate) }
+        if m.contains(.command) { flags.insert(.maskCommand) }
+        if m.contains(.shift) { flags.insert(.maskShift) }
+        for down in [true, false] {
+            let k = CGEvent(keyboardEventSource: src, virtualKey: CGKeyCode(e.keyCode), keyDown: down)
+            k?.flags = flags
+            k?.setIntegerValueField(.eventSourceUserData, value: ScreenView.ownMark)
+            k?.post(tap: .cghidEventTap)
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { if NSApp.isActive { HotKeys.capture(true) } }
     }

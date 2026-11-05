@@ -166,11 +166,18 @@ final class ScreenView: NSView {
         return u.value < 0x100 ? u.value : 0x0100_0000 + u.value
     }
 
+    var onRectangleKey: ((NSEvent) -> Void)?
+
     override func keyDown(with e: NSEvent) {
         // F1 / F2 held for the Mac (Marko, 2.11.2026: "When I'm transcribing I'm pressing F1 or F2 ... it needs to be
         // blocked from sending it"): never to the VM; handed to Speechify / Voice to Text on the Mac
         if heldForMac.contains(e.keyCode) {
             if !e.isARepeat && e.cgEvent?.getIntegerValueField(.eventSourceUserData) != ScreenView.ownMark { onMacKey?(e.keyCode) }
+            return
+        }
+        // Rectangle's shortcuts (v24, RectangleKeys.swift) stay on the Mac: they move the viewer window, not the VM's
+        if RectangleKeys.matches(e) {
+            if !e.isARepeat && e.cgEvent?.getIntegerValueField(.eventSourceUserData) != ScreenView.ownMark { onRectangleKey?(e) }
             return
         }
         // ⌘V with text on the Mac clipboard (v9): the text itself goes to the VM and is pasted the way the window in front

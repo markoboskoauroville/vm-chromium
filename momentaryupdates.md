@@ -211,3 +211,6 @@ the classic way"
 
 "Let's update further virtual machine. Apple and W. Should minimize virtual machine. That's the Our shortcut key." (5.11.2026)
 **Status:** viewer v23: ⌘W minimizes the window (never sent to the VM).
+
+"please read my shortcut for my application called Rectangle, which is a window manager, and don't forward these shortcuts to the remote session, please, because now I cannot manage the windows of the remote session." (5.11.2026)
+**Status:** viewer v24: Rectangle's shortcuts (read from its settings + its defaults) go to the Mac, never to the VM.
