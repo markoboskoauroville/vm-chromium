@@ -6,6 +6,8 @@ signs "Mantra Apps", installs in /Applications and quits the running copy. Star:
 - **Screen:** own RFB 3.8 client (VncAuth, ZRLE / CopyRect / Raw). The VM follows the window size
   (ExtendedDesktopSize). FULL SCREEN or ⌃⌘F hides the top row.
 - **Keys:** ⌘ is Ctrl on the VM (⌘C ⌘V ⌘T ⌘W ⌘L), ⌥ composes characters the Mac way, ⌘Q / ⌘H / ⌃⌘F stay the Mac's.
+  v26 (5.11.2026): **⌥Tab** switches the VM's programs (Super+Tab); **⌘Tab stays with macOS** (never sent), the Mac's
+  global hotkeys are no longer suspended while the viewer is in front.
   v5 (2.11.2026): **⌘Tab arrives as Super_L+Tab** (keysym 0xffeb + Tab; Ctrl let go around it), the VM's only
   screen-switching key; **⌃⌥ + any key arrives as Ctrl+Alt+key** (Rectangle's keys on the VM's openbox). While the
   viewer is the active app the Mac's global hotkeys are suspended (CGSSetGlobalHotKeyOperatingMode), so macOS's ⌘Tab

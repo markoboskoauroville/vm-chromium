@@ -232,9 +232,11 @@ final class ScreenView: NSView {
         cmdAlone = false
         guard let ks = keysym(e) else { return }
         let f = e.modifierFlags
-        // ⌘Tab = Super+Tab on the VM: the one key that switches its three screens (Marko, 2.11.2026). ⌘ is held as
-        // Ctrl there, so Ctrl is let go around it.
-        if f.contains(.command) && e.keyCode == 48 {
+        // ⌥Tab = Super+Tab on the VM: the one key that switches its programs (v26, 5.11.2026; until v25 it was ⌘Tab, which
+        // now stays with macOS). Ctrl, if held, is let go around it. ⌘Tab never comes here (macOS takes it); if it ever
+        // does, it is dropped, never sent to the VM.
+        if e.keyCode == 48 && f.contains(.command) { return }
+        if f.contains(.option) && e.keyCode == 48 {
             let held = mods.contains(ScreenView.ctrl)
             if held { rfb?.key(ScreenView.ctrl, down: false) }
             rfb?.key(ScreenView.superL, down: true); rfb?.key(0xff09, down: true)

@@ -11,8 +11,13 @@ private func CGSSetGlobalHotKeyOperatingMode(_ cid: CGSConnectionID, _ mode: Int
 
 enum HotKeys {
     static private(set) var captured = false
+    // v26 (Marko, 5.11.2026: "I want to keep Command Tab for my macOS ... so I can switch between a remote viewer and any
+    // other application locally. Please don't send this combination there, and change it to switch applications with Alt
+    // Tab"): the Mac's global hotkeys are never suspended any more, so ⌘Tab (and Spotlight, Rectangle, Speechify's keys)
+    // stay with macOS while the viewer is in front. ⌥Tab switches the VM's programs (ScreenView.keyDown). The callers
+    // stay; capture(true) now only makes sure the Mac's hotkeys are on.
     static func capture(_ on: Bool) {
-        _ = CGSSetGlobalHotKeyOperatingMode(CGSMainConnectionID(), on ? 1 : 0)   // 1 = disable, 0 = enable
-        captured = on
+        _ = CGSSetGlobalHotKeyOperatingMode(CGSMainConnectionID(), 0)   // 0 = the Mac's hotkeys on (1 would suspend them)
+        captured = false
     }
 }

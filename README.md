@@ -71,7 +71,7 @@ installed with `sudo ./desktop/install.sh`; services chromium-vm-claude-code, ch
 
 | Mac key (through the viewer v5) | arrives on the VM as | does |
 |---|---|---|
-| ⌘Tab | Super+Tab | next program (Claude Code → Claude → Chrome), the dock peeks; the ONLY switching key |
+| ⌥Tab (since viewer v26, 5.11.2026; ⌘Tab stays on the Mac) | Super+Tab | next program (Claude Code → Claude → Chrome), the dock peeks; the ONLY switching key |
 | ⌃⌥← / ⌃⌥→ | Ctrl+Alt+Left / Right | left / right half |
 | ⌃⌥↑ / ⌃⌥↓ | Ctrl+Alt+Up / Down | top / bottom half |
 | ⌃⌥Return | Ctrl+Alt+Return | maximize |
