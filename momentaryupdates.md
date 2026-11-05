@@ -217,3 +217,9 @@ the classic way"
 
 "please fix VM Monitor so the feature that the mouse is taken over by the VM when its mouse is hovering over ... Nothing can actually stop this behavior ... If my mouse goes out of the visible area of the remote machine, it automatically becomes mouse of host ... It's baked in" (5.11.2026)
 **Status:** viewer v25.
+
+## 5.11.2026 (~17:15)
+
+> please fix my VM Remote Viewer. Alt Tab is switching between open applications because I want to keep Command Tab for my macOS. It means the virtual machine doesn't send the virtual viewer remote viewer's Command Tab to the remote session. It is used here for this computer, so I can switch between a remote viewer and any other application locally. Please don't send this combination there, and change it to switch applications with Alt Tab
+
+**Status:** saved first.
