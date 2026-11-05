@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 22
+let VERSION = 23
 let APP_NAME = "VM Machine Remote (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -97,7 +97,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         fs.keyEquivalentModifierMask = [.command, .control]
         let wm = NSMenuItem(); main.addItem(wm)
         let wmenu = NSMenu(title: "Window")
-        wmenu.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+        wmenu.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "w")   // ⌘W (v23)
         let z = wmenu.addItem(withTitle: "Zoom", action: #selector(zoomClicked), keyEquivalent: ""); z.target = self
         wm.submenu = wmenu; NSApp.windowsMenu = wmenu
         v.addItem(withTitle: "Reconnect", action: #selector(reconnect), keyEquivalent: "")

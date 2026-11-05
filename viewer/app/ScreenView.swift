@@ -241,7 +241,9 @@ final class ScreenView: NSView {
         cmdAlone = false
         guard window?.firstResponder === self, e.type == .keyDown else { return false }
         let k = e.charactersIgnoringModifiers?.lowercased()
-        if e.modifierFlags.contains(.command) && (k == "q" || k == "h" || (k == "f" && e.modifierFlags.contains(.control))) { return false }
+        // v23 (Marko, 5.11.2026: "Apple and W should minimize virtual machine"): ⌘W stays on the Mac (Window → Minimize)
+        let plainCmd = e.modifierFlags.intersection([.command, .shift, .option, .control]) == .command
+        if e.modifierFlags.contains(.command) && (k == "q" || k == "h" || (k == "w" && plainCmd) || (k == "f" && e.modifierFlags.contains(.control))) { return false }
         keyDown(with: e); return true
     }
 

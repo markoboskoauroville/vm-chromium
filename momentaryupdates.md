@@ -208,3 +208,6 @@ interface looks when I maximize it. Please remove bugs and add at the top of the
 use to close the window, minimize the window, or maximize the window without taking over the desktop, meaning maximize
 the classic way"
 **Status (5.11.2026, ~15:00):** done: viewer v22 (title bar, classic zoom), VM chromium-vm-refit (windows follow a new size), Pixel bar width fixed.
+
+"Let's update further virtual machine. Apple and W. Should minimize virtual machine. That's the Our shortcut key." (5.11.2026)
+**Status:** viewer v23: ⌘W minimizes the window (never sent to the VM).
