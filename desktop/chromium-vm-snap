@@ -11,6 +11,9 @@ The geometry before the first snap is kept in ~/.cache/chromium-vm/snap.json, so
 import json, os, subprocess, sys, time
 
 STATE = os.path.expanduser('~/.cache/chromium-vm/snap.json')
+# v2 (Marko, 5.11.2026: the viewer maximized, the VM's screen grew, but the triple view stayed in the old corner): the slot
+# each window was last snapped into, so `refit` (run by `watch` on every new screen size) puts it into the same slot again
+SLOTS = os.path.expanduser('~/.cache/chromium-vm/slots.json')
 BAR = 22
 
 def sh(*a):
@@ -82,14 +85,52 @@ def app_windows(iconic=False):
             if test(inst, cls): out[name] = str(int(wid, 16))
     return out
 
+def slots(update=None):
+    try: sl = json.load(open(SLOTS))
+    except Exception: sl = {}
+    if update:
+        for k, v in update.items():
+            if v is None: sl.pop(k, None)
+            else: sl[k] = v
+        os.makedirs(os.path.dirname(SLOTS), exist_ok=True); json.dump(sl, open(SLOTS, 'w'))
+    return sl
+
+def screen_size():
+    try: return sh('xdotool', 'getdisplaygeometry').strip()
+    except Exception: return ''
+
+def refit():
+    """every window still alive goes back into its slot at the new screen size (maximized ones follow by themselves)"""
+    alive = set(str(int(w, 16)) for w in sh('xprop', '-root', '_NET_CLIENT_LIST').split('#', 1)[-1].replace(',', ' ').split()
+                if w.startswith('0x'))
+    sl = slots()
+    gone = {w: None for w in sl if w not in alive}
+    if gone: sl = slots(gone)
+    for wid, act in sl.items():
+        place(wid, act, remember=False)
+
+def watch():
+    last = screen_size()
+    while True:
+        time.sleep(0.5)
+        size = screen_size()
+        if size and size != last:
+            last = size
+            time.sleep(0.4)          # openbox settles its work area first
+            try: refit()
+            except Exception as e: print('refit:', e, flush=True)
+
 def main():
     act = sys.argv[1] if len(sys.argv) > 1 else ''
+    if act == 'watch': return watch()
+    if act == 'refit': return refit()
     if act == 'show':                            # one program, alone and full: started first if it has no window
         name = sys.argv[2] if len(sys.argv) > 2 else ''
         wid = ensure([name]).get(name)
         if wid:
             sh('xdotool', 'windowactivate', wid)
             sh('wmctrl', '-i', '-r', wid, '-b', 'add,maximized_vert,maximized_horz')
+            slots({wid: None})
         return
     if act == 'layout':
         plan = LAYOUTS.get(sys.argv[2] if len(sys.argv) > 2 else '', [])
@@ -102,7 +143,7 @@ def main():
     wid = sh('xdotool', 'getactivewindow').strip()
     if wid: place(wid, act)
 
-def place(wid, act):
+def place(wid, act, remember=True):
     W, H = map(int, sh('xdotool', 'getdisplaygeometry').split())
     try:   # openbox puts its margins into _NET_WORKAREA
         wa = [int(v) for v in sh('xprop', '-root', '_NET_WORKAREA').split('=')[1].replace(',', ' ').split()[:4]]
@@ -122,6 +163,7 @@ def place(wid, act):
          'third3': (AW - w3, 0, w3, AH), 'two1': (0, 0, AW - w3, AH), 'two2': (w3, 0, AW - w3, AH),
          'r3top': (AW - w3, 0, w3, h2), 'r3bot': (AW - w3, AH - h2, w3, h2),
          'l40': (0, 0, max(600, AW * 2 // 5), AH), 'r60': (max(600, AW * 2 // 5), 0, AW - max(600, AW * 2 // 5), AH)}
+    if remember: slots({wid: act if act in R else None})
     if act == 'restore':
         if wid not in st: return
         x, y, w, h = st.pop(wid); json.dump(st, open(STATE, 'w'))

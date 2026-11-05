@@ -5,15 +5,24 @@
 import AppKit
 import Security
 
-let VERSION = 20
+let VERSION = 21
 let APP_NAME = "VM Machine Remote (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
 @main
+/// v21: the green button and a double-click on the title bar zoom the classic way (fill the screen's visible frame and back),
+/// never full screen; the window stays without .resizable (only the bottom-left grip resizes it, v18)
+final class VMWindow: NSWindow {
+    var onZoom: (() -> Void)?
+    override func zoom(_ sender: Any?) { onZoom?() }
+    override func performZoom(_ sender: Any?) { onZoom?() }
+}
+
 final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate {
     static func main() { let a = NSApplication.shared; let d = App(); a.delegate = d; a.run() }
 
-    var window: NSWindow!
+    var window: VMWindow!
+    var frameBeforeZoom: NSRect?
     let screen = ScreenView(frame: NSRect(x: 0, y: 0, width: 1280, height: 800))
     var overlay: SettingsOverlay!
     // the keys held for the Mac (never sent to the VM): F1 Speechify, F2 Voice to Text (Marko, 2.11.2026)
@@ -86,6 +95,11 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         let v = NSMenu(title: "View")
         let fs = v.addItem(withTitle: "Full Screen", action: #selector(toggleFull), keyEquivalent: "f"); fs.target = self
         fs.keyEquivalentModifierMask = [.command, .control]
+        let wm = NSMenuItem(); main.addItem(wm)
+        let wmenu = NSMenu(title: "Window")
+        wmenu.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+        let z = wmenu.addItem(withTitle: "Zoom", action: #selector(zoomClicked), keyEquivalent: ""); z.target = self
+        wm.submenu = wmenu; NSApp.windowsMenu = wmenu
         v.addItem(withTitle: "Reconnect", action: #selector(reconnect), keyEquivalent: "")
         viewItem.submenu = v
         NSApp.mainMenu = main
@@ -101,13 +115,15 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     }
 
     func buildWindow() {
-        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1280, height: 830),
-                          styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView], backing: .buffered, defer: false)
-        window.titlebarAppearsTransparent = true
+        // v21 (Marko, 5.11.2026: "add at the top of the window a normal Mac OS thing ... close, minimize, maximize without
+        // taking over the desktop"): a normal title bar again, the picture below it; green = classic zoom, not full screen
+        window = VMWindow(contentRect: NSRect(x: 0, y: 0, width: 1280, height: 830),
+                          styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
         window.acceptsMouseMovedEvents = true
         window.title = APP_NAME
         window.minSize = NSSize(width: 480, height: 360)
-        window.collectionBehavior = [.fullScreenPrimary]
+        window.collectionBehavior = [.fullScreenNone]
+        window.onZoom = { [weak self] in self?.zoomClassic() }
         window.delegate = self
         window.setFrameAutosaveName("ChromiumVMWindow")
 
@@ -135,13 +151,28 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         window.center()
         window.makeKeyAndOrderFront(nil)
         window.makeFirstResponder(screen)
-        hideTitleBar()
+        wireZoomButton()
     }
 
-    /// the title bar (traffic lights, title) never shows: everything is in the gear's panel
-    func hideTitleBar() {
-        window.titleVisibility = .hidden
-        window.standardWindowButton(.closeButton)?.superview?.superview?.isHidden = true   // the title bar container
+    /// the green button: enabled (a window without .resizable greys it out) and pointed at the classic zoom
+    func wireZoomButton() {
+        guard let b = window.standardWindowButton(.zoomButton) else { return }
+        b.isEnabled = true; b.target = self; b.action = #selector(zoomClicked)
+        b.setAccessibilityLabel("ZOOM")
+    }
+    @objc func zoomClicked() { zoomClassic() }
+
+    /// fill the visible frame of the window's screen (menu bar and Dock stay), or go back to the size before
+    func zoomClassic() {
+        guard !window.styleMask.contains(.fullScreen), let vis = (window.screen ?? NSScreen.main)?.visibleFrame else { return }
+        if let back = frameBeforeZoom, window.frame.equalTo(vis) || abs(window.frame.width - vis.width) < 2 && abs(window.frame.height - vis.height) < 2 {
+            frameBeforeZoom = nil; window.setFrame(back, display: true, animate: true)
+        } else {
+            frameBeforeZoom = window.frame; window.setFrame(vis, display: true, animate: true)
+        }
+    }
+    func windowDidUpdate(_ n: Notification) {
+        if let b = window.standardWindowButton(.zoomButton), !b.isEnabled { b.isEnabled = true }
     }
 
     /// A key held for the Mac (F1, F2) was pressed in the viewer. While the viewer is in front the Mac's global hotkeys
@@ -169,11 +200,17 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     // own edge and corner resizing took the bottom-right corner, so the window is not .resizable any more; only the
     // bottom-left grip resizes it (Grips.swift). Full screen needs .resizable: it is lent for full screen and taken back.
     @objc func toggleFull() {
-        if !window.styleMask.contains(.fullScreen) { window.styleMask.insert(.resizable) }
+        if !window.styleMask.contains(.fullScreen) {
+            window.styleMask.insert(.resizable); window.collectionBehavior = [.fullScreenPrimary]
+        }
         window.toggleFullScreen(nil)
     }
-    func windowDidExitFullScreen(_ n: Notification) { window.styleMask.remove(.resizable); hideTitleBar(); showGrips(true) }
-    func windowDidFailToEnterFullScreen(_ w: NSWindow) { window.styleMask.remove(.resizable) }
+    func windowDidExitFullScreen(_ n: Notification) {
+        window.styleMask.remove(.resizable); window.collectionBehavior = [.fullScreenNone]; wireZoomButton(); showGrips(true)
+    }
+    func windowDidFailToEnterFullScreen(_ w: NSWindow) {
+        window.styleMask.remove(.resizable); window.collectionBehavior = [.fullScreenNone]; wireZoomButton()
+    }
     func windowWillEnterFullScreen(_ n: Notification) { showGrips(false) }
     /// the move and resize corners (Grips.swift) mean nothing in full screen
     func showGrips(_ on: Bool) { overlay.moveGrip.isHidden = !on; overlay.resizeGrip.isHidden = !on }

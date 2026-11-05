@@ -201,3 +201,9 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 "please fix my virtual machine. If, for example, I'm in a split screen and I close one part of the split screen by accident or whatever, when I enter split screen, these applications are re-run so they fill up the screen as intended. Same for the windows, which are switching between apps. If an app is not running, when I switch to the window, it needs to run the app to fill up the window. This bottom part is at the same time a launcher and a window manager"
 **Status:** saved first.
 **Status (5.11.2026, ~12:55):** done. chromium-vm-snap `ensure`: a layout or `show <app>` starts every program that has no window (Claude Code/Pixel 7: their service; Chrome: a new window in the session's Chrome; Claude: claude-desktop), waits for its window (≤ 40 s), then places it. The dock's app tiles use `show`. Tested: Claude and Pixel 7 closed, triple view chosen → both back in their thirds in 9 s.
+
+## 5.11.2026 (Mac session mac-os-ses1-05-nov)
+Marko: "please take a screenshot of Virtual Remote Virtual Machine Remote now on the main view screen, and look how the
+interface looks when I maximize it. Please remove bugs and add at the top of the window a normal Mac OS thing, which I can
+use to close the window, minimize the window, or maximize the window without taking over the desktop, meaning maximize
+the classic way"
