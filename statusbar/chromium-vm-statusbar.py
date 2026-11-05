@@ -9,7 +9,7 @@ speak".
 See-through by alpha through xcompmgr (started by the session); clicks between the letters reach Chrome
 (input shape). A cut-out window alone left a black strip: Chrome does not repaint what it gives back. A click on the letters opens the settings. Settings: ~/.config/chromium-vm/statusbar.json.
 """
-import json, os, threading, time, urllib.request
+import json, math, os, threading, time, urllib.request
 import gi
 gi.require_version('Gtk', '3.0'); gi.require_version('Gdk', '3.0')
 gi.require_version('GdkX11', '3.0')
@@ -22,6 +22,17 @@ CONF = os.path.expanduser('~/.config/chromium-vm/statusbar.json')
 TOKEN_FILE = os.path.expanduser('~/.config/chromium-vm/agent-token')
 AGENT = 'http://100.102.86.30:8890/api/status'
 NET = 'enp0s6'
+# The star (Marko, 5.11.2026): "Star control apps should be one more addition to our status monitor ... It starts with
+# this: David Star through triangles ... I click, and it opens up from the bottom up, listing all the applications of
+# the Star menu." The menu and its rows live in STAR_SWIFT/linux/star.py; the bar draws the star first and pops it up.
+STAR_PY = os.path.expanduser('~/STAR_SWIFT/linux/star.py')
+
+def star_menu():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('mantra_star', STAR_PY)
+    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)   # read fresh: rows change, no restart
+    return mod.build_menu()
+
 GEAR = 26   # the Mac viewer's settings gear sits on the line's right end, after the power button (Marko, 2.11.2026)
 
 PARTS = [  # key, label in the settings
@@ -33,7 +44,7 @@ DEFAULT = {'show': {k: True for k, _ in PARTS} | {'tail': False, 'clock': False}
 
 # Two colours (Marko, 2.11.2026: "white is the variable name, and orange is the variable itself").
 COL = {'power': (1.0, 1.0, 1.0), 'name': (1.0, 1.0, 1.0), 'value': (1.0, 0.58, 0.10), 'now': (0.35, 0.95, 0.45),
-       'down': (0.35, 0.95, 0.45), 'up': (1.0, 0.30, 0.30), 'pipe': (0.0, 0.0, 0.0)}   # a black pipe between parts (Marko)   # NET: download green, upload red (Marko)   # green: what is moving now
+       'down': (0.35, 0.95, 0.45), 'up': (1.0, 0.30, 0.30), 'pipe': (0.0, 0.0, 0.0), 'star': (0.93, 0.93, 0.90)}   # a black pipe between parts (Marko)   # NET: download green, upload red (Marko)   # green: what is moving now
 
 def load_conf():
     c = json.loads(json.dumps(DEFAULT))
@@ -121,6 +132,8 @@ def segments(r, show):
     def part(name, value):
         if seg: seg.append(('|', 'pipe'))                       # a black pipe, no spaces (Marko, 2.11.2026)
         seg.extend(([(name, 'name')] if name else []) + (value if isinstance(value, list) else [(value, 'value')]))
+    if os.path.exists(STAR_PY):
+        part('', [('  ', 'star')])                             # the David star first (Marko, 5.11.2026)
     # The order is importance (Marko, 2.11.2026): the network first (no label), free SSD second, then the rest.
     for key, dev, name in (('net', NET, ''), ('tail', 'tailscale0', 'TS')):
         if show.get(key):
@@ -173,7 +186,7 @@ class Bar(Gtk.Window):
         self.under = None; self.under_at = 0
         self.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.connect('draw', self.on_draw)
-        self.net_x = (0, 0); self.power_x = (-1, -1)
+        self.net_x = (0, 0); self.power_x = (-1, -1); self.star_x = (-1, -1); self.menu = None
         self.connect('button-press-event', self.on_click)
         self.place()
         Gdk.Screen.get_default().connect('size-changed', lambda *_: self.place())
@@ -188,7 +201,15 @@ class Bar(Gtk.Window):
     def on_click(self, _w, ev):
         a, b = self.net_x
         pa, pb = self.power_x
-        if pa - 4 <= ev.x <= pb + 6:
+        sa, sb = self.star_x
+        if sa - 6 <= ev.x <= sb + 4:
+            try:
+                self.menu = star_menu()                         # kept on self: a dropped menu closes at once
+                rect = Gdk.Rectangle(); rect.x, rect.y, rect.width, rect.height = int(sa), 0, int(sb - sa), 1
+                self.menu.popup_at_rect(self.get_window(), rect, Gdk.Gravity.NORTH_WEST, Gdk.Gravity.SOUTH_WEST, ev)
+            except Exception as e:
+                print('star:', e, flush=True)
+        elif pa - 4 <= ev.x <= pb + 6:
             Reboot().show_all()
         elif a <= ev.x <= b:
             if SPEEDTEST.get('state') != 'running':
@@ -231,11 +252,27 @@ class Bar(Gtk.Window):
         for text, col in now:                                   # what is happening: from the left edge
             cr.set_source_rgb(*COL[col]); cr.move_to(10, y); cr.show_text(text)
         x = w - 10 - GEAR - sum(cr.text_extents(t).x_advance for t, _ in status)   # the status: on the right (Marko)
-        net_start, net_end, first_pipe = x, None, True
+        # the speeds are the part a click runs the speed test on: after the star's pipe when there is a star
+        net_start, net_end, pipes = x, None, 0
+        skip = 1 if any(c == 'star' for _, c in status) else 0
         for text, col in status:
-            if col == 'pipe' and first_pipe: net_end = x; first_pipe = False
+            if col == 'pipe':
+                pipes += 1
+                if pipes == skip:
+                    net_start = x + cr.text_extents(text).x_advance
+                elif pipes == skip + 1 and net_end is None:
+                    net_end = x
             adv = cr.text_extents(text).x_advance
-            if col == 'power':                                  # ⏻: an open circle and a stroke through its gap
+            if col == 'star':                                   # the David star: two equal triangles, never five points
+                self.star_x = (x, x + adv)
+                s = self.conf['size']; r = s * 0.55; cx, cy = x + adv / 2, y - s * 0.36
+                cr.set_source_rgb(*COL['star']); cr.set_line_width(max(1.2, s / 10)); cr.new_path()
+                for rot in (-90, 90):
+                    for k in range(3):
+                        a = math.radians(rot + k * 120)
+                        (cr.move_to if k == 0 else cr.line_to)(cx + r * math.cos(a), cy + r * math.sin(a))
+                    cr.close_path(); cr.stroke()
+            elif col == 'power':                                  # ⏻: an open circle and a stroke through its gap
                 self.power_x = (x, x + adv)
                 s = self.conf['size']; r = s * 0.42; cx, cy = x + adv / 2, y - s * 0.36
                 cr.set_source_rgb(*COL['power']); cr.set_line_width(max(1.5, s / 8)); cr.new_path()
