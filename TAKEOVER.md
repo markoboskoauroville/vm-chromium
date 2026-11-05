@@ -1,5 +1,10 @@
 # TAKEOVER
 
+**5.11.2026 afternoon:** Xvnc runs without a login blacklist (`-BlacklistThreshold=1000000 -BlacklistTimeout=1`,
+stage1/bin/start-xvnc; the door is the Tailscale address only): TigerVNC's default had locked the Pixel 7 out after a
+few wrong redials. The VM's Pixel 7 (redroid, Android 15) got 40 apps from Marko's real Pixel 7 (all but the
+Google-services, camera and launcher ones; no logins or data copied), installed with adb install-multiple.
+
 **State 5.11.2026 (session closed):** Mac viewer VM Machine Remote (Mantra) **v20** (GitHub release, /Applications):
 picture on its own aspect-fitted layer (v19, never stretched); gear → REMOTE SCREEN SIZE (FOLLOW WINDOW or the VM's
 xrandr modes via vm-agent `screen_modes`); bottom-right grey line moves the window, bottom-left resizes it (v16–v18, the
