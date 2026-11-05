@@ -44,6 +44,9 @@ LAYOUTS = [
     ('Claude | Chrome', 'cc-halves', [(1, 0, 0, .5, 1), (2, .5, 0, .5, 1)]),
     ('Claude 40 | Chrome 60', 'cc-40-60', [(1, 0, 0, .4, 1), (2, .4, 0, .6, 1)]),
     ('Chrome + 2', 'big', [(2, 0, 0, 2/3, 1), (0, 2/3, 0, 1/3, .5), (1, 2/3, .5, 1/3, .5)]),
+    # 5.11.2026: Claude Code or Claude beside the Pixel 7 (the phone at its portrait width on the right)
+    ('Claude Code | Pixel 7', 'code-pixel', [(0, 0, 0, .75, 1), (3, .75, 0, .25, 1)]),
+    ('Claude | Pixel 7', 'claude-pixel', [(1, 0, 0, .75, 1), (3, .75, 0, .25, 1)]),
 ]
 NT = NA + len(LAYOUTS)      # tiles: the three programs, then the layouts
 SNAP = '/usr/local/lib/chromium-vm/chromium-vm-snap'

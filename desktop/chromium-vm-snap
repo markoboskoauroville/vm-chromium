@@ -3,7 +3,7 @@
 Called by openbox's keybindings (Ctrl+Alt+key = ⌃⌥key from the Mac viewer). Snaps the active window inside the
 work area (screen less the status bar), like Rectangle's defaults:
 left right top bottom | max center | tl tr bl br | third1 third2 third3 | two1 two2 | restore
-`layout halves|cc-halves|cc-40-60|big` arranges all three programs at once (the dock's layout displays, Marko 2.11.2026):
+`layout halves|cc-halves|cc-40-60|big|code-pixel|claude-pixel` arranges all three programs at once (the dock's layout displays, Marko 2.11.2026):
 halves = Claude Code left | Chrome right; cc-halves = Claude | Chrome; cc-40-60 = Claude 40% | Chrome 60%; big = Chrome on the first two
 thirds, Claude Code top right, Claude bottom right.
 The geometry before the first snap is kept in ~/.cache/chromium-vm/snap.json, so `restore` brings it back."""
@@ -16,12 +16,17 @@ def sh(*a):
     return subprocess.run(a, capture_output=True, text=True, timeout=3).stdout
 
 APPS = {'code': lambda i, c: c == 'Xfce4-terminal', 'claude': lambda i, c: c.lower() == 'com.anthropic.claude',
-        'chrome': lambda i, c: c == 'Google-chrome' and 'chromium-vm-chrome' in i}
+        'chrome': lambda i, c: c == 'Google-chrome' and 'chromium-vm-chrome' in i,
+        'pixel': lambda i, c: c.lower() == 'scrcpy'}
 LAYOUTS = {'halves': [('code', 'left'), ('chrome', 'right')],
            # Marko, 2.11.2026: "remove thirds, and instead of thirds, give me two layouts which contain Claude and Chrome"
            'cc-halves': [('claude', 'left'), ('chrome', 'right')],
            'cc-40-60': [('claude', 'l40'), ('chrome', 'r60')],
-           'big': [('chrome', 'two1'), ('code', 'r3top'), ('claude', 'r3bot')]}
+           'big': [('chrome', 'two1'), ('code', 'r3top'), ('claude', 'r3bot')],
+           # Marko, 5.11.2026: "make a combo in split screen with Pixel 7 ... I don't need the browser. I need a combo with
+           # Claude Code or Claude itself": the phone on the right at its own portrait width, the rest for the other
+           'code-pixel': [('code', 'lphone'), ('pixel', 'rphone')],
+           'claude-pixel': [('claude', 'lphone'), ('pixel', 'rphone')]}
 
 def app_windows():
     """The topmost normal, mapped window of each program (by WM_CLASS, from openbox's stacking list)."""
@@ -70,6 +75,7 @@ def place(wid, act):
          'br': (AW - w2, AH - h2, w2, h2), 'third1': (0, 0, w3, AH), 'third2': (w3, 0, w3, AH),
          'third3': (AW - w3, 0, w3, AH), 'two1': (0, 0, AW - w3, AH), 'two2': (w3, 0, AW - w3, AH),
          'r3top': (AW - w3, 0, w3, h2), 'r3bot': (AW - w3, AH - h2, w3, h2),
+         'lphone': (0, 0, AW - AH * 9 // 20, AH), 'rphone': (AW - AH * 9 // 20, 0, AH * 9 // 20, AH),
          'l40': (0, 0, max(600, AW * 2 // 5), AH), 'r60': (max(600, AW * 2 // 5), 0, AW - max(600, AW * 2 // 5), AH)}
     if act == 'restore':
         if wid not in st: return

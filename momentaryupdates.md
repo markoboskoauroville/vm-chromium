@@ -185,3 +185,4 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 
 "now inside the virtual machine, we have a third application, which is Pixel 7. Please make a combo in split screen with Pixel 7. Basically, I don't need the browser. I need a combo with Claude Code or Claude itself"
 **Status:** saved first.
+**Status (5.11.2026, ~10:15):** done. Dock layouts "Claude Code | Pixel 7" and "Claude | Pixel 7" (snap code-pixel / claude-pixel: the phone at its portrait width on the right); tested code-pixel on the VM. Viewer v20 installed: a lone ⌘ sends Super; the VM got Ctrl then Super_L (X RECORD log) and that sequence opens the dock pinned (tested). Marko tests ⌘ by hand.
