@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 15
+let VERSION = 16
 let APP_NAME = "VM Machine Remote (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -165,7 +165,10 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
 
     @objc func reconnect() { rfb?.close(); rfb = nil; connected = false; connect() }
 
-    func windowDidExitFullScreen(_ n: Notification) { hideTitleBar() }
+    func windowDidExitFullScreen(_ n: Notification) { hideTitleBar(); showGrips(true) }
+    func windowWillEnterFullScreen(_ n: Notification) { showGrips(false) }
+    /// the move and resize corners (Grips.swift) mean nothing in full screen
+    func showGrips(_ on: Bool) { overlay.moveGrip.isHidden = !on; overlay.resizeGrip.isHidden = !on }
     func windowDidResignKey(_ n: Notification) { screen.releaseAll() }
     func windowDidResize(_ n: Notification) { scheduleResize() }
 

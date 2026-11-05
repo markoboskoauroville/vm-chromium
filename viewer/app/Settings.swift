@@ -44,6 +44,8 @@ final class SettingsOverlay: Solid {
     weak var app: App?
     private let pill = NSVisualEffectView()
     private let gear = NSButton()
+    // v16 (Marko, 5.11.2026): the hatched corners, bottom-right moves the window, bottom-left resizes it (Grips.swift)
+    let moveGrip = CornerGrip(.move), resizeGrip = CornerGrip(.resize)
     let tip = NSTextField(labelWithString: "")            // a short note beside the gear (upload, clipboard, not connected)
     let permissions = WordButton()
     private let panel = NSVisualEffectView()
@@ -142,6 +144,15 @@ final class SettingsOverlay: Solid {
         stack.addArrangedSubview(row([WordButton("CLOSE WINDOW", self, #selector(closeWindow)), pipe(),
                                       WordButton("QUIT", self, #selector(quit))]))
         addSubview(panel)
+        addSubview(moveGrip); addSubview(resizeGrip)
+        let g = CornerGrip.SIZE, inset: CGFloat = 3   // a hair in from the edge, where macOS's own edge-resize begins
+        NSLayoutConstraint.activate([
+            moveGrip.widthAnchor.constraint(equalToConstant: g), moveGrip.heightAnchor.constraint(equalToConstant: g),
+            moveGrip.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -inset),
+            moveGrip.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -inset),
+            resizeGrip.widthAnchor.constraint(equalToConstant: g), resizeGrip.heightAnchor.constraint(equalToConstant: g),
+            resizeGrip.leadingAnchor.constraint(equalTo: leadingAnchor, constant: inset),
+            resizeGrip.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -inset)])
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: panel.leadingAnchor), stack.trailingAnchor.constraint(equalTo: panel.trailingAnchor),
             stack.topAnchor.constraint(equalTo: panel.topAnchor), stack.bottomAnchor.constraint(equalTo: panel.bottomAnchor),
@@ -155,6 +166,9 @@ final class SettingsOverlay: Solid {
     /// Only the pill and the open panel take the mouse; the rest of this (sizing) view lets clicks through to the VM.
     override func hitTest(_ p: NSPoint) -> NSView? {
         let local = convert(p, from: superview)
+        for v in [moveGrip, resizeGrip] as [NSView] where !v.isHidden && v.frame.contains(local) {
+            return v
+        }
         for v in [panel, pill, gear] where !v.isHidden && v.frame.contains(local) {
             return super.hitTest(p) ?? self
         }
