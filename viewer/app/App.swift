@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 24
+let VERSION = 25
 let APP_NAME = "VM Machine Remote (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -71,7 +71,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     // app is in front.
     func applicationDidBecomeActive(_ n: Notification) { RectangleKeys.load(); HotKeys.capture(true); pushClipboard {} }
     func applicationDidResignActive(_ n: Notification) { HotKeys.capture(false); screen.releaseAll() }
-    func applicationWillTerminate(_ n: Notification) { HotKeys.capture(false) }
+    func applicationWillTerminate(_ n: Notification) { HotKeys.capture(false); screen.showMacCursor() }
 
     // MARK: window
 
@@ -145,6 +145,9 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         screen.heldForMac = App.heldKeys
         screen.onMacKey = { [weak self] code in self?.passToMac(code) }
         screen.onRectangleKey = { [weak self] e in self?.passRectangle(e) }
+        screen.isOverControls = { [weak self] p in
+            guard let o = self?.overlay else { return false }
+            return o.hitTest(o.superview!.convert(p, from: nil)) != nil }
         screen.onClick = { [weak self] in self?.overlay.close() }
         screen.onTypeText = { [weak self] text in self?.typeOnVM(text) }
         screen.onDropFiles = { [weak self] in self?.upload($0) }
@@ -239,6 +242,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     /// the move and resize corners (Grips.swift) mean nothing in full screen
     func showGrips(_ on: Bool) { overlay.moveGrip.isHidden = !on; overlay.resizeGrip.isHidden = !on }
     func windowDidResignKey(_ n: Notification) { screen.releaseAll() }
+    func windowDidMiniaturize(_ n: Notification) { screen.showMacCursor() }
     func windowDidResize(_ n: Notification) { scheduleResize() }
 
     // MARK: the connection

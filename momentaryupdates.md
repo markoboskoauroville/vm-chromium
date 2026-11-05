@@ -214,3 +214,6 @@ the classic way"
 
 "please read my shortcut for my application called Rectangle, which is a window manager, and don't forward these shortcuts to the remote session, please, because now I cannot manage the windows of the remote session." (5.11.2026)
 **Status:** viewer v24: Rectangle's shortcuts (read from its settings + its defaults) go to the Mac, never to the VM.
+
+"please fix VM Monitor so the feature that the mouse is taken over by the VM when its mouse is hovering over ... Nothing can actually stop this behavior ... If my mouse goes out of the visible area of the remote machine, it automatically becomes mouse of host ... It's baked in" (5.11.2026)
+**Status:** viewer v25.

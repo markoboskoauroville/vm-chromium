@@ -73,7 +73,7 @@ final class ScreenView: NSView {
         picture.actions = ["contents": NSNull(), "bounds": NSNull(), "position": NSNull(), "frame": NSNull()]
         layer?.addSublayer(picture)
         registerForDraggedTypes([.fileURL])
-        addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseMoved, .activeAlways, .inVisibleRect], owner: self))
+        addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseMoved, .mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self))
     }
     required init?(coder: NSCoder) { fatalError() }
 
@@ -118,14 +118,56 @@ final class ScreenView: NSView {
         let x = Int((p.x - ox) / k), y = Int((p.y - oy) / k)
         return (min(max(0, x), rfb.width - 1), min(max(0, y), rfb.height - 1))
     }
-    private func send(_ e: NSEvent) { let (x, y) = vmPoint(e); rfb?.pointer(x: x, y: y, buttons: buttons) }
+    // v25 (Marko, 5.11.2026: "the mouse is taken over by the VM when its mouse is hovering over ... Nothing can stop this
+    // ... If my mouse goes out of the visible area of the remote machine, it automatically becomes mouse of host ... baked
+    // in"): no setting, no button. Over the picture the Mac's arrow is hidden and only the VM's pointer moves; over the bars
+    // beside the picture, the gear, the panel, the grips or outside the window the Mac's arrow is back and nothing is sent.
+    // (A drag that started on the picture keeps going to the VM, pinned to its edge, until the button is let go.)
+    var isOverControls: ((NSPoint) -> Bool)?
+    private var macCursorHidden = false
+    private func pictureRect() -> NSRect? {
+        guard let rfb, rfb.width > 0, rfb.height > 0, bounds.width > 0 else { return nil }
+        let k = min(bounds.width / CGFloat(rfb.width), bounds.height / CGFloat(rfb.height))
+        let w = CGFloat(rfb.width) * k, h = CGFloat(rfb.height) * k
+        return NSRect(x: (bounds.width - w) / 2, y: (bounds.height - h) / 2, width: w, height: h)
+    }
+    private func onPicture(_ e: NSEvent) -> Bool {
+        let p = convert(e.locationInWindow, from: nil)
+        guard let r = pictureRect(), r.contains(p) else { return false }
+        if let over = isOverControls, over(e.locationInWindow) { return false }
+        return true
+    }
+    private func macCursor(hidden: Bool) {
+        guard hidden != macCursorHidden else { return }
+        macCursorHidden = hidden
+        BackgroundCursor.allow()
+        if hidden { CGDisplayHideCursor(CGMainDisplayID()) } else { CGDisplayShowCursor(CGMainDisplayID()) }
+    }
+    func showMacCursor() { macCursor(hidden: false) }
+    private func send(_ e: NSEvent) {
+        let inside = onPicture(e)
+        macCursor(hidden: inside)
+        guard inside || buttons != 0 else { return }
+        let (x, y) = vmPoint(e); rfb?.pointer(x: x, y: y, buttons: buttons)
+    }
+    override func mouseExited(with e: NSEvent) { if buttons == 0 { macCursor(hidden: false) } }
+    override func mouseEntered(with e: NSEvent) { send(e) }
 
-    override func mouseDown(with e: NSEvent) { cmdAlone = false; onClick?(); window?.makeFirstResponder(self); buttons |= 1; send(e) }
-    override func mouseUp(with e: NSEvent) { buttons &= ~1; send(e) }
-    override func rightMouseDown(with e: NSEvent) { cmdAlone = false; buttons |= 4; send(e) }
-    override func rightMouseUp(with e: NSEvent) { buttons &= ~4; send(e) }
-    override func otherMouseDown(with e: NSEvent) { cmdAlone = false; buttons |= 2; send(e) }
-    override func otherMouseUp(with e: NSEvent) { buttons &= ~2; send(e) }
+    override func mouseDown(with e: NSEvent) {
+        cmdAlone = false; onClick?(); window?.makeFirstResponder(self)
+        guard onPicture(e) else { return }            // a click on the bars beside the picture stays on the Mac
+        buttons |= 1; send(e)
+    }
+    override func mouseUp(with e: NSEvent) {
+        guard buttons & 1 != 0 else { return }
+        buttons &= ~1; let (x, y) = vmPoint(e); rfb?.pointer(x: x, y: y, buttons: buttons); macCursor(hidden: onPicture(e))
+    }
+    override func rightMouseDown(with e: NSEvent) { cmdAlone = false; guard onPicture(e) else { return }; buttons |= 4; send(e) }
+    override func rightMouseUp(with e: NSEvent) {
+        guard buttons & 4 != 0 else { return }; buttons &= ~4; let (x, y) = vmPoint(e); rfb?.pointer(x: x, y: y, buttons: buttons) }
+    override func otherMouseDown(with e: NSEvent) { cmdAlone = false; guard onPicture(e) else { return }; buttons |= 2; send(e) }
+    override func otherMouseUp(with e: NSEvent) {
+        guard buttons & 2 != 0 else { return }; buttons &= ~2; let (x, y) = vmPoint(e); rfb?.pointer(x: x, y: y, buttons: buttons) }
     override func mouseMoved(with e: NSEvent) { send(e) }
     override func mouseDragged(with e: NSEvent) { send(e) }
     override func rightMouseDragged(with e: NSEvent) { send(e) }
@@ -271,5 +313,19 @@ final class ScreenView: NSView {
         let urls = (s.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []
         guard !urls.isEmpty else { return false }
         onDropFiles?(urls); return true
+    }
+}
+
+/// The Mac's arrow may be hidden by this app while another app is in front (the viewer is often not the active app while
+/// the mouse is over it): the WindowServer's "SetsCursorInBackground" for this connection, as remote-desktop apps do.
+/// The WindowServer shows the arrow again by itself if the app quits or crashes.
+@_silgen_name("CGSMainConnectionID") private func bcMainID() -> Int32
+@_silgen_name("CGSSetConnectionProperty")
+private func bcSetProperty(_ cid: Int32, _ target: Int32, _ key: CFString, _ value: CFTypeRef) -> Int32
+enum BackgroundCursor {
+    private static var done = false
+    static func allow() {
+        guard !done else { return }; done = true
+        let c = bcMainID(); _ = bcSetProperty(c, c, "SetsCursorInBackground" as CFString, kCFBooleanTrue)
     }
 }
