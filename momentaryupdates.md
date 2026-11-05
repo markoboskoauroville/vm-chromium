@@ -130,3 +130,7 @@ Then (~19:45 CT): "Since status line is there at the bottom, when there is a pow
 gear sits at the bottom-right, right after the status line's power button (v7); panel: status, F1 Speechify MAC | VM,
 F2 Voice to Text MAC | VM, FULL SCREEN | RECONNECT, CLOSE WINDOW | QUIT; dictation tested end to end by Claude (v10 +
 vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: one program picked = maximized, out of split.
+
+## 5.11.2026
+
+"Look at this machine: Chrome Virtual Machine. Mantra. I just open it. I rename the password text, and it says it's missing. Don't do this. Give me the option to enter username and password inside my gear icon. I cannot even click on the gear icon. Fix this."
