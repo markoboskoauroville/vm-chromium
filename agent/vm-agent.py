@@ -280,7 +280,25 @@ def paste_text(a):
     return {'keys': keys, 'chars': len(t)}
 
 # ---- actions ---------------------------------------------------------------------------------------------------
+def screen_modes(a):
+    """The screen sizes Xvnc offers (xrandr), biggest first, and the current one (Marko, 5.11.2026: "remote session
+    screen resolution options based on available remote hardware settings")."""
+    import re
+    out = run(['xrandr']).decode(errors='replace')
+    modes, cur = [], None
+    for line in out.splitlines():
+        m = re.match(r'\s+(\d+)x(\d+)\s', line)
+        if m:
+            wh = [int(m.group(1)), int(m.group(2))]
+            if wh not in modes: modes.append(wh)
+            if '*' in line: cur = wh
+    mx = re.search(r'maximum (\d+) x (\d+)', out)
+    return {'modes': sorted(modes, key=lambda x: -x[0] * x[1]), 'current': cur,
+            'maximum': [int(mx.group(1)), int(mx.group(2))] if mx else None}
+
+
 ACTIONS = {
+  'screen_modes': ('the screen sizes the VM display offers (xrandr) and the current one', {}, screen_modes),
   'clip_get':  ('the VM clipboard as text', {}, lambda a: run(['xclip', '-selection', 'clipboard', '-o']).decode(errors='replace')),
   'clip_set':  ('puts text on the VM clipboard', {'text': 'str'},
                 lambda a: (subprocess.Popen(['xclip', '-selection', 'clipboard'], stdin=subprocess.PIPE, env=ENV,

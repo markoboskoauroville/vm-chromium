@@ -54,14 +54,24 @@ final class ScreenView: NSView {
     private var downKeys: [UInt16: UInt32] = [:]
     private var mods: Set<UInt32> = []
     private var scrollAcc = CGFloat(0), scrollAccX = CGFloat(0)
-    private var dropHighlight = false { didSet { needsDisplay = true } }
+    private var dropHighlight = false {
+        didSet { picture.borderWidth = dropHighlight ? 6 : 0 }
+    }
+    // v19 (Marko, 5.11.2026: "never stretch or squish image, always resize it in original aspect ratio"): the picture
+    // lives on its own sublayer, aspect-fitted and centred. Before, it was the view's own layer, which AppKit scales on
+    // both axes (layerContentsPlacement) whenever it redraws or the window is resized live.
+    let picture = CALayer()
 
     override init(frame: NSRect) {
         super.init(frame: frame)
         wantsLayer = true
         layer?.backgroundColor = NSColor(calibratedRed: 0.125, green: 0.13, blue: 0.14, alpha: 1).cgColor
-        layer?.contentsGravity = .resizeAspect   // v13 (Marko, 5.11.2026): never stretched, its own aspect
-        layer?.magnificationFilter = .linear
+        layerContentsRedrawPolicy = .never
+        picture.contentsGravity = .resizeAspect
+        picture.magnificationFilter = .linear
+        picture.borderColor = NSColor.systemOrange.withAlphaComponent(0.9).cgColor
+        picture.actions = ["contents": NSNull(), "bounds": NSNull(), "position": NSNull(), "frame": NSNull()]
+        layer?.addSublayer(picture)
         registerForDraggedTypes([.fileURL])
         addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseMoved, .activeAlways, .inVisibleRect], owner: self))
     }
@@ -86,15 +96,15 @@ final class ScreenView: NSView {
                                 bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue),
                                 provider: provider, decode: nil, shouldInterpolate: true, intent: .defaultIntent) else { return }
         CATransaction.begin(); CATransaction.setDisableActions(true)
-        layer?.contents = img
+        picture.contents = img
         CATransaction.commit()
     }
 
-    override func draw(_ dirtyRect: NSRect) {
-        if dropHighlight {
-            NSColor.systemOrange.withAlphaComponent(0.9).setStroke()
-            let p = NSBezierPath(rect: bounds.insetBy(dx: 3, dy: 3)); p.lineWidth = 6; p.stroke()
-        }
+    override func layout() {
+        super.layout()
+        CATransaction.begin(); CATransaction.setDisableActions(true)
+        picture.frame = bounds
+        CATransaction.commit()
     }
 
     // MARK: mouse

@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 18
+let VERSION = 19
 let APP_NAME = "VM Machine Remote (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -238,13 +238,24 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         }
     }
 
-    /// The VM follows the window: its size in points (Chrome at 96 dpi looks like the Mac's own size).
+    /// v19 (Marko, 5.11.2026: "under setting menu please give me remote session screen resolution options based on
+    /// available remote hardware settings"): the VM's screen size is either FOLLOW WINDOW (empty, the default: the VM
+    /// takes the window's size in points) or one of the sizes its display offers (vm-agent screen_modes), "WxH".
+    static var fixedSize: String {
+        get { UserDefaults.standard.string(forKey: "vmScreenSize") ?? "" }
+        set { UserDefaults.standard.set(newValue, forKey: "vmScreenSize") }
+    }
+    func setScreenSize(_ wh: String) { App.fixedSize = wh; scheduleResize(delay: 0.05) }
+
+    /// The VM follows the window (its size in points; Chrome at 96 dpi looks like the Mac's own size), or the fixed size.
     func scheduleResize(delay: TimeInterval = 0.35) {
         resizeTimer?.invalidate()
         resizeTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
             guard let self, let rfb = self.rfb, self.connected else { return }
-            let s = self.screen.bounds.size
-            let w = Int(s.width) & ~1, h = Int(s.height) & ~1
+            var w: Int, h: Int
+            let parts = App.fixedSize.split(separator: "x").compactMap { Int($0) }
+            if parts.count == 2 { w = parts[0]; h = parts[1] }
+            else { let s = self.screen.bounds.size; w = Int(s.width) & ~1; h = Int(s.height) & ~1 }
             if w != rfb.width || h != rfb.height { rfb.setDesktopSize(w, h) }
         }
     }

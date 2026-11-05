@@ -53,6 +53,7 @@ final class SettingsOverlay: Solid {
     let userField = NSTextField()
     let passField = NSSecureTextField()
     private var keyButtons: [UInt16: (WordButton, WordButton)] = [:]
+    let sizePopup = NSPopUpButton(frame: .zero, pullsDown: false)
     var isOpen: Bool { !panel.isHidden }
 
     static let GEAR_W: CGFloat = 34
@@ -138,6 +139,14 @@ final class SettingsOverlay: Solid {
             stack.addArrangedSubview(row([name, mac, pipe(), vm]))
         }
         stack.addArrangedSubview(hairline())
+        // v19: the VM's screen size, from the sizes its display offers (filled when the panel opens)
+        stack.addArrangedSubview(label("REMOTE SCREEN SIZE", 11, NSColor(white: 0.55, alpha: 1), .medium))
+        sizePopup.target = self; sizePopup.action = #selector(pickSize); sizePopup.font = .systemFont(ofSize: 13)
+        sizePopup.setAccessibilityLabel("REMOTE SCREEN SIZE")
+        sizePopup.widthAnchor.constraint(equalToConstant: 290).isActive = true
+        stack.addArrangedSubview(sizePopup)
+        fillSizes([])
+        stack.addArrangedSubview(hairline())
         stack.addArrangedSubview(row([WordButton("FULL SCREEN", self, #selector(fullScreen)), pipe(),
                                       WordButton("RECONNECT", self, #selector(reconnect))]))
         stack.addArrangedSubview(hairline())
@@ -206,7 +215,25 @@ final class SettingsOverlay: Solid {
         panel.isHidden = false; refreshKeys()
         DispatchQueue.main.async { [weak self] in guard let self else { return }; self.window?.makeFirstResponder(self.passField) }
     }
-    @objc func toggle() { panel.isHidden.toggle(); refreshKeys() }
+    @objc func toggle() { panel.isHidden.toggle(); refreshKeys(); if isOpen { loadSizes() } }
+
+    /// the sizes the VM's display offers (vm-agent screen_modes, xrandr), biggest first; FOLLOW WINDOW on top
+    func loadSizes() {
+        app?.agent.call("screen_modes") { [weak self] r, _ in
+            let modes = ((r as? [String: Any])?["modes"] as? [[Int]]) ?? []
+            DispatchQueue.main.async { self?.fillSizes(modes) }
+        }
+    }
+    func fillSizes(_ modes: [[Int]]) {
+        let cur = App.fixedSize
+        var items = [("FOLLOW WINDOW (no bars)", "")]
+        for m in modes where m.count == 2 { items.append(("\(m[0]) × \(m[1])", "\(m[0])x\(m[1])")) }
+        if !cur.isEmpty && !items.contains(where: { $0.1 == cur }) { items.append((cur.replacingOccurrences(of: "x", with: " × "), cur)) }
+        sizePopup.removeAllItems()
+        for (t, v) in items { sizePopup.addItem(withTitle: t); sizePopup.lastItem?.representedObject = v }
+        sizePopup.selectItem(at: items.firstIndex(where: { $0.1 == cur }) ?? 0)
+    }
+    @objc func pickSize() { app?.setScreenSize(sizePopup.selectedItem?.representedObject as? String ?? "") }
     func close() { panel.isHidden = true; showNotes() }
     @objc func keyToMac(_ b: NSButton) { setHeld(UInt16(b.tag), true) }
     @objc func keyToVM(_ b: NSButton) { setHeld(UInt16(b.tag), false) }
