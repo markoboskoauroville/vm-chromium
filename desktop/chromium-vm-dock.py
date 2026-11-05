@@ -27,7 +27,10 @@ APPS = [   # (label, test on WM_CLASS (instance, class), how to bring it back wh
     ('Claude Code', lambda i, c: c == 'Xfce4-terminal', None),
     ('Claude',      lambda i, c: c.lower() == 'com.anthropic.claude', ['claude-desktop']),
     ('Chrome',      lambda i, c: c == 'Google-chrome' and 'chromium-vm-chrome' in i, None),
+    # 5.11.2026: the fourth screen, the Pixel 7 through scrcpy (chromium-vm-pixel7, always running)
+    ('Pixel 7',     lambda i, c: c.lower() == 'scrcpy', None),
 ]
+NA = len(APPS)
 BAR_H = 22            # the status bar's band; the dock sits above it
 EDGE = 4              # the pointer within this many pixels of the bottom edge calls the dock
 PAD, GAP, LABEL, SEP = 14, 16, 22, 18
@@ -40,9 +43,9 @@ LAYOUTS = [
     ('Claude 40 | Chrome 60', 'cc-40-60', [(1, 0, 0, .4, 1), (2, .4, 0, .6, 1)]),
     ('Chrome + 2', 'big', [(2, 0, 0, 2/3, 1), (0, 2/3, 0, 1/3, .5), (1, 2/3, .5, 1/3, .5)]),
 ]
-NT = 3 + len(LAYOUTS)      # tiles: the three programs, then the layouts
+NT = NA + len(LAYOUTS)      # tiles: the three programs, then the layouts
 SNAP = '/usr/local/lib/chromium-vm/chromium-vm-snap'
-COLOURS = [(0.85, 0.47, 0.34), (0.55, 0.45, 0.85), (0.30, 0.62, 0.90)]   # Claude Code, Claude, Chrome
+COLOURS = [(0.85, 0.47, 0.34), (0.55, 0.45, 0.85), (0.30, 0.62, 0.90), (0.36, 0.75, 0.45)]   # Claude Code, Claude, Chrome, Pixel 7
 REFRESH_MS = 330      # thumbnails while the dock is up
 
 XD = xdisplay.Display()
@@ -82,8 +85,8 @@ class Dock(Gtk.Window):
         self.connect('draw', self.on_draw)
         self.connect('button-release-event', self.on_click)
         self.connect('motion-notify-event', self.on_motion)
-        self.wins, self.front = [None] * 3, None
-        self.thumbs = [None] * 3; self.under = None
+        self.wins, self.front = [None] * NA, None
+        self.thumbs = [None] * NA; self.under = None
         self.shown = False; self.edge_since = None; self.out_since = None; self.peek_until = 0
         self.hover = -1; self.slide = 0
         self.disp = GdkX11.X11Display.get_default()
@@ -106,7 +109,7 @@ class Dock(Gtk.Window):
         self.resize(self.w, self.h); self.move(self.x, self.y + (0 if self.shown else self.sh))
 
     def tile_x(self, n):        # 0-2: the three programs, 3-5: the layout displays, after a divider
-        return PAD + n * (self.tw + GAP) + (SEP if n >= 3 else 0)
+        return PAD + n * (self.tw + GAP) + (SEP if n >= NA else 0)
 
     def tile_at(self, x, y):
         for n in range(NT):
@@ -227,10 +230,10 @@ class Dock(Gtk.Window):
         cr.set_source_rgba(0.08, 0.08, 0.09, 0.62); cr.fill_preserve()
         cr.set_source_rgba(1, 1, 1, 0.18); cr.set_line_width(1); cr.stroke()
         cr.select_font_face('DejaVu Sans', cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD); cr.set_font_size(12)
-        sx = self.tile_x(3) - GAP / 2 - SEP / 2                     # the divider
+        sx = self.tile_x(NA) - GAP / 2 - SEP / 2                     # the divider
         cr.set_source_rgba(1, 1, 1, 0.25); cr.set_line_width(1); cr.move_to(sx, PAD + 4); cr.line_to(sx, PAD + self.th - 4); cr.stroke()
         for k, (label, _, slots) in enumerate(LAYOUTS):
-            n = 3 + k; tx, ty = self.tile_x(n), PAD
+            n = NA + k; tx, ty = self.tile_x(n), PAD
             rounded(tx, ty, self.tw, self.th, 6); cr.set_source_rgb(0.1, 0.1, 0.11); cr.fill()
             for app, fx, fy, fw, fh in slots:
                 x, y, w, h = tx + fx * self.tw + 2, ty + fy * self.th + 2, fw * self.tw - 4, fh * self.th - 4
@@ -281,8 +284,8 @@ class Dock(Gtk.Window):
 
     def on_click(self, _w, ev):
         n = self.tile_at(ev.x, ev.y)
-        if n >= 3:
-            subprocess.Popen([SNAP, 'layout', LAYOUTS[n - 3][1]], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if n >= NA:
+            subprocess.Popen([SNAP, 'layout', LAYOUTS[n - NA][1]], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             GLib.timeout_add(250, lambda: (self.hide_dock(), False)[1])
         elif n >= 0:
             self.activate(n)
@@ -290,7 +293,7 @@ class Dock(Gtk.Window):
 
     def on_cmd_tab(self, *_):
         self.track()
-        n = 0 if self.front is None else (self.front + 1) % 3
+        n = 0 if self.front is None else (self.front + 1) % NA
         self.activate(n)
         self.peek_until = time.time() + 0.9
         if not self.shown: self.show_dock()

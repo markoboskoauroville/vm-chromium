@@ -1,0 +1,14 @@
+[Unit]
+Description=chromium-vm: screen 4, the Pixel 7 (scrcpy onto the pixel7 container)
+After=chromium-vm-session.service docker.service
+BindsTo=chromium-vm-xvnc.service
+
+[Service]
+Type=simple
+User=@VM_USER@
+ExecStart=/usr/local/lib/chromium-vm/chromium-vm-pixel7
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=chromium-vm-xvnc.service

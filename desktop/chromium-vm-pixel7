@@ -1,0 +1,14 @@
+#!/bin/bash
+# Screen 4 (Marko, 5.11.2026: "It needs to have now a fourth app ... Pixel 7. Make it always run, and I can switch to
+# it"): the Pixel 7 (vm-android, the redroid container pixel7 on this machine, adb 127.0.0.1:5555) live in a window
+# through scrcpy, mouse and keyboard go to the phone. Started again whenever it quits (systemd Restart=always).
+set -uo pipefail
+. /etc/chromium-vm.conf
+export DISPLAY=":${DISPLAY_NUM}"
+for _ in $(seq 100); do xdpyinfo >/dev/null 2>&1 && break; sleep 0.2; done
+SERIAL=127.0.0.1:5555
+adb connect "$SERIAL" >/dev/null 2>&1
+adb -s "$SERIAL" wait-for-device
+# software decoding on two cores: 30 frames a second, the long side 1600 px, enough for a full-height phone
+exec scrcpy -s "$SERIAL" --window-title "Pixel 7" --max-fps 30 --max-size 1600 --bit-rate 6M \
+  --shortcut-mod=lctrl+lalt --no-clipboard-autosync 2>&1
