@@ -12,13 +12,15 @@ the screen; they are not in the view at the same time." Then: only ONE key switc
   screen, and the dock shows for a moment with the new one marked.
 - Writes the front window id to ~/.cache/chromium-vm/front for the status bar (its see-through band copies it).
 """
-import os, subprocess, time
+import os, subprocess, time, threading
 import gi
 gi.require_version('Gtk', '3.0'); gi.require_version('Gdk', '3.0'); gi.require_version('GdkX11', '3.0')
 gi.require_version('Keybinder', '3.0')
 from gi.repository import Gtk, Gdk, GdkX11, GLib, GdkPixbuf, Keybinder
 import cairo
-from Xlib import display as xdisplay, X
+from Xlib import display as xdisplay, X, XK
+from Xlib.ext import record
+from Xlib.protocol import rq
 
 GLib.set_prgname('vm-dock')          # its X class must not look like one of the three programs
 
@@ -89,11 +91,13 @@ class Dock(Gtk.Window):
         self.thumbs = [None] * NA; self.under = None
         self.shown = False; self.edge_since = None; self.out_since = None; self.peek_until = 0
         self.hover = -1; self.slide = 0
+        self.pinned = False     # opened by Command alone: stays up until a tile is clicked
         self.disp = GdkX11.X11Display.get_default()
         self.layout()
         Gdk.Screen.get_default().connect('size-changed', lambda *_: self.layout())
         Keybinder.init()
         Keybinder.bind('<Super>Tab', self.on_cmd_tab)
+        threading.Thread(target=self.watch_super, daemon=True).start()
         GLib.timeout_add(70, self.poll)
         GLib.timeout_add(REFRESH_MS, self.refresh)
         GLib.timeout_add(1000, self.track)
@@ -157,7 +161,7 @@ class Dock(Gtk.Window):
 
     def hide_dock(self):
         if not self.shown: return
-        self.shown = False; self.hover = -1; self.hide()
+        self.shown = False; self.pinned = False; self.hover = -1; self.hide()
 
     def poll(self):
         try:
@@ -173,7 +177,7 @@ class Dock(Gtk.Window):
                 self.edge_since = None
         else:
             inside = (self.x <= px <= self.x + self.w and self.y - 8 <= py) or py >= self.sh - BAR_H
-            if inside or now < self.peek_until:
+            if inside or self.pinned or now < self.peek_until:
                 self.out_since = None
             else:
                 self.out_since = self.out_since or now
@@ -290,6 +294,41 @@ class Dock(Gtk.Window):
         elif n >= 0:
             self.activate(n)
             GLib.timeout_add(250, lambda: (self.hide_dock(), False)[1])
+
+    # Marko, 5.11.2026: "when user press apple or command or win key do open bottom pop up with app switcher and keep it
+    # open until user clicks one option then auto close". The Mac viewer sends Command as Super_L. Command pressed and
+    # let go with no other key or click in between opens the dock pinned (a click on a tile picks and closes it);
+    # Command alone again closes it. Seen through the X RECORD extension, so the key still reaches the programs.
+    def watch_super(self):
+        rd = xdisplay.Display()
+        supers = {rd.keysym_to_keycode(XK.string_to_keysym(k)) for k in ('Super_L', 'Super_R')} - {0}
+        ctx = rd.record_create_context(0, [record.AllClients], [{
+            'core_requests': (0, 0), 'core_replies': (0, 0), 'ext_requests': (0, 0, 0, 0), 'ext_replies': (0, 0, 0, 0),
+            'delivered_events': (0, 0), 'device_events': (X.KeyPress, X.ButtonPress), 'errors': (0, 0),
+            'client_started': False, 'client_died': False}])
+        state = {'alone': False}
+        def got(reply):
+            if reply.category != record.FromServer or reply.client_swapped or not len(reply.data): return
+            data = reply.data
+            while len(data):
+                ev, data = rq.EventField(None).parse_binary_value(data, rd.display, None, None)
+                if ev.type == X.KeyPress:
+                    state['alone'] = ev.detail in supers
+                elif ev.type == X.KeyRelease:
+                    if ev.detail in supers and state['alone']: GLib.idle_add(self.on_cmd_alone)
+                    state['alone'] = False
+                elif ev.type == X.ButtonPress:
+                    state['alone'] = False
+        try:
+            rd.record_enable_context(ctx, got)
+        except Exception as e:
+            print('watch_super:', e, flush=True)
+
+    def on_cmd_alone(self):
+        if self.shown and self.pinned:
+            self.hide_dock(); return False
+        self.track(); self.show_dock(); self.pinned = True; self.queue_draw()
+        return False
 
     def on_cmd_tab(self, *_):
         self.track()

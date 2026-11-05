@@ -174,3 +174,7 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 
 "change vm machine remote when use press apple or aommand or win key do poen bottom pop up with app switcher and keep it open until user clisks one option then auto close"
 **Status:** saved first.
+**Status (5.11.2026, ~09:10):** Android 15 on the pixel7 container (16 does not run on this kernel), scrcpy 5.0.1 (GitHub build) in /opt/scrcpy, clicks and swipes tested; chromium-vm-pixel7-bar: PORTRAIT | LANDSCAPE and REBOOT (YES | NO) at the top right while the Pixel is in front. Dock: Command alone opens it pinned until a tile is clicked (deployed, test pending).
+
+"in vm machine wiewer newer stretch or skvish image alwaay resize it in orioginal aspect ratio and under setting menu please giv me remote session screen resolution options based on avelable remote hardware settingd"
+**Status:** saved first.

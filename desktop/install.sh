@@ -6,7 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 VM_USER=${SUDO_USER:-ubuntu}; VM_HOME=$(getent passwd "$VM_USER" | cut -d: -f6)
 apt-get install -y -q --no-install-recommends openbox wmctrl xfce4-terminal tmux fonts-jetbrains-mono gir1.2-keybinder-3.0 libsecret-tools xdg-utils \
-  python3-xlib python3-gi gir1.2-gtk-3.0 xdotool xclip x11-utils gnome-keyring scrcpy curl gnupg >/dev/null
+  python3-xlib python3-gi gir1.2-gtk-3.0 xdotool xclip x11-utils gnome-keyring curl gnupg >/dev/null
 # Claude Desktop for Linux (beta): Anthropic's apt repository, key fingerprint 31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE.
 KEY=/usr/share/keyrings/claude-desktop-archive-keyring.asc
 [ -s "$KEY" ] || curl -fsSLo "$KEY" https://downloads.claude.ai/claude-desktop/key.asc
@@ -17,7 +17,7 @@ dpkg -s claude-desktop >/dev/null 2>&1 || { apt-get update -q >/dev/null; apt-ge
 
 install -m 755 chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-snap /usr/local/lib/chromium-vm/
 install -m 644 config/openbox-rc.xml /usr/local/lib/chromium-vm/openbox-rc.xml
-install -m 755 chromium-vm-dock.py /usr/local/lib/chromium-vm/chromium-vm-dock.py
+install -m 755 chromium-vm-dock.py chromium-vm-pixel7-bar.py /usr/local/lib/chromium-vm/
 install -m 644 config/matchbox-kbdconfig /usr/local/lib/chromium-vm/matchbox-kbdconfig
 as_user() { sudo -u "$VM_USER" "$@"; }
 as_user mkdir -p "$VM_HOME/.config/xfce4/terminal" "$VM_HOME/.cache/chromium-vm"
@@ -33,10 +33,12 @@ chown "$VM_USER:$VM_USER" "$VM_HOME/.local/share/applications/chromium-vm-chrome
 as_user env HOME="$VM_HOME" xdg-settings set default-web-browser chromium-vm-chrome.desktop || true
 grep -q 'local/bin' "$VM_HOME/.bashrc" || echo 'case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) PATH="$HOME/.local/bin:$PATH" ;; esac' >> "$VM_HOME/.bashrc"
 
-for u in chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-dock; do
+for u in chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-pixel7-bar chromium-vm-dock; do
   sed "s/@VM_USER@/$VM_USER/" "systemd/$u.service" > "/etc/systemd/system/$u.service"
 done
 systemctl daemon-reload
-systemctl enable chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-dock >/dev/null 2>&1
-systemctl restart chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-dock
+systemctl enable chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-pixel7-bar chromium-vm-dock >/dev/null 2>&1
+systemctl restart chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-pixel7-bar chromium-vm-dock
+# scrcpy 5 (arm64, built by GitHub in vm-android): /opt/scrcpy
+[ -x /opt/scrcpy/bin/scrcpy ] || { d=$(mktemp -d); chown "$VM_USER" "$d"; as_user gh release download scrcpy-v5.0.1 -R markoboskoauroville/vm-android -p scrcpy-linux-arm64.tar.gz -D "$d"; mkdir -p /opt/scrcpy; tar xzf "$d/scrcpy-linux-arm64.tar.gz" -C /opt/scrcpy; rm -rf "$d"; }
 echo "four screens + dock installed; openbox (and its keys) starts with the next chromium-vm-session start"
