@@ -91,3 +91,5 @@
 - 2.11.2026: test dictation without his mic: input → BlackHole 2ch, `say -a 125 "..."` (by device number; `say -a
   "BlackHole 2ch"` crashes), key presses by CGEvent, paste into a scratch `xfce4-terminal -x sh -c "cat > /tmp/f"`
   on the VM; input back to External Microphone. Speechify ignores the system input and records its own microphone.
+
+- 5.11.2026: a button in the very corner of a resizable window never gets the click; macOS uses it for resizing. Keep controls 12 pt in.

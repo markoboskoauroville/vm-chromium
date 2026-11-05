@@ -48,10 +48,12 @@ final class SettingsOverlay: Solid {
     let permissions = WordButton()
     private let panel = NSVisualEffectView()
     let statusLine = NSTextField(labelWithString: "connecting…")
+    let userField = NSTextField()
+    let passField = NSSecureTextField()
     private var keyButtons: [UInt16: (WordButton, WordButton)] = [:]
     var isOpen: Bool { !panel.isHidden }
 
-    static let GEAR_W: CGFloat = 26
+    static let GEAR_W: CGFloat = 34
     static let macKeys: [(String, UInt16, String)] = [("F1", 122, "Speechify"), ("F2", 120, "Voice to Text")]
 
     init(app: App) {
@@ -63,7 +65,7 @@ final class SettingsOverlay: Solid {
         // viewer, not for remote session"): the gear sits at the bottom-right corner, on the VM's status line, right
         // after its power button (the status bar keeps the last GEAR_W points free for it)
         gear.image = NSImage(systemSymbolName: "gearshape.fill", accessibilityDescription: "SETTINGS")?
-            .withSymbolConfiguration(.init(pointSize: 13, weight: .semibold))
+            .withSymbolConfiguration(.init(pointSize: 16, weight: .semibold))
         gear.isBordered = false; gear.contentTintColor = .white
         gear.target = self; gear.action = #selector(toggle)
         gear.setAccessibilityLabel("SETTINGS")
@@ -85,8 +87,9 @@ final class SettingsOverlay: Solid {
         pill.translatesAutoresizingMaskIntoConstraints = false
         addSubview(pill)
         NSLayoutConstraint.activate([
-            gear.widthAnchor.constraint(equalToConstant: SettingsOverlay.GEAR_W), gear.heightAnchor.constraint(equalToConstant: 22),
-            gear.trailingAnchor.constraint(equalTo: trailingAnchor), gear.bottomAnchor.constraint(equalTo: bottomAnchor),
+            gear.widthAnchor.constraint(equalToConstant: SettingsOverlay.GEAR_W), gear.heightAnchor.constraint(equalToConstant: 30),
+            // v11: kept 12 points in from the corner, where macOS takes the click for resizing the window
+            gear.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12), gear.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
             notes.leadingAnchor.constraint(equalTo: pill.leadingAnchor), notes.trailingAnchor.constraint(equalTo: pill.trailingAnchor),
             notes.topAnchor.constraint(equalTo: pill.topAnchor), notes.bottomAnchor.constraint(equalTo: pill.bottomAnchor),
             pill.heightAnchor.constraint(equalToConstant: 24),
@@ -106,6 +109,19 @@ final class SettingsOverlay: Solid {
         let name = label("\(APP_NAME)  v\(VERSION)", 13, .white, .semibold)
         statusLine.font = .systemFont(ofSize: 12, weight: .semibold); statusLine.textColor = .secondaryLabelColor
         stack.addArrangedSubview(name); stack.addArrangedSubview(statusLine)
+        stack.addArrangedSubview(hairline())
+
+        // v11 (Marko, 5.11.2026): username and password inside the gear; SAVE AND CONNECT stores and connects
+        stack.addArrangedSubview(label("LOGIN  (chromium-vm, \(VNC_HOST):\(VNC_PORT))", 11, NSColor(white: 0.55, alpha: 1), .medium))
+        for (t, f, ph) in [("USERNAME", userField as NSTextField, "ubuntu"), ("PASSWORD", passField as NSTextField, "the VM's VNC password")] {
+            f.placeholderString = ph; f.font = .systemFont(ofSize: 13); f.setAccessibilityLabel(t)
+            f.widthAnchor.constraint(equalToConstant: 190).isActive = true
+            let n = label(t, 13, .white, .semibold); n.widthAnchor.constraint(equalToConstant: 96).isActive = true
+            stack.addArrangedSubview(row([n, f]))
+        }
+        userField.stringValue = App.username
+        passField.target = self; passField.action = #selector(saveLogin)
+        stack.addArrangedSubview(row([WordButton("SAVE AND CONNECT", self, #selector(saveLogin))]))
         stack.addArrangedSubview(hairline())
 
         // Marko: "I can enable or disable my F1 and F2 to be on the Mac OS or in the remote session": per key, MAC | VM
@@ -165,6 +181,17 @@ final class SettingsOverlay: Solid {
         showNotes()
     }
 
+    @objc func saveLogin() {
+        let pw = passField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        App.username = userField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !pw.isEmpty { app?.savePassword(pw) }
+        passField.stringValue = ""
+        close(); app?.reconnect()
+    }
+    func openLogin() {
+        panel.isHidden = false; refreshKeys()
+        DispatchQueue.main.async { [weak self] in guard let self else { return }; self.window?.makeFirstResponder(self.passField) }
+    }
     @objc func toggle() { panel.isHidden.toggle(); refreshKeys() }
     func close() { panel.isHidden = true; showNotes() }
     @objc func keyToMac(_ b: NSButton) { setHeld(UInt16(b.tag), true) }

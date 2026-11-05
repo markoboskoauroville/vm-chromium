@@ -4,7 +4,7 @@
 // Marko, 2.11.2026: "let's build the Swift viewer for the Chromium virtual machine ... clipboard and drag-and-drop".
 import AppKit
 
-let VERSION = 10
+let VERSION = 11
 let APP_NAME = "Chromium Virtual Machine (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -161,14 +161,29 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
 
     // MARK: the connection
 
+    // v11 (Marko, 5.11.2026: "I rename the password text, and it says it's missing. Don't do this. Give me the option to
+    // enter username and password inside my gear icon"): the login lives in the gear's panel (LOGIN), saved to
+    // ~/Downloads/API/chromium-vm-vnc-password.txt; the old name chromium-vm-vnc.txt is still read
+    static let passwordFiles = ["chromium-vm-vnc-password.txt", "chromium-vm-vnc.txt"].map { NSHomeDirectory() + "/Downloads/API/" + $0 }
     var password: String? {
-        (try? String(contentsOfFile: NSHomeDirectory() + "/Downloads/API/chromium-vm-vnc.txt", encoding: .utf8))?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        for f in App.passwordFiles {
+            if let s = (try? String(contentsOfFile: f, encoding: .utf8))?.trimmingCharacters(in: .whitespacesAndNewlines), !s.isEmpty { return s }
+        }
+        return nil
+    }
+    static var username: String {
+        get { UserDefaults.standard.string(forKey: "vmUser") ?? "ubuntu" }
+        set { UserDefaults.standard.set(newValue, forKey: "vmUser") }
+    }
+    func savePassword(_ pw: String) {
+        let f = App.passwordFiles[0]
+        FileManager.default.createFile(atPath: f, contents: Data(pw.utf8), attributes: [.posixPermissions: 0o600])
     }
 
     func connect() {
         guard let pw = password, !pw.isEmpty else {
-            setStatus("no VNC password: ~/Downloads/API/chromium-vm-vnc.txt is missing", .systemOrange); return
+            setStatus("no password yet: enter it under the gear, LOGIN", .systemOrange)
+            overlay.openLogin(); return
         }
         setStatus("connecting to chromium-vm…", .secondaryLabelColor, tip: false)
         let r = RFB(); r.delegate = self; rfb = r; screen.rfb = r
@@ -189,7 +204,10 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
 
     func rfbClosed(reason: String) {
         connected = false
-        let tail = reason.contains("refused") ? "" : " (is Tailscale on?)"
+        if reason.contains("refused") {   // a wrong password: no retry loop, the login opens under the gear
+            setStatus("password refused: enter it under the gear, LOGIN", .systemOrange); overlay.openLogin(); return
+        }
+        let tail = " (is Tailscale on?)"
         setStatus("not connected: \(reason)\(tail) · trying again", .systemOrange)
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
             guard let self, !self.connected else { return }

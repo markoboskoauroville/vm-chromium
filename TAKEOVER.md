@@ -110,3 +110,6 @@
   the Mac clipboard at once and calls vm-agent `paste_text` (clipboard, then Ctrl+Shift+V into a terminal, Ctrl+V else).
   Results: F2 "Voice to text writes into the terminal." and Chrome's address bar; F1 pasted what Speechify heard on its
   own microphone. Speechify ignores the system input (it records its own chosen mic).
+
+## v11 (5.11.2026)
+The login is under the gear: USERNAME (ubuntu) and PASSWORD, SAVE AND CONNECT writes ~/Downloads/API/chromium-vm-vnc-password.txt (the old name chromium-vm-vnc.txt is still read). A missing or refused password opens the login instead of a note. The gear sits 12 pt in from the bottom-right corner: in the corner macOS took the click for resizing the window.
