@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 14
+let VERSION = 15
 let APP_NAME = "VM Machine Remote (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 

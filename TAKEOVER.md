@@ -122,3 +122,6 @@ The picture is aspect-fitted (never stretched), the mouse mapped through the sam
 
 ## v14 (5.11.2026)
 Renamed VM Machine Remote (Mantra) (bundle id community.auroville.chromiumvm kept, so the Keychain password stays). Icon: VMM / REM over the ORACLE logotype (icons6 wordmark: background).
+
+## v15 (5.11.2026)
+Icon: VM / REMOTE on a black terminal tile with a green block cursor (icons6 terminal background).
