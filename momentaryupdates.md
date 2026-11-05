@@ -182,3 +182,6 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 
 "after that, you check if, for my virtual machine remote controller on this computer application, there are any updates pending. I'm missing the feature when I press Command. I want this pop-up from the bottom to switch applications and have different layouts pop up by switching, clicking only on the Command button automatically"
 **Status:** saved first. Cause: the viewer sends ⌘ as Ctrl, so a lone ⌘ never reached the VM as Super; v20 taps Super for a lone ⌘.
+
+"now inside the virtual machine, we have a third application, which is Pixel 7. Please make a combo in split screen with Pixel 7. Basically, I don't need the browser. I need a combo with Claude Code or Claude itself"
+**Status:** saved first.
