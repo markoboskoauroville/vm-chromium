@@ -4,7 +4,7 @@
 set -e
 cd "$(dirname "$0")"
 V=$(sed -n 's/^let VERSION = \([0-9]*\)/\1/p' app/App.swift)
-NAME="Chromium Virtual Machine (Mantra)"
+NAME="VM Machine Remote (Mantra)"
 APP="build/$NAME.app"
 rm -rf "$APP"; mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 swiftc -O -swift-version 5 -parse-as-library -target arm64-apple-macosx14.0 -o "$APP/Contents/MacOS/ChromiumVM" app/*.swift

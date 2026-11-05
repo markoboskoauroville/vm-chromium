@@ -10,7 +10,7 @@ on:
 permissions:
   contents: write
 env:
-  APP: "Chromium Virtual Machine (Mantra)"
+  APP: "VM Machine Remote (Mantra)"
   VERSION_FILE: viewer/app/App.swift
 jobs:
   build:

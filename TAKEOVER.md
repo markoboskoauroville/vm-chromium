@@ -119,3 +119,6 @@ An Edit menu (Cut, Copy, Paste, Select All): without it ⌘V did nothing in the 
 
 ## v13 (5.11.2026)
 The picture is aspect-fitted (never stretched), the mouse mapped through the same rectangle. The VNC password lives only in the Keychain (service community.auroville.chromiumvm.vnc), typed under the gear; no text file is read for it.
+
+## v14 (5.11.2026)
+Renamed VM Machine Remote (Mantra) (bundle id community.auroville.chromiumvm kept, so the Keychain password stays). Icon: VMM / REM over the ORACLE logotype (icons6 wordmark: background).

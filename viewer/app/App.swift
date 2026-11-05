@@ -5,8 +5,8 @@
 import AppKit
 import Security
 
-let VERSION = 13
-let APP_NAME = "Chromium Virtual Machine (Mantra)"
+let VERSION = 14
+let APP_NAME = "VM Machine Remote (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
 @main
