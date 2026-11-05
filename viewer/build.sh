@@ -32,7 +32,8 @@ cat > "$APP/Contents/Info.plist" <<PL
 <key>NSAppTransportSecurity</key><dict><key>NSAllowsArbitraryLoads</key><true/></dict>
 </dict></plist>
 PL
-codesign --force -s "Mantra Apps" "$APP"
+codesign --force -s "${SIGN:-Mantra Apps}" "$APP"   # GitHub: SIGN=- (ad hoc)
+[ -n "$NO_INSTALL" ] && { echo "built $APP (v$V)"; exit 0; }
 # relaunch-after-build: quit the running copy, install, open the new one
 osascript -e "tell application \"$NAME\" to quit" >/dev/null 2>&1 || true
 sleep 1
