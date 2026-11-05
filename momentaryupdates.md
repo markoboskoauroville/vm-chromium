@@ -146,3 +146,8 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 ## 5.11.2026
 
 "Please change the text on this application VM at the top to \"Remote Full Word\" at the bottom. Just make a black background with the green terminal entry point, or carousel, or whatever it's called, where I enter the text. It should look like the background in the clear terminal."
+
+## 5.11.2026
+
+"please update My VM remote app, Swift app, running here. I need a tiny bar at the top of the window which I can click and drag my window around the screen. Or even better, make it like this: in a bottom-right corner, make one corner with lines, like it can just symbolize dragging something. Then when I click on that one, I can move my window around. On the left side, put the one for resizing. Same icon, small corner, hash. That's what I meant."
+**Status:** saved first.
