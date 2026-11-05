@@ -13,9 +13,12 @@ ip -4 -o addr show | grep -q "inet ${VNC_IP}/" || { echo "no ${VNC_IP} yet (is T
 PASSWD="$HOME/.config/chromium-vm/vncpasswd"
 [ -s "$PASSWD" ] || { echo "no VNC password: run 'vncpasswd $PASSWD' as $USER" >&2; exit 1; }
 
+# 5.11.2026 (Marko: "yes, go for it"): no login blacklist. The door is the Tailscale address only; TigerVNC's default
+# (5 failed logins, then a block doubling from 10 s) locked his Pixel 7 out of the VM after a few wrong redials.
 exec /usr/bin/Xvnc ":${DISPLAY_NUM}" \
   -interface "${VNC_IP}" -rfbport "${VNC_PORT}" \
   -SecurityTypes VncAuth -rfbauth "$PASSWD" \
   -geometry "${GEOMETRY}" -depth 24 -dpi "${DPI}" \
   -AcceptSetDesktopSize=1 -AlwaysShared \
+  -BlacklistThreshold=1000000 -BlacklistTimeout=1 \
   -desktop chromium-vm -nolisten tcp
