@@ -5,12 +5,12 @@
 import AppKit
 import Security
 
-let VERSION = 21
+let VERSION = 22
 let APP_NAME = "VM Machine Remote (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
 /// v21: the green button and a double-click on the title bar zoom the classic way (fill the screen's visible frame and back),
-/// never full screen; the window stays without .resizable (only the bottom-left grip resizes it, v18)
+/// never full screen
 final class VMWindow: NSWindow {
     var onZoom: (() -> Void)?
     override func zoom(_ sender: Any?) { onZoom?() }
@@ -118,7 +118,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         // v21 (Marko, 5.11.2026: "add at the top of the window a normal Mac OS thing ... close, minimize, maximize without
         // taking over the desktop"): a normal title bar again, the picture below it; green = classic zoom, not full screen
         window = VMWindow(contentRect: NSRect(x: 0, y: 0, width: 1280, height: 830),
-                          styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
+                          styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         window.acceptsMouseMovedEvents = true
         window.title = APP_NAME
         window.minSize = NSSize(width: 480, height: 360)
@@ -171,8 +171,10 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
             frameBeforeZoom = window.frame; window.setFrame(vis, display: true, animate: true)
         }
     }
-    func windowDidUpdate(_ n: Notification) {
-        if let b = window.standardWindowButton(.zoomButton), !b.isEnabled { b.isEnabled = true }
+    /// v22: macOS greys the green button out on a window without .resizable, so the window is resizable again, but a drag
+    /// on its edges or corners changes nothing (v18 rule): only the bottom-left grip (setFrame) and the zoom change its size
+    func windowWillResize(_ sender: NSWindow, to size: NSSize) -> NSSize {
+        sender.inLiveResize && !sender.styleMask.contains(.fullScreen) ? sender.frame.size : size
     }
 
     /// A key held for the Mac (F1, F2) was pressed in the viewer. While the viewer is in front the Mac's global hotkeys
@@ -200,16 +202,14 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     // own edge and corner resizing took the bottom-right corner, so the window is not .resizable any more; only the
     // bottom-left grip resizes it (Grips.swift). Full screen needs .resizable: it is lent for full screen and taken back.
     @objc func toggleFull() {
-        if !window.styleMask.contains(.fullScreen) {
-            window.styleMask.insert(.resizable); window.collectionBehavior = [.fullScreenPrimary]
-        }
+        if !window.styleMask.contains(.fullScreen) { window.collectionBehavior = [.fullScreenPrimary] }
         window.toggleFullScreen(nil)
     }
     func windowDidExitFullScreen(_ n: Notification) {
-        window.styleMask.remove(.resizable); window.collectionBehavior = [.fullScreenNone]; wireZoomButton(); showGrips(true)
+        window.collectionBehavior = [.fullScreenNone]; wireZoomButton(); showGrips(true)
     }
     func windowDidFailToEnterFullScreen(_ w: NSWindow) {
-        window.styleMask.remove(.resizable); window.collectionBehavior = [.fullScreenNone]; wireZoomButton()
+        window.collectionBehavior = [.fullScreenNone]; wireZoomButton()
     }
     func windowWillEnterFullScreen(_ n: Notification) { showGrips(false) }
     /// the move and resize corners (Grips.swift) mean nothing in full screen
