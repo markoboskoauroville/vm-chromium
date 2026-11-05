@@ -197,3 +197,6 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 "please make only the triple view with Pixel 7. Other views are gone. The first stripe on the left, 30% (33.3%), is Claude application. Next, type 33.3% is Claude code from terminal. The last stripe is our phone, other combo. Remove regarding Pixel 7, please"
 **Status:** saved first. Read as: the two Pixel splits are replaced by one triple Claude | Claude Code | Pixel 7 (⅓ each); the Chrome splits stay.
 **Status (5.11.2026, ~11:30):** done: dock = 4 apps | Claude Code | Chrome, Claude | Chrome, Claude | Claude Code | Pixel 7 (⅓ each); the two Pixel 40|60 splits removed. Seen on the VM.
+
+"please fix my virtual machine. If, for example, I'm in a split screen and I close one part of the split screen by accident or whatever, when I enter split screen, these applications are re-run so they fill up the screen as intended. Same for the windows, which are switching between apps. If an app is not running, when I switch to the window, it needs to run the app to fill up the window. This bottom part is at the same time a launcher and a window manager"
+**Status:** saved first.
