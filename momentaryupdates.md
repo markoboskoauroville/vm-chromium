@@ -166,3 +166,8 @@ vm-agent v12 paste_text). Status bar: power button → REBOOT | CANCEL. Dock: on
 "now you need to modify my virtual machine machine itself. It needs to have now a fourth app. We have Claude Code, Claude, Chrome, and that third app is Pixel 7. Make it always run, and I can switch to it"
 **Status:** saved first.
 **Status (5.11.2026, ~08:50):** the fourth screen is on the VM: systemd chromium-vm-pixel7 runs scrcpy 1.25 onto the pixel7 container (127.0.0.1:5555), window "Pixel 7", full height, restarts itself; the dock has a fourth tile (green) and Super+Tab (⌘Tab from the Mac) cycles four. Checked by a capture of the window (home screen live).
+
+## 5.11.2026
+
+"Android emulation is very bad. Running some old emulation from Android, and I cannot click anything. It's useless. It's frozen, and I want to have some overlay on the screen just to control this emulator: change orientation and reboot it. Please make this, and make the latest Android version there"
+**Status:** saved first.
