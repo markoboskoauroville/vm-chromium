@@ -247,3 +247,8 @@ the classic way"
 > (7.11.2026) And also order is wrong. First stripe is Claude, then two stripes of androids.
 
 **Status (7.11.2026, ~05:55):** each phone window has the phone's own shape at full height (412x916 on the 1512x916 screen), the Claude app gets the rest (688 px) on the left: Claude app | Pixel 1 | Pixel 2, no bars, checked on screen. A phone shown alone is also its own shape, centred. In LANDSCAPE the shape no longer matches (bars until it is turned back).
+
+> (7.11.2026) Please make two profiles for Windows. The one which already exists, you need to copy. This is with two pixel phones plus Claude app. I need copy of this but instead of Claude app it will be Claude Code please do that
+
+**Status:** saved first.
+**Status (7.11.2026, ~06:05):** new layout **Claude Code | Pixel 1 | Pixel 2** (code-pixels), a copy of claude-pixels with Claude Code in the first stripe; both are in the dock (now four layout displays). Deployed dock + snap, seen on screen.

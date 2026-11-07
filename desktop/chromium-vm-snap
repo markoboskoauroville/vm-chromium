@@ -4,7 +4,7 @@ Called by openbox's keybindings (Ctrl+Alt+key = ⌃⌥key from the Mac viewer). 
 work area (screen less the status bar), like Rectangle's defaults:
 left right top bottom | max center | tl tr bl br | third1 third2 third3 | two1 two2 | restore
 `show code|claude|chrome|pixel|pixel2` one program alone and full, started first when it has no window (5.11.2026)
-`layout code-chrome|claude-chrome|claude-pixels` arranges all three programs at once (the dock's layout displays, Marko 2.11.2026):
+`layout code-chrome|claude-chrome|claude-pixels|code-pixels` arranges all three programs at once (the dock's layout displays, Marko 2.11.2026):
 halves = Claude Code left | Chrome right; cc-halves = Claude | Chrome; cc-40-60 = Claude 40% | Chrome 60%; big = Chrome on the first two
 thirds, Claude Code top right, Claude bottom right.
 The geometry before the first snap is kept in ~/.cache/chromium-vm/snap.json, so `restore` brings it back."""
@@ -35,7 +35,8 @@ LAYOUTS = {'code-chrome': [('code', 'l40'), ('chrome', 'r60')],
            'claude-chrome': [('claude', 'l40'), ('chrome', 'r60')],
            # Marko, 5.11.2026: "only the triple view with Pixel 7 ... Claude application, Claude code, our phone", ⅓ each
            # 7.11.2026 (Marko): replaced by the Claude app and the two phones: "First stripe is Claude, then two stripes of androids"
-           'claude-pixels': [('claude', 'before2'), ('pixel', 'phone1'), ('pixel2', 'phone2')]}
+           'claude-pixels': [('claude', 'before2'), ('pixel', 'phone1'), ('pixel2', 'phone2')],
+           'code-pixels': [('code', 'before2'), ('pixel', 'phone1'), ('pixel2', 'phone2')]}   # Marko 7.11.2026: the copy with Claude Code
 
 # 5.11.2026 (Marko: "If an app is not running, when I switch to the window, it needs to run the app to fill up the
 # window. This bottom part is at the same time a launcher and a window manager"): how each program is started when it

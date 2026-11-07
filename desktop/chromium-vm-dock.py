@@ -48,6 +48,8 @@ LAYOUTS = [   # Marko, 5.11.2026: only these four, 40 | 60, Claude Code or Claud
     # Marko: "First stripe is Claude, then two stripes of androids"; the phones at their own shape (~0.27 of a 1512x916
     # screen each, see chromium-vm-snap before2/phone1/phone2), the rest of the width the Claude app
     ('Claude app | Pixel 1 | Pixel 2', 'claude-pixels', [(1, 0, 0, .46, 1), (3, .46, 0, .27, 1), (4, .73, 0, .27, 1)]),
+    # 7.11.2026 (Marko): "I need copy of this but instead of Claude app it will be Claude Code"
+    ('Claude Code | Pixel 1 | Pixel 2', 'code-pixels', [(0, 0, 0, .46, 1), (3, .46, 0, .27, 1), (4, .73, 0, .27, 1)]),
 ]
 NT = NA + len(LAYOUTS)      # tiles: the three programs, then the layouts
 SNAP = '/usr/local/lib/chromium-vm/chromium-vm-snap'

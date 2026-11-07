@@ -109,3 +109,4 @@ the screen through the viewer: keep pointer moves short and put the pointer back
 - 7.11.2026: **two Pixel 7 emulators**: Pixel 1 (pixel7, :5555) and Pixel 2 (pixel7b, :5556, fresh), windows "Pixel 1" /
   "Pixel 2" (told apart by title), dock tiles, Pixel bar on the phone in front. Layout **Claude app | Pixel 1 | Pixel 2**
   (claude-pixels) replaced Claude app | Claude Code | Pixel 7; phone windows have the phone's exact shape, no bars.
+- 7.11.2026: layout **Claude Code | Pixel 1 | Pixel 2** (code-pixels), the copy of claude-pixels with Claude Code. Deployed: dock + snap.
