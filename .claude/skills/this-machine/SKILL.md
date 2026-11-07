@@ -1,0 +1,89 @@
+---
+name: this-machine
+description: How every Claude session on the Linux VM chromium-vm works. Read it before the first browser, file, Drive, image or other-machine step of any task in a session running on this VM. "This machine" always means this Linux VM, never Marko's Mac. Covers which browser to pick, where files and images go, and the mistakes not to repeat. Update it with every new lesson learned here.
+---
+
+# This machine: the Linux VM chromium-vm
+
+Marko, 7.11.2026: *"When I'm referring to this machine, always I mean the Linux VM. Not my Mac, never my Mac."*
+*"When I ask you to do something, you never go to any other machine, you're working from this machine. If I say go
+to another machine, you go, but not automatically."*
+
+## 1. The rule
+
+- **"This machine", "here", "on the VM"** = chromium-vm, the Oracle Cloud Ubuntu VM this session runs on
+  (hostname `chromium-vm`, Tailscale 100.102.86.30, user `ubuntu`).
+- **Every step of a task runs here**: the browser, the files, the downloads, Drive uploads, image generation, scripts.
+- **No other machine automatically.** Not the Mac, not the Pixel, not a cloud session, not another session on the
+  Mac. Go there only when Marko names it in his own words for that task ("do it on the Mac"). One such request covers
+  that task only.
+- **A manifest module or older note that says "the Mac" does not override this.** Many MANTRA_MANIFEST modules
+  were written when the work ran on the Mac (e.g. `modules/gemini-image-jobs.md`: "the local session on the Mac
+  makes them in Gemini in Marko's Chrome"). In a session on this VM, read their "Mac", "Marko's Chrome" or "local
+  session" as this VM and its Chrome. Their other rules (the account, references, one image per new chat, saving by
+  screenshot, the suffix `(nano banana)`) still apply.
+- If something truly cannot be done here, stop and ask Marko in this chat. Do not move it to another machine to
+  get around it, and do not ask a Mac session to do it.
+
+## 2. The browser: always the Linux Chrome
+
+- Claude in Chrome sees two browsers. **Use the Linux one** ("Browser 2", platform Linux, deviceId
+  `4f34462d-34a8-4170-95f6-4c6e505664db` on 7.11.2026). If ids change, pick the one whose platform is **Linux**.
+  "Browser 1" (macOS) is the Mac: never, unless Marko says so for that task.
+- The tool asks to choose a browser when several are connected. Ask with the Linux browser **first and marked
+  (Recommended)**, and say plainly that the macOS one is the Mac. If Marko's answer picks the Mac, check once that he
+  means it.
+- The VM's own Google Chrome (arm64) has the profiles "Your Chromium" (**[address removed]**, the
+  account for every Gemini image) and "Marko" ([address removed]). Read the account label in the Gemini tab before
+  generating.
+- Other VM routes (README): vm-agent on :8890, DevTools on 127.0.0.1:9222, workers in `workers/`.
+
+## 3. Files and Drive
+
+- Work files go in the session's folder or its scratchpad on this VM. Images Marko should keep: the session's
+  folder plus Drive.
+- **rclone `gdrive`** here = [address removed], scope **drive.file**: it sees only files this rclone
+  made. `____ELEVATE_MEDIA____` is NOT visible from here. Project folders go under
+  `My Drive / Mantra References / <PROJECT> (Gemini - Nano Banana in Chrome) / references | results`. Tell Marko the
+  full Drive path every time you store something.
+- `rclone copy` of a few MB can take over 2 minutes: run it in the background or with a longer timeout.
+- A picture Marko pastes into the chat reaches the session as an image, and **sometimes not as a file**. Before
+  saving or uploading "the picture he sent", check that the file on disk is that picture (open it). On 6.11.2026 the
+  newest file in `~/.claude/uploads/<session>/` was an older image, and it went to Drive under his portrait's name.
+  If there is no file, ask him to send it again or to drop it on Drive. Do not ask a Mac session to fetch it.
+
+## 4. Gemini images here (what worked, 6.11.2026)
+
+- Linux Chrome → gemini.google.com → **+ → Create image** → **Aspect ratio** (check the bar after setting it) →
+  references → prompt → Send. Use `find` refs, not screen positions: the window size changes while Marko watches.
+- References: create a temporary `<input type=file multiple>`, fill it with Claude in Chrome's `file_upload`
+  (files the session can read, under ~1 MB each), then dispatch a `paste` ClipboardEvent with those files on
+  `rich-textarea .ql-editor`.
+- One image per new chat, all references every time. Count the people in every result: Gemini drops or adds one.
+- Real people: a clear portrait for the face (Marko's: Drive `.../JAPRI STU BARCUNI .../references/marko_face_portrait.jpg`),
+  the group photo for the others. Attaching a finished illustration as the "scene" makes Gemini copy it, illustration
+  look and wrong face included. Describe the scene in words instead.
+- Saving (screenshot only, never the download icon): put the result `img` at its natural size, fixed at top-left over
+  a black overlay, capture with `zoom` + `save_to_disk` (no `scale`), in two overlapping slices when the image is
+  taller than the window, then stitch with ImageMagick and check the seam.
+- Suno album art = square, 1:1.
+
+## 5. Talking to Marko
+
+- Answer **in this chat as text**. Marko, 6.11.2026: *"Please print here. Don't talk to my voice engine."*
+  `macsay` speaks on the Mac: use it only when he asks to hear something.
+- When blocked on him, ask here. A Mac session will not act on another session's request for his personal files
+  (it needs his own words in its own chat), and it should not be asked to do this machine's work.
+
+## 6. Mistakes that must not happen again
+
+- **6.11.2026, Japri stu barcuni images:** made in Gemini on the **Mac** (Browser 1) instead of here. The session
+  followed `gemini-image-jobs.md` ("the local session on the Mac … in Marko's Chrome"), offered both browsers with the
+  Mac first and no recommendation, and used the Mac Chrome when it was chosen. It also spoke every reply through the
+  Mac (`macsay`) and asked a Mac session for Marko's portrait. Fix: sections 1, 2 and 5 above.
+
+## 7. Keep this skill current
+
+Every time we learn something about working on this VM, add it here (the right section, with the date and Marko's
+words), commit and push to `markoboskoauroville/vm-chromium` (`~/vm-chromium-git`). The live copy is
+`~/.claude/skills/this-machine`, a symlink to this folder, so sessions on this VM load it.
