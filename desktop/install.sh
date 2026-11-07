@@ -35,12 +35,12 @@ chown "$VM_USER:$VM_USER" "$VM_HOME/.local/share/applications/chromium-vm-chrome
 as_user env HOME="$VM_HOME" xdg-settings set default-web-browser chromium-vm-chrome.desktop || true
 grep -q 'local/bin' "$VM_HOME/.bashrc" || echo 'case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) PATH="$HOME/.local/bin:$PATH" ;; esac' >> "$VM_HOME/.bashrc"
 
-for u in chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-pixel7-bar chromium-vm-dock chromium-vm-refit; do
+for u in chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-pixel7b chromium-vm-pixel7-bar chromium-vm-dock chromium-vm-refit; do
   sed "s/@VM_USER@/$VM_USER/" "systemd/$u.service" > "/etc/systemd/system/$u.service"
 done
 systemctl daemon-reload
-systemctl enable chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-pixel7-bar chromium-vm-dock chromium-vm-refit >/dev/null 2>&1
-systemctl restart chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-pixel7-bar chromium-vm-dock
+systemctl enable chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-pixel7b chromium-vm-pixel7-bar chromium-vm-dock chromium-vm-refit >/dev/null 2>&1
+systemctl restart chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-pixel7b chromium-vm-pixel7-bar chromium-vm-dock
 # scrcpy 5 (arm64, built by GitHub in vm-android): /opt/scrcpy
 [ -x /opt/scrcpy/bin/scrcpy ] || { d=$(mktemp -d); chown "$VM_USER" "$d"; as_user gh release download scrcpy-v5.0.1 -R markoboskoauroville/vm-android -p scrcpy-linux-arm64.tar.gz -D "$d"; mkdir -p /opt/scrcpy; tar xzf "$d/scrcpy-linux-arm64.tar.gz" -C /opt/scrcpy; rm -rf "$d"; }
 echo "four screens + dock installed; openbox (and its keys) starts with the next chromium-vm-session start"

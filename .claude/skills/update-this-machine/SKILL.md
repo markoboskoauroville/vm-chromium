@@ -44,6 +44,8 @@ VM itself gets changed.
 |---|---|---|
 | `desktop/chromium-vm-dock.py` (dock, Super+Tab) | `sudo install -m 755 desktop/chromium-vm-dock.py /usr/local/lib/chromium-vm/` | `sudo systemctl restart chromium-vm-dock` |
 | `desktop/chromium-vm-pixel7-bar.py` | same, that file | `chromium-vm-pixel7-bar` |
+| `desktop/chromium-vm-pixel7` (a phone's window; arg 1 = Pixel 1, 2 = Pixel 2) | `sudo install -m 755 desktop/chromium-vm-pixel7 /usr/local/lib/chromium-vm/` | `chromium-vm-pixel7`, `chromium-vm-pixel7b` |
+| the phones themselves (vm-android `pixel7/run.sh`, clone `~/vm-android-git`, copy used on the VM `~/vm-android`) | copy run.sh to `~/vm-android/pixel7/`, **read it before running it** | `sudo ~/vm-android/pixel7/run.sh` (Pixel 1) or `sudo NAME=pixel7b PORT=5556 ~/vm-android/pixel7/run.sh` (Pixel 2): this recreates that phone's container (its /data stays) |
 | `desktop/chromium-vm-snap` (layouts, refit) | `sudo install -m 755 desktop/chromium-vm-snap /usr/local/lib/chromium-vm/` | `chromium-vm-refit` |
 | `statusbar/chromium-vm-statusbar.py` | `sudo install -m 755 statusbar/chromium-vm-statusbar.py /usr/local/lib/chromium-vm/` | `chromium-vm-statusbar` |
 | `agent/vm-agent.py` | `sudo install -m 755 agent/vm-agent.py /usr/local/lib/chromium-vm/vm-agent.py` | `chromium-vm-agent` (stops running Gemini scripts that use :8890: check first) |
@@ -92,7 +94,18 @@ the screen through the viewer: keep pointer moves short and put the pointer back
   without Marko: it is the only way in.
 - Failing services: `systemctl --failed --no-pager`, then `journalctl -u <unit> -n 50`.
 
+## 5b. Lessons
+
+- 7.11.2026: a `Write` was refused (file not read first) and the next command copied the OLD run.sh onto the VM
+  and ran it with sudo: Pixel 1 came back on the image without Play Store, fixed minutes later. Before running a
+  script with sudo, check its content (`grep` the line you changed) in the same command.
+- 7.11.2026: with two phones and two scrcpy windows the 2 CPU cores run near 100%; the dock then needs a few seconds
+  to slide up. Not a bug.
+
 ## 6. Done here (keep adding)
 
 - 7.11.2026: dock label **"Claude" → "Claude app"** (Marko: when the app is meant, it is called "Claude app"),
   also in the layout names; names that are too wide for their slot or tile now shrink to fit. Deployed: dock only.
+- 7.11.2026: **two Pixel 7 emulators**: Pixel 1 (pixel7, :5555) and Pixel 2 (pixel7b, :5556, fresh), windows "Pixel 1" /
+  "Pixel 2" (told apart by title), dock tiles, Pixel bar on the phone in front. Layout **Claude app | Pixel 1 | Pixel 2**
+  (claude-pixels) replaced Claude app | Claude Code | Pixel 7; phone windows have the phone's exact shape, no bars.

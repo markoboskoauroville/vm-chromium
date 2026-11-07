@@ -3,8 +3,8 @@
 Called by openbox's keybindings (Ctrl+Alt+key = ⌃⌥key from the Mac viewer). Snaps the active window inside the
 work area (screen less the status bar), like Rectangle's defaults:
 left right top bottom | max center | tl tr bl br | third1 third2 third3 | two1 two2 | restore
-`show code|claude|chrome|pixel` one program alone and full, started first when it has no window (5.11.2026)
-`layout code-chrome|claude-chrome|triple-pixel` arranges all three programs at once (the dock's layout displays, Marko 2.11.2026):
+`show code|claude|chrome|pixel|pixel2` one program alone and full, started first when it has no window (5.11.2026)
+`layout code-chrome|claude-chrome|claude-pixels` arranges all three programs at once (the dock's layout displays, Marko 2.11.2026):
 halves = Claude Code left | Chrome right; cc-halves = Claude | Chrome; cc-40-60 = Claude 40% | Chrome 60%; big = Chrome on the first two
 thirds, Claude Code top right, Claude bottom right.
 The geometry before the first snap is kept in ~/.cache/chromium-vm/snap.json, so `restore` brings it back."""
@@ -15,19 +15,27 @@ STATE = os.path.expanduser('~/.cache/chromium-vm/snap.json')
 # each window was last snapped into, so `refit` (run by `watch` on every new screen size) puts it into the same slot again
 SLOTS = os.path.expanduser('~/.cache/chromium-vm/slots.json')
 BAR = 22
+# 7.11.2026 (Marko: "Window should fit exactly the screen of the Pixel ... zero gray bars"): a phone window has the
+# phone's own shape (1080x2400 portrait, both containers) at the full height; whatever width is left goes to the program
+# beside it. Slots before2 (the rest, on the left), phone1, phone2 (side by side at the right), phonec (one phone alone,
+# centred). Marko, 7.11.2026: "First stripe is Claude, then two stripes of androids."
+PHONE_W, PHONE_H = 1080, 2400
 
 def sh(*a):
     return subprocess.run(a, capture_output=True, text=True, timeout=3).stdout
 
-APPS = {'code': lambda i, c: c == 'Xfce4-terminal', 'claude': lambda i, c: c.lower() == 'com.anthropic.claude',
-        'chrome': lambda i, c: c == 'Google-chrome' and 'chromium-vm-chrome' in i,
-        'pixel': lambda i, c: c.lower() == 'scrcpy'}
+APPS = {'code': lambda i, c, t: c == 'Xfce4-terminal', 'claude': lambda i, c, t: c.lower() == 'com.anthropic.claude',
+        'chrome': lambda i, c, t: c == 'Google-chrome' and 'chromium-vm-chrome' in i,
+        # 7.11.2026: two phones, both scrcpy windows, told apart by their titles (chromium-vm-pixel7 1 | 2)
+        'pixel': lambda i, c, t: c.lower() == 'scrcpy' and t != 'Pixel 2',
+        'pixel2': lambda i, c, t: c.lower() == 'scrcpy' and t == 'Pixel 2'}
 # Marko, 5.11.2026: "Combinations: 40 60 ... you don't need to make any other combinations": four layouts only,
 # Claude Code or Claude on the 40 side (left), Chrome or the Pixel 7 on the 60 side (right)
 LAYOUTS = {'code-chrome': [('code', 'l40'), ('chrome', 'r60')],
            'claude-chrome': [('claude', 'l40'), ('chrome', 'r60')],
            # Marko, 5.11.2026: "only the triple view with Pixel 7 ... Claude application, Claude code, our phone", ⅓ each
-           'triple-pixel': [('claude', 'third1'), ('code', 'third2'), ('pixel', 'third3')]}
+           # 7.11.2026 (Marko): replaced by the Claude app and the two phones: "First stripe is Claude, then two stripes of androids"
+           'claude-pixels': [('claude', 'before2'), ('pixel', 'phone1'), ('pixel2', 'phone2')]}
 
 # 5.11.2026 (Marko: "If an app is not running, when I switch to the window, it needs to run the app to fill up the
 # window. This bottom part is at the same time a launcher and a window manager"): how each program is started when it
@@ -40,6 +48,7 @@ LAUNCH = {
     'claude': ['claude-desktop'],
     'chrome': ['google-chrome-stable', f'--user-data-dir={CHROME_PROFILE}', '--new-window'],
     'pixel': ['sudo', '-n', 'systemctl', 'start', 'chromium-vm-pixel7'],
+    'pixel2': ['sudo', '-n', 'systemctl', 'start', 'chromium-vm-pixel7b'],
 }
 
 def launch(name):
@@ -48,8 +57,9 @@ def launch(name):
     if name == 'code' and subprocess.run(['systemctl', 'is-active', '--quiet', 'chromium-vm-claude-code']).returncode == 0:
         subprocess.run(['sudo', '-n', 'systemctl', 'restart', 'chromium-vm-claude-code'], capture_output=True)
         return                                   # active but no window (a terminal closed by hand): a fresh one
-    if name == 'pixel' and subprocess.run(['systemctl', 'is-active', '--quiet', 'chromium-vm-pixel7']).returncode == 0:
-        subprocess.run(['sudo', '-n', 'systemctl', 'restart', 'chromium-vm-pixel7'], capture_output=True)
+    unit = {'pixel': 'chromium-vm-pixel7', 'pixel2': 'chromium-vm-pixel7b'}.get(name)
+    if unit and subprocess.run(['systemctl', 'is-active', '--quiet', unit]).returncode == 0:
+        subprocess.run(['sudo', '-n', 'systemctl', 'restart', unit], capture_output=True)
         return
     subprocess.Popen(LAUNCH[name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
 
@@ -77,12 +87,13 @@ def app_windows(iconic=False):
     except Exception:
         return out
     for wid in stack:
-        p = sh('xprop', '-id', wid, 'WM_CLASS', '_NET_WM_WINDOW_TYPE', 'WM_STATE')
+        p = sh('xprop', '-id', wid, 'WM_CLASS', '_NET_WM_WINDOW_TYPE', 'WM_STATE', '_NET_WM_NAME')
         if ('Iconic' in p and not iconic) or ('_NET_WM_WINDOW_TYPE_NORMAL' not in p and '_NET_WM_WINDOW_TYPE(' in p): continue
         try: inst, cls = [x.strip().strip('"') for x in p.split('WM_CLASS(STRING) = ')[1].splitlines()[0].split('", "')]
         except Exception: continue
+        title = p.split('_NET_WM_NAME(UTF8_STRING) = ', 1)[1].splitlines()[0].strip().strip('"') if '_NET_WM_NAME(UTF8_STRING) = ' in p else ''
         for name, test in APPS.items():
-            if test(inst, cls): out[name] = str(int(wid, 16))
+            if test(inst, cls, title): out[name] = str(int(wid, 16))
     return out
 
 def slots(update=None):
@@ -127,7 +138,9 @@ def main():
     if act == 'show':                            # one program, alone and full: started first if it has no window
         name = sys.argv[2] if len(sys.argv) > 2 else ''
         wid = ensure([name]).get(name)
-        if wid:
+        if wid and name in ('pixel', 'pixel2'):      # a phone alone: its own shape, centred, not stretched to bars
+            sh('xdotool', 'windowactivate', wid); place(wid, 'phonec')
+        elif wid:
             sh('xdotool', 'windowactivate', wid)
             sh('wmctrl', '-i', '-r', wid, '-b', 'add,maximized_vert,maximized_horz')
             slots({wid: None})
@@ -163,6 +176,9 @@ def place(wid, act, remember=True):
          'third3': (AW - w3, 0, w3, AH), 'two1': (0, 0, AW - w3, AH), 'two2': (w3, 0, AW - w3, AH),
          'r3top': (AW - w3, 0, w3, h2), 'r3bot': (AW - w3, AH - h2, w3, h2),
          'l40': (0, 0, max(600, AW * 2 // 5), AH), 'r60': (max(600, AW * 2 // 5), 0, AW - max(600, AW * 2 // 5), AH)}
+    pw = round(AH * PHONE_W / PHONE_H)              # a phone at the full height, exactly its shape: no bars
+    R.update({'before2': (0, 0, AW - 2 * pw, AH), 'phone1': (AW - 2 * pw, 0, pw, AH), 'phone2': (AW - pw, 0, pw, AH),
+              'phonec': ((AW - pw) // 2, 0, pw, AH)})
     if remember: slots({wid: act if act in R else None})
     if act == 'restore':
         if wid not in st: return

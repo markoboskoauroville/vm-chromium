@@ -25,12 +25,14 @@ from Xlib.protocol import rq
 GLib.set_prgname('vm-dock')          # its X class must not look like one of the three programs
 
 FRONT = os.path.expanduser('~/.cache/chromium-vm/front'); os.makedirs(os.path.dirname(FRONT), exist_ok=True)
-APPS = [   # (label, test on WM_CLASS (instance, class), how to bring it back when it has no window)
-    ('Claude Code', lambda i, c: c == 'Xfce4-terminal', None),
-    ('Claude app',  lambda i, c: c.lower() == 'com.anthropic.claude', ['claude-desktop']),   # 7.11.2026 Marko: "Claude app"
-    ('Chrome',      lambda i, c: c == 'Google-chrome' and 'chromium-vm-chrome' in i, None),
-    # 5.11.2026: the fourth screen, the Pixel 7 through scrcpy (chromium-vm-pixel7, always running)
-    ('Pixel 7',     lambda i, c: c.lower() == 'scrcpy', None),
+APPS = [   # (label, test on WM_CLASS (instance, class) and the window title, how to bring it back when it has no window)
+    ('Claude Code', lambda i, c, t: c == 'Xfce4-terminal', None),
+    ('Claude app',  lambda i, c, t: c.lower() == 'com.anthropic.claude', ['claude-desktop']),   # 7.11.2026 Marko: "Claude app"
+    ('Chrome',      lambda i, c, t: c == 'Google-chrome' and 'chromium-vm-chrome' in i, None),
+    # 5.11.2026: the fourth screen, the Pixel 7 through scrcpy (chromium-vm-pixel7, always running); 7.11.2026 (Marko: two
+    # emulators, "Pixel One, Pixel Two"): both are scrcpy windows, told apart by their titles "Pixel 1" / "Pixel 2"
+    ('Pixel 1',     lambda i, c, t: c.lower() == 'scrcpy' and t != 'Pixel 2', None),
+    ('Pixel 2',     lambda i, c, t: c.lower() == 'scrcpy' and t == 'Pixel 2', None),
 ]
 NA = len(APPS)
 BAR_H = 22            # the status bar's band; the dock sits above it
@@ -42,17 +44,21 @@ PAD, GAP, LABEL, SEP = 14, 16, 22, 18
 LAYOUTS = [   # Marko, 5.11.2026: only these four, 40 | 60, Claude Code or Claude on the 40 side
     ('Claude Code | Chrome', 'code-chrome', [(0, 0, 0, .4, 1), (2, .4, 0, .6, 1)]),
     ('Claude app | Chrome', 'claude-chrome', [(1, 0, 0, .4, 1), (2, .4, 0, .6, 1)]),
-    ('Claude app | Claude Code | Pixel 7', 'triple-pixel', [(1, 0, 0, 1/3, 1), (0, 1/3, 0, 1/3, 1), (3, 2/3, 0, 1/3, 1)]),
+    # 7.11.2026 (Marko): the triple view Claude app | Claude Code | Pixel 7 replaced by the two phones and the Claude app
+    # Marko: "First stripe is Claude, then two stripes of androids"; the phones at their own shape (~0.27 of a 1512x916
+    # screen each, see chromium-vm-snap before2/phone1/phone2), the rest of the width the Claude app
+    ('Claude app | Pixel 1 | Pixel 2', 'claude-pixels', [(1, 0, 0, .46, 1), (3, .46, 0, .27, 1), (4, .73, 0, .27, 1)]),
 ]
 NT = NA + len(LAYOUTS)      # tiles: the three programs, then the layouts
 SNAP = '/usr/local/lib/chromium-vm/chromium-vm-snap'
-SNAP_NAMES = ['code', 'claude', 'chrome', 'pixel']       # the snap tool's names of APPS, in the same order
-COLOURS = [(0.85, 0.47, 0.34), (0.55, 0.45, 0.85), (0.30, 0.62, 0.90), (0.36, 0.75, 0.45)]   # Claude Code, Claude, Chrome, Pixel 7
+SNAP_NAMES = ['code', 'claude', 'chrome', 'pixel', 'pixel2']       # the snap tool's names of APPS, in the same order
+COLOURS = [(0.85, 0.47, 0.34), (0.55, 0.45, 0.85), (0.30, 0.62, 0.90), (0.36, 0.75, 0.45), (0.90, 0.72, 0.25)]   # Claude Code, Claude app, Chrome, Pixel 1, Pixel 2
 REFRESH_MS = 330      # thumbnails while the dock is up
 
 XD = xdisplay.Display()
 ROOT = XD.screen().root
 A_STACK = XD.intern_atom('_NET_CLIENT_LIST_STACKING')
+A_NAME, A_UTF8 = XD.intern_atom('_NET_WM_NAME'), XD.intern_atom('UTF8_STRING')
 A_TYPE = XD.intern_atom('_NET_WM_WINDOW_TYPE'); A_NORMAL = XD.intern_atom('_NET_WM_WINDOW_TYPE_NORMAL')
 
 
@@ -71,8 +77,12 @@ def windows():
             if not cls: continue
             t = w.get_full_property(A_TYPE, X.AnyPropertyType)
             if t and t.value and t.value[0] != A_NORMAL: continue          # dialogs, menus, popups
+            title = ''
+            if (cls[1] or '').lower() == 'scrcpy':                        # only the phones need their titles
+                p = w.get_full_property(A_NAME, A_UTF8)
+                title = (p.value.decode('utf-8', 'replace') if isinstance(p.value, bytes) else str(p.value)) if p else (w.get_wm_name() or '')
             for n, (_, test, _) in enumerate(APPS):
-                if test(cls[0] or '', cls[1] or ''):
+                if test(cls[0] or '', cls[1] or '', title):
                     found[n] = wid; front = n
         except Exception:
             continue

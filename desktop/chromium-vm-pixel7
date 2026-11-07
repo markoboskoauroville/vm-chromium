@@ -8,7 +8,11 @@ set -uo pipefail
 . /etc/chromium-vm.conf
 export DISPLAY=":${DISPLAY_NUM}"
 for _ in $(seq 100); do xdpyinfo >/dev/null 2>&1 && break; sleep 0.2; done
-SERIAL=127.0.0.1:5555
+# 7.11.2026 (Marko: two emulators, "Pixel One, Pixel Two"): the argument picks the phone. 1 = container pixel7 on
+# 127.0.0.1:5555 (window "Pixel 1"), 2 = container pixel7b on 127.0.0.1:5556 (window "Pixel 2"). The dock and the snap
+# tool tell the two scrcpy windows apart by these titles.
+N=${1:-1}
+SERIAL=127.0.0.1:$((5554 + N))
 adb connect "$SERIAL" >/dev/null 2>&1
 adb -s "$SERIAL" wait-for-device
 until [ "$(adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; do sleep 2; done
@@ -16,5 +20,5 @@ until [ "$(adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d
 # has (no aspect lock, so it never grows taller than the screen), and the phone inside keeps its own aspect with black
 # bars (render fit letterbox).
 # software decoding on two cores: 30 frames a second, the long side 1600 px; no sound (the VM has no speakers)
-exec /opt/scrcpy/bin/scrcpy -s "$SERIAL" --window-title "Pixel 7" --max-fps 30 --max-size 1600 --video-bit-rate 6M \
+exec /opt/scrcpy/bin/scrcpy -s "$SERIAL" --window-title "Pixel $N" --max-fps 30 --max-size 1600 --video-bit-rate 6M \
   --no-audio --shortcut-mod=lalt --no-window-aspect-ratio-lock --render-fit=letterbox 2>&1

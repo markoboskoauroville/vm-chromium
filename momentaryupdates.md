@@ -241,3 +241,9 @@ the classic way"
 > (7.11.2026) Now let's update this machine. It needs to have two emulators for Android and it needs to have new window arrangement profile when we have Pixel One, Pixel Two, and Claude app. Please do this. So for now make two copies. And let's have this last profile we can replace, where there is Claude app, Claude Code, and Pixel 7. Now we have two Pixel 7 and only Claude app. Please update this on this machine.
 
 **Status:** saved first.
+**Status (7.11.2026, ~05:50):** two Pixel 7 emulators: Pixel 1 = container pixel7 (adb 127.0.0.1:5555, unchanged data and Google account), Pixel 2 = container pixel7b (adb 127.0.0.1:5556, fresh, Play Store image; vm-android pixel7/run.sh NAME/PORT). Screens: services chromium-vm-pixel7 ("Pixel 1") and chromium-vm-pixel7b ("Pixel 2"); dock tiles Pixel 1 and Pixel 2; the Pixel bar works on the phone in front, at its window's corner. The triple layout is now **Claude app | Pixel 1 | Pixel 2** (layout claude-pixels).
+
+> (7.11.2026) Please also fix emulator. You can see that this window has grey bars. Window should fit exactly the screen of the Pixel, so everything fits nicely, so we can extend the Claude app window, so zero grey bars, everything fits perfectly.
+> (7.11.2026) And also order is wrong. First stripe is Claude, then two stripes of androids.
+
+**Status (7.11.2026, ~05:55):** each phone window has the phone's own shape at full height (412x916 on the 1512x916 screen), the Claude app gets the rest (688 px) on the left: Claude app | Pixel 1 | Pixel 2, no bars, checked on screen. A phone shown alone is also its own shape, centred. In LANDSCAPE the shape no longer matches (bars until it is turned back).
