@@ -4,6 +4,9 @@ A Chromebook in Oracle Cloud: chromium-vm (Ubuntu 24.04 Minimal, ARM, 200 GB, Ta
 Chromium, reached by VNC over Tailscale from the Mac app **Chromium Virtual Machine (Mantra)** and from Mantra Remote
 VNC on the phone. The plan is [PLAN.md](PLAN.md); Marko's words are in [momentaryupdates.md](momentaryupdates.md).
 
+**Sessions on this VM read the skill [this-machine](.claude/skills/this-machine/SKILL.md) first:** "this machine" is
+this VM, every task runs here, never on the Mac unless Marko says so (7.11.2026). Add every new lesson there.
+
 ## For a cloud session to work on the VM itself
 
 A cloud session is not on the tailnet. To let it reach chromium-vm, Marko gives its environment:
