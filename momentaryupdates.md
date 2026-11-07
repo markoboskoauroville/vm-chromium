@@ -224,3 +224,16 @@ the classic way"
 
 **Status:** saved first.
 **Status (5.11.2026, ~17:12, viewer v26):** ⌘Tab stays with macOS (the Mac's global hotkeys are no longer suspended while the viewer is in front; a ⌘Tab that reaches the viewer is dropped), ⌥Tab sends Super+Tab = the VM's program switch. Built by GitHub (run 42061836196, after GitHub's own push/dispatch errors), installed, running. Marko tested by hand: both work (5.11.2026).
+
+> (7.11.2026) Please let's modify this machine. First of all, when you mention Claude as app, for example in these pop-up windows at the bottom, it needs to be called Claude app. Please rename it first.
+
+**Status:** saved first.
+**Status (7.11.2026, ~05:30):** dock (the pop-up at the bottom) shows "Claude app" on its tile and in the layout names "Claude app | Chrome" and "Claude app | Claude Code | Pixel 7"; names too wide for their slot shrink to fit. Deployed (dock only), checked on screen.
+
+> (7.11.2026) When I'm referring to this machine, always I mean the Linux VM. Not my Mac, never my Mac. ... start to create skill MD there and in that skill you need to write how to work with this virtual machine so this mistake never repeats ... If I say go to another machine, you go, but not automatically.
+
+**Status:** skill `.claude/skills/this-machine` (linked into ~/.claude/skills), ~/.claude/CLAUDE.md now text only (Marko: "Yes, text only").
+
+> (7.11.2026) And from now on, we are updating this machine from here. So in the same repository, please add skills to update this machine. Whatever is needed.
+
+**Status:** skill `.claude/skills/update-this-machine` (linked into ~/.claude/skills).

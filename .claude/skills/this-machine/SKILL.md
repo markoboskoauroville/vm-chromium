@@ -37,6 +37,7 @@ to another machine, you go, but not automatically."*
   account for every Gemini image) and "Marko" ([address removed]). Read the account label in the Gemini tab before
   generating.
 - Other VM routes (README): vm-agent on :8890, DevTools on 127.0.0.1:9222, workers in `workers/`.
+- **Changing the VM itself** (desktop, dock, services, packages): skill `update-this-machine`.
 
 ## 3. Files and Drive
 

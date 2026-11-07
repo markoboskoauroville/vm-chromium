@@ -27,7 +27,7 @@ GLib.set_prgname('vm-dock')          # its X class must not look like one of the
 FRONT = os.path.expanduser('~/.cache/chromium-vm/front'); os.makedirs(os.path.dirname(FRONT), exist_ok=True)
 APPS = [   # (label, test on WM_CLASS (instance, class), how to bring it back when it has no window)
     ('Claude Code', lambda i, c: c == 'Xfce4-terminal', None),
-    ('Claude',      lambda i, c: c.lower() == 'com.anthropic.claude', ['claude-desktop']),
+    ('Claude app',  lambda i, c: c.lower() == 'com.anthropic.claude', ['claude-desktop']),   # 7.11.2026 Marko: "Claude app"
     ('Chrome',      lambda i, c: c == 'Google-chrome' and 'chromium-vm-chrome' in i, None),
     # 5.11.2026: the fourth screen, the Pixel 7 through scrcpy (chromium-vm-pixel7, always running)
     ('Pixel 7',     lambda i, c: c.lower() == 'scrcpy', None),
@@ -41,8 +41,8 @@ PAD, GAP, LABEL, SEP = 14, 16, 22, 18
 # a mini screen of the arrangement; a click runs chromium-vm-snap layout NAME. Slots in fractions of the work area.
 LAYOUTS = [   # Marko, 5.11.2026: only these four, 40 | 60, Claude Code or Claude on the 40 side
     ('Claude Code | Chrome', 'code-chrome', [(0, 0, 0, .4, 1), (2, .4, 0, .6, 1)]),
-    ('Claude | Chrome', 'claude-chrome', [(1, 0, 0, .4, 1), (2, .4, 0, .6, 1)]),
-    ('Claude | Claude Code | Pixel 7', 'triple-pixel', [(1, 0, 0, 1/3, 1), (0, 1/3, 0, 1/3, 1), (3, 2/3, 0, 1/3, 1)]),
+    ('Claude app | Chrome', 'claude-chrome', [(1, 0, 0, .4, 1), (2, .4, 0, .6, 1)]),
+    ('Claude app | Claude Code | Pixel 7', 'triple-pixel', [(1, 0, 0, 1/3, 1), (0, 1/3, 0, 1/3, 1), (3, 2/3, 0, 1/3, 1)]),
 ]
 NT = NA + len(LAYOUTS)      # tiles: the three programs, then the layouts
 SNAP = '/usr/local/lib/chromium-vm/chromium-vm-snap'
@@ -251,13 +251,22 @@ class Dock(Gtk.Window):
                 else:
                     cr.set_source_rgba(*COLOURS[app], 0.55); cr.rectangle(x, y, w, h); cr.fill()
                 cr.set_source_rgb(*COLOURS[app]); cr.set_line_width(1.5); cr.rectangle(x, y, w, h); cr.stroke()
-                name = APPS[app][0]; cr.set_font_size(10); e = cr.text_extents(name)
+                name = APPS[app][0]; fs = 10                               # shrink a name that does not fit its slot
+                while True:
+                    cr.set_font_size(fs); e = cr.text_extents(name)
+                    if e.x_advance <= w - 8 or fs <= 7: break
+                    fs -= 0.5
                 cr.set_source_rgba(0, 0, 0, 0.6); cr.rectangle(x + (w - e.x_advance) / 2 - 3, y + h / 2 - 9, e.x_advance + 6, 13); cr.fill()
                 cr.set_source_rgb(1, 1, 1); cr.move_to(x + (w - e.x_advance) / 2, y + h / 2 + 1); cr.show_text(name)
             if n == self.hover:
                 rounded(tx - 1, ty - 1, self.tw + 2, self.th + 2, 7)
                 cr.set_source_rgba(1, 1, 1, 0.7); cr.set_line_width(2); cr.stroke()
-            cr.set_font_size(12); ext = cr.text_extents(label); cr.set_source_rgba(1, 1, 1, 0.8)
+            fs = 12                                                         # and a layout name wider than its tile
+            while True:
+                cr.set_font_size(fs); ext = cr.text_extents(label)
+                if ext.x_advance <= self.tw or fs <= 8: break
+                fs -= 0.5
+            cr.set_source_rgba(1, 1, 1, 0.8)
             cr.move_to(tx + (self.tw - ext.x_advance) / 2, ty + self.th + 16); cr.show_text(label)
         cr.set_font_size(12)
         for n, (label, _, _) in enumerate(APPS):

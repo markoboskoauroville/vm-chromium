@@ -6,6 +6,7 @@ VNC on the phone. The plan is [PLAN.md](PLAN.md); Marko's words are in [momentar
 
 **Sessions on this VM read the skill [this-machine](.claude/skills/this-machine/SKILL.md) first:** "this machine" is
 this VM, every task runs here, never on the Mac unless Marko says so (7.11.2026). Add every new lesson there.
+Changing the VM itself goes by the skill [update-this-machine](.claude/skills/update-this-machine/SKILL.md).
 
 ## For a cloud session to work on the VM itself
 
@@ -68,7 +69,7 @@ installed with `sudo ./desktop/install.sh`; services chromium-vm-claude-code, ch
 - **Chrome**: the session's Google Chrome (profile ~/.config/chromium-vm-chrome, DevTools for vm-agent). It is also
   the VM's default browser (chromium-vm-chrome.desktop), so sign-in links of the other programs open there.
 - **The dock**: pointer at the bottom edge → it slides up above the status bar: three live screens (Claude Code |
-  Claude | Chrome, 3 refreshes a second while shown; click = that program to the front) and, after a divider, three
+  Claude app | Chrome, 3 refreshes a second while shown; click = that program to the front) and, after a divider, three
   layout displays (click = all programs arranged that way): **Halves** (Claude Code | Chrome), **Thirds** (Claude
   Code | Claude | Chrome), **Chrome + 2** (Chrome two thirds, Claude Code top right, Claude bottom right).
 
