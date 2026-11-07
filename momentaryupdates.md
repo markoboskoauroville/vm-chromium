@@ -237,3 +237,7 @@ the classic way"
 > (7.11.2026) And from now on, we are updating this machine from here. So in the same repository, please add skills to update this machine. Whatever is needed.
 
 **Status:** skill `.claude/skills/update-this-machine` (linked into ~/.claude/skills).
+
+> (7.11.2026) Now let's update this machine. It needs to have two emulators for Android and it needs to have new window arrangement profile when we have Pixel One, Pixel Two, and Claude app. Please do this. So for now make two copies. And let's have this last profile we can replace, where there is Claude app, Claude Code, and Pixel 7. Now we have two Pixel 7 and only Claude app. Please update this on this machine.
+
+**Status:** saved first.
