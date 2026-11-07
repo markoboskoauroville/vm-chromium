@@ -159,3 +159,15 @@ keys stay with macOS while the viewer is in front. ScreenView.keyDown: ⌥Tab �
 ⌘Tab that reaches the view is dropped. Marko tested by hand 5.11.2026: both work.
 Also 5.11.2026: the VM's Claude Code speaks through the Mac with `macsay` (~/.local/bin/macsay, /usr/local/bin/macsay,
 token ~/.config/mantra-door.token, rule in ~/.claude/CLAUDE.md). MANTRA_MANIFEST modules/talk-through-the-mac.md.
+
+## 7.11.2026: session VM_SES1_06-NOV closed (Claude app on the VM)
+
+- New skills, linked into ~/.claude/skills: **this-machine** ("this machine" = this VM, never the Mac unless Marko
+  says so) and **update-this-machine** (how to change the VM from here). ~/.claude/CLAUDE.md: replies text only.
+- Dock: "Claude app" instead of "Claude"; five tiles (Claude Code, Claude app, Chrome, Pixel 1, Pixel 2); layouts
+  Claude Code | Chrome, Claude app | Chrome, **Claude app | Pixel 1 | Pixel 2** (phones at their exact shape, no bars).
+- Two phones: pixel7 (:5555, Pixel 1, signed in) and pixel7b (:5556, Pixel 2, fresh, not signed in; its GSF id still
+  to register at google.com/android/uncertified). Services chromium-vm-pixel7 / chromium-vm-pixel7b.
+- Japri stu barcuni images (Suno, square): Drive My Drive / Mantra References / JAPRI STU BARCUNI (Gemini - Nano
+  Banana in Chrome) / results; references incl. marko_face_portrait.jpg.
+- Left on screen: the Claude app alone, full screen. Nothing running in the background from this session.
