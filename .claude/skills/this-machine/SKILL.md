@@ -71,7 +71,8 @@ to another machine, you go, but not automatically."*
 ## 5. Talking to Marko
 
 - Answer **in this chat as text**. Marko, 6.11.2026: *"Please print here. Don't talk to my voice engine."*
-  `macsay` speaks on the Mac: use it only when he asks to hear something.
+  `macsay` speaks on the Mac: use it only when he asks to hear something. On 7.11.2026 he confirmed "text only", and
+  `~/.claude/CLAUDE.md` on this VM was changed from "macsay at the end of each reply" to text only.
 - When blocked on him, ask here. A Mac session will not act on another session's request for his personal files
   (it needs his own words in its own chat), and it should not be asked to do this machine's work.
 
