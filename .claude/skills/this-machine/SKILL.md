@@ -84,6 +84,26 @@ to another machine, you go, but not automatically."*
   Mac first and no recommendation, and used the Mac Chrome when it was chosen. It also spoke every reply through the
   Mac (`macsay`) and asked a Mac session for Marko's portrait. Fix: sections 1, 2 and 5 above.
 
+## 6b. Testing a keyboard on the two Pixels (7.11.2026, TTT vs SwiftKey)
+
+- Pixel 1 = adb 127.0.0.1:5555 (SwiftKey 9.13, signed in to Marko's Microsoft account, English + Croatian,
+  QWERTY, emoji predictions off; it has no setting for more than three suggestions). Pixel 2 = 127.0.0.1:5556
+  (TTT from the latest GitHub release `gh release download build-N -R markoboskoauroville/TTT`).
+- A test page both phones reach: `python3 -m http.server 8765 --bind 172.17.0.1` (the docker bridge) and open
+  `http://172.17.0.1:8765/pad.html` in `org.chromium.webview_shell/.WebViewBrowserActivity` (data: URLs do not
+  render there). Harness and notes: TTT repo `tools/swiftkey_compare/` (taps by key coordinates, OCR of the
+  strip with tesseract eng+hrv, installed on the VM 7.11.2026).
+- After `adb install -r` or `am force-stop`, Android may fall back to its stock keyboard: run
+  `ime set com.mantraproductions.tttlight/dev.patrickgold.florisboard.FlorisImeService` again. After `pm clear`
+  TTT starts without letter keys (tap its keyboard key at 162,2217), and on the very first start the letters
+  layout can fail to load ("Extension org.florisboard.layouts not found"): force-stop, `ime set`, reopen.
+- Smoke-test every build before anything else: type a few words and grep logcat for `FATAL EXCEPTION`
+  (build 473–477 crashed on the first letter and a long test run would have looked like empty strips).
+- `uiautomator dump` reads SwiftKey's settings screens (tap by label); TTT's keyboard is Compose, screenshots only.
+- Typing into SwiftKey feeds Marko's synced SwiftKey data: use ordinary phrases and obvious test values.
+- `input text` sends digits and symbols fine; letters are better tapped on the keys (the touch model is part of
+  what is tested). Wait ~2.5 s before reading TTT's strip on this emulator: it is slower than a phone.
+
 ## 7. Keep this skill current
 
 Every time we learn something about working on this VM, add it here (the right section, with the date and Marko's
