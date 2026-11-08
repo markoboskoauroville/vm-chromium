@@ -46,10 +46,14 @@ def rclone(*args, timeout=600):
 
 # ---- the batch and what is done -----------------------------------------------------------------------------------
 def fetch_batch():
-    os.makedirs(REFS_LOCAL, exist_ok=True)
-    rclone('copy', BATCH_DRIVE + '/refs', REFS_LOCAL)
+    # 8.11.2026 (Santoshi band faces): the batch names its own refs folder on Drive ("refs", under Chromium Downloads/),
+    # kept in its own local folder, so one batch never mixes another's references
     r = rclone('cat', BATCH_DRIVE + '/batch.json')
-    return json.loads(r.stdout)
+    batch = json.loads(r.stdout)
+    local = os.path.join(REFS_LOCAL, batch.get('name', 'batch')); os.makedirs(local, exist_ok=True)
+    rclone('sync', DRIVE + batch.get('refs', 'Gemini/_batch/refs'), local)
+    batch['_refs_local'] = local
+    return batch
 
 def done_names(folder):
     names = set()
@@ -109,8 +113,11 @@ def one(tab, batch, item, refs):
         time.sleep(1)
     st = ev(NEWEST, tab)
     if limit_text(st): return 'limit', st
-    call('paste_files', tab=tab, files=random.sample(refs, min(batch.get('refs_per_image', 2), len(refs)))); time.sleep(5)
-    prompt = f"Create an image: {item['scene']} {batch['who']} {batch['style']}"
+    # an item may name its own references (in this order) and carry its whole prompt (8.11.2026)
+    files = ([os.path.join(batch['_refs_local'], f) for f in item['refs']] if item.get('refs')
+             else random.sample(refs, min(batch.get('refs_per_image', 2), len(refs))))
+    call('paste_files', tab=tab, files=files); time.sleep(5 + 2 * len(files))
+    prompt = item.get('prompt') or f"Create an image: {item['scene']} {batch['who']} {batch['style']}"
     ev(f'''(() => {{ const b = document.querySelector("rich-textarea .ql-editor"); b.focus();
         document.execCommand("insertText", false, {json.dumps(prompt)}); return true; }})()''', tab)
     time.sleep(1.5)
@@ -173,7 +180,7 @@ def main():
     while True:
         try:
             batch = fetch_batch()
-            refs = sorted(os.path.join(REFS_LOCAL, f) for f in os.listdir(REFS_LOCAL) if f.lower().endswith(('.jpg', '.jpeg', '.png')))
+            refs = sorted(os.path.join(batch['_refs_local'], f) for f in os.listdir(batch['_refs_local']) if f.lower().endswith(('.jpg', '.jpeg', '.png')))
             done = done_names(batch['folder'])
             todo = [i for i in batch['items'] if i['name'] not in done]
             if not todo:
