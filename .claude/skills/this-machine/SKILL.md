@@ -117,6 +117,24 @@ to another machine, you go, but not automatically."*
   transcribes the file there with the chosen engine. Script: session scratchpad `voice.sh`. If the system dies
   (inputflinger abort in the crash buffer, 7.11.2026 22:45), the run is void: redo it.
 
+## 6c. Marko's real Pixel 7 over Tailscale (8.11.2026)
+
+Marko, 8.11.2026: *"feel free to use tailscale to access this phone"*, *"You have this phone now for next hours."*
+- `adb connect 100.70.23.53:5555` (Tailscale name pixel-7; tcpip 5555 is on). A first "failed to authenticate" means
+  the phone is asking to allow this computer: connect again after a few seconds.
+- Release build, no root: no prefs file, no history database. Read TTT through screenshots and `logcat` (TTT logs
+  counts only, never words). Settings deep links work as on the emulator (BROWSABLE).
+- A test page: serve it on 127.0.0.1 and `adb reverse tcp:8767 tcp:8767`; do not bind a server to the Tailscale
+  address (refused as exposing a service). Run `python3 -I -m http.server --directory <dir>` from `/`: run in the
+  scratchpad, `-m http.server` picked up a harness file and ran it instead.
+- Voice on the real phone: Chrome plays the clip through the speaker, TTT's E/H key records it (real acoustics).
+  The E key on Croatian speech gives English nonsense or even Russian Cyrillic; record Croatian with H.
+- Turning on an Accessibility service from adb (`settings put secure enabled_accessibility_services`) is refused
+  here: Marko switches it on himself.
+- His keyboard layout (1080x2400): letters rows y 1639/1788/1937, space 593,2086, E key 540,2216, H key 1038,2216,
+  strip y 1205-1291. Harness: scratchpad `kb.py` phone `p7`.
+- The VM phones have only a stub microphone (silence): TTT repo `tools/vm_voice/vsay.sh` is the virtual microphone.
+
 ## 7. Keep this skill current
 
 Every time we learn something about working on this VM, add it here (the right section, with the date and Marko's
