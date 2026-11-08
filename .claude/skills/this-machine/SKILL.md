@@ -103,6 +103,19 @@ to another machine, you go, but not automatically."*
 - Typing into SwiftKey feeds Marko's synced SwiftKey data: use ordinary phrases and obvious test values.
 - `input text` sends digits and symbols fine; letters are better tapped on the keys (the touch model is part of
   what is tested). Wait ~2.5 s before reading TTT's strip on this emulator: it is slower than a phone.
+- 8.11.2026: under load the harness's Shift taps land late and type "hVla", "zaSOt": a miss on such a word is the
+  harness, not TTT. Long words need ~4 s before space here; a miss at 2.2 s is usually timing. Probe one word alone.
+- The phones are redroid, userdebug: `adb shell su 0 ...` is root. TTT's prefs are plain text in
+  `/data/data/com.mantraproductions.tttlight/jetpref_datastore/florisboard-app-prefs.jetpref` (`s;key;"value"`),
+  its dictation history in `databases/dictate_history` (sqlite3 is on the phone).
+- TTT settings deep links need the BROWSABLE category, or they open the extension importer:
+  `am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d ui://florisboard/settings/...
+  -n com.mantraproductions.tttlight/dev.patrickgold.florisboard.app.FlorisAppActivity`.
+- Voice without a microphone (Marko, 7.11.2026: "test parakeet with artificially created voices with edge TTS"):
+  edge-tts in a venv (voices hr-HR-SreckoNeural, hr-HR-GabrijelaNeural, en-US-*), `ffmpeg -nostdin` to 16 kHz mono
+  WAV, copy as root into TTT's `cache/dictate_pending/` (chown to the app uid), then focus a text field: TTT
+  transcribes the file there with the chosen engine. Script: session scratchpad `voice.sh`. If the system dies
+  (inputflinger abort in the crash buffer, 7.11.2026 22:45), the run is void: redo it.
 
 ## 7. Keep this skill current
 
