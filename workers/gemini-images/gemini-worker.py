@@ -67,6 +67,28 @@ def done_names(folder):
 # ---- the Gemini tab of the batch's account -----------------------------------------------------------------------
 ACCOUNT_JS = '(document.querySelector("a[aria-label*=\\"Google Account\\"]")||{}).ariaLabel||""'
 
+CHROME_DIR = os.path.expanduser('~/.config/chromium-vm-chrome')
+_launched = {}
+def launch_profile(account):
+    # find the Chrome profile directory of this Google account in Local State and open its window on Gemini
+    if time.time() - _launched.get(account, 0) < 120: return False
+    try:
+        info = json.load(open(os.path.join(CHROME_DIR, 'Local State')))['profile']['info_cache']
+        prof = next(k for k, v in info.items() if v.get('user_name') == account)
+    except Exception: return False
+    _launched[account] = time.time()
+    subprocess.Popen(['/opt/google/chrome/chrome', f'--user-data-dir={CHROME_DIR}', f'--profile-directory={prof}', 'https://gemini.google.com/app'],
+                     env=dict(os.environ, DISPLAY=':1'), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(15); return True
+
+def gemini_tab_noretry(account):
+    for t in call('cdp', method='Target.getTargets', params={}, tab='browser')['targetInfos']:
+        if t['type'] == 'page' and 'gemini.google.com' in t['url']:
+            try:
+                if account in ev(ACCOUNT_JS, t['targetId']): return t['targetId']
+            except Exception: pass
+    raise RuntimeError(f'no Chrome profile signed in to Gemini as {account}')
+
 def gemini_tab(account):
     tabs = call('cdp', method='Target.getTargets', params={}, tab='browser')['targetInfos']
     pages = [t for t in tabs if t['type'] == 'page']
@@ -82,6 +104,8 @@ def gemini_tab(account):
             if account in ev(ACCOUNT_JS, tid): return tid
         except Exception: pass
         call('cdp', method='Target.closeTarget', params={'targetId': tid}, tab='browser')
+    if launch_profile(account):                                           # 8.11.2026: open the account's profile window ourselves
+        return gemini_tab_noretry(account)
     raise RuntimeError(f'no Chrome profile signed in to Gemini as {account}')
 
 NEWEST = '''(() => { const im = [...document.querySelectorAll('generated-image img, model-response img')].filter(i => i.naturalWidth >= 700 && i.complete);
@@ -177,6 +201,7 @@ def main():
         if r['stop'] == 'running': r['stop'] = 'the worker was restarted'
     def save_rounds():
         json.dump([dict(r, start=r['start'].isoformat()) for r in rounds], open(os.path.join(STATE, 'rounds.json'), 'w'), indent=1)
+    exhausted_until = {}
     while True:
         try:
             batch = fetch_batch()
@@ -185,25 +210,36 @@ def main():
             todo = [i for i in batch['items'] if i['name'] not in done]
             if not todo:
                 log('batch complete; looking again in an hour'); write_results(batch, rounds, 0, None); time.sleep(3600); continue
-            tab = gemini_tab(batch['account'])
-            rnd = {'start': dt.datetime.utcnow(), 'made': 0, 'failed': 0, 'stop': 'running', 'items': []}
-            rounds.append(rnd); log(f'round starts: {len(todo)} to make, tab {tab[:8]}')
+            accounts = batch.get('accounts') or [batch['account']]
+            now = dt.datetime.utcnow()
+            exhausted = {a: t for a, t in exhausted_until.items() if t > now}     # accounts still at their limit
+            rnd = {'start': now, 'made': 0, 'failed': 0, 'stop': 'running', 'items': []}
+            rounds.append(rnd); log(f'round starts: {len(todo)} to make, accounts {accounts}, exhausted {list(exhausted)}')
             next_at = None
             for item in todo:
-                try:
-                    res, st = one(tab, batch, item, refs)
-                except Exception as e:
-                    res, st = f'error {e}', {'tail': ''}
+                res = None
+                while True:
+                    live = [a for a in accounts if exhausted_until.get(a, now) <= dt.datetime.utcnow()]
+                    if not live:
+                        next_at = min(exhausted_until[a] for a in accounts); rnd['stop'] = f"every account at its limit after {rnd['made']} images"; res = 'allout'; break
+                    acct = live[0]
+                    try:
+                        tab = gemini_tab(acct)
+                        res, st = one(tab, batch, item, refs)
+                    except Exception as e:
+                        res, st = f'error {e}', {'tail': ''}
+                    if res == 'limit':
+                        exhausted_until[acct] = reset_time(st['tail']); log(f"{acct}: limit, resets {exhausted_until[acct]:%H:%M} UTC; switching"); continue
+                    break
+                if res == 'allout': break
                 stamp = dt.datetime.now(zoneinfo.ZoneInfo('Europe/Zagreb')).strftime('%H:%M CT')
                 if res.startswith('saved'):
-                    rnd['made'] += 1; rnd['items'].append(f"{stamp}  {item['name']}  {res}")
-                elif res == 'limit':
-                    next_at = reset_time(st['tail']); rnd['stop'] = f"Gemini's limit after {rnd['made']} images"; break
+                    rnd['made'] += 1; rnd['items'].append(f"{stamp}  {item['name']}  {res}  ({acct})")
                 else:
-                    rnd['failed'] += 1; rnd['items'].append(f"{stamp}  {item['name']}  {res}")
+                    rnd['failed'] += 1; rnd['items'].append(f"{stamp}  {item['name']}  {res}  ({acct})")
                     if rnd['failed'] >= 5 and rnd['made'] == 0:
                         next_at = dt.datetime.utcnow() + dt.timedelta(hours=1); rnd['stop'] = 'five failures in a row'; break
-                log(f"{item['name']}: {res}")
+                log(f"{item['name']}: {res} ({acct})")
                 save_rounds(); write_results(batch, rounds, len(todo) - rnd['made'] - rnd['failed'], None)
                 time.sleep(random.uniform(*batch.get('pause_seconds', [60, 150])))
             else:
