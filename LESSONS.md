@@ -117,3 +117,7 @@
   look at a `cvm shot` before pressing Return.
 - A push GitHub rejected ("fatal error in commit_refs_rules") and then accepted started no workflow run: check
   `gh run list` after every push and dispatch it by hand when missing.
+
+## 9.11.2026
+- Never test a mouse fix with synthetic CGEvent moves: they merge with Marko's real pointer and take it. Ask the app (door `hit_test`) instead; the debug entry is cheaper and safe.
+- A hidden Mac arrow (CGDisplayHideCursor + SetsCursorInBackground) survives a window covering the viewer: decide per event whether the point is the viewer's own pixels, and add a global monitor for moves the viewer never receives.

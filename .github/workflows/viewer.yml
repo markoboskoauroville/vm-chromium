@@ -10,7 +10,7 @@ on:
 permissions:
   contents: write
 env:
-  APP: "VM Machine Remote (Mantra)"
+  APP: "VM Machine Remote Viewer (Mantra)"
   VERSION_FILE: viewer/app/App.swift
 jobs:
   build:

@@ -14,6 +14,7 @@ protocol RFBDelegate: AnyObject {
     func rfbClosed(reason: String)
 }
 
+var pointerSent = 0   // v28: pointer messages sent to the VM (the door's status shows it, for tests)
 final class RFB {
     weak var delegate: RFBDelegate?
     private var input: InputStream?
@@ -125,6 +126,7 @@ final class RFB {
     }
 
     func pointer(x: Int, y: Int, buttons: UInt8) {
+        pointerSent += 1
         try? write([5, buttons] + be16(max(0, x)) + be16(max(0, y)))
     }
 

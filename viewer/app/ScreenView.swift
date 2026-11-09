@@ -131,9 +131,77 @@ final class ScreenView: NSView {
         let w = CGFloat(rfb.width) * k, h = CGFloat(rfb.height) * k
         return NSRect(x: (bounds.width - w) / 2, y: (bounds.height - h) / 2, width: w, height: h)
     }
+    // v27 (Marko, 9.11.2026: "some other window is on top of it, right now it's Speechify, I cannot click on Speechify. The
+    // VM machine is taking my mouse"): the mouse is the VM's only where the point under the arrow is really this window's
+    // own pixels. Any other app's visible window above ours at that point (floating panels, banners, menu bar, Dock)
+    // means: arrow back, nothing forwarded.
+    private var coverCache: (t: CFTimeInterval, list: [CGRect]) = (0, [])
+    private func coverRects() -> [CGRect] {
+        let now = CACurrentMediaTime()
+        if now - coverCache.t < 0.05 { return coverCache.list }
+        var out: [CGRect] = []
+        if let win = window, win.windowNumber > 0,
+           let info = CGWindowListCopyWindowInfo([.optionOnScreenAboveWindow, .excludeDesktopElements], CGWindowID(win.windowNumber)) as? [[String: Any]] {
+            let me = getpid()
+            let full = CGDisplayBounds(CGMainDisplayID())
+            for w in info {
+                if let pid = w[kCGWindowOwnerPID as String] as? Int32, pid == me { continue }
+                if let a = w[kCGWindowAlpha as String] as? Double, a <= 0.01 { continue }
+                if let l = w[kCGWindowLayer as String] as? Int, l < 0 { continue }
+                guard let bd = w[kCGWindowBounds as String] as? NSDictionary, let r = CGRect(dictionaryRepresentation: bd as CFDictionary),
+                      r.width > 1, r.height > 1 else { continue }
+                // a see-through overlay that spans a whole display is not a window to click on
+                if r.width >= full.width - 2 && r.height >= full.height - 2 && (w[kCGWindowLayer as String] as? Int ?? 0) != 0 { continue }
+                out.append(r)
+            }
+        }
+        coverCache = (now, out); return out
+    }
+    /// A point in screen coordinates (origin top-left, as CGWindowList) covered by another app's window?
+    func coveredByOtherWindow(screenPoint p: NSPoint) -> Bool {
+        guard let screen = NSScreen.screens.first else { return false }
+        let q = CGPoint(x: p.x, y: screen.frame.maxY - p.y)
+        return coverRects().contains { $0.contains(q) }
+    }
+    /// Debug (door action hit_test): the same overlay check at a point given in CG screen coordinates (top-left origin).
+    func hitTest(cgX: Double, cgY: Double) -> String {
+        guard let win = window, win.windowNumber > 0 else { return "no window" }
+        let q = CGPoint(x: cgX, y: cgY)
+        coverCache.t = 0
+        guard let info = CGWindowListCopyWindowInfo([.optionOnScreenAboveWindow, .excludeDesktopElements], CGWindowID(win.windowNumber)) as? [[String: Any]] else { return "no list" }
+        let me = getpid(); let full = CGDisplayBounds(CGMainDisplayID())
+        for w in info {
+            if let pid = w[kCGWindowOwnerPID as String] as? Int32, pid == me { continue }
+            if let a = w[kCGWindowAlpha as String] as? Double, a <= 0.01 { continue }
+            let l = w[kCGWindowLayer as String] as? Int ?? 0
+            if l < 0 { continue }
+            guard let bd = w[kCGWindowBounds as String] as? NSDictionary, let r = CGRect(dictionaryRepresentation: bd as CFDictionary), r.width > 1, r.height > 1 else { continue }
+            if r.width >= full.width - 2 && r.height >= full.height - 2 && l != 0 { continue }
+            if r.contains(q) { return "covered by \(w[kCGWindowOwnerName as String] as? String ?? "?")" }
+        }
+        let f = win.frame, top = (NSScreen.screens.first?.frame.maxY ?? 0) - f.maxY
+        let inOurs = q.x >= f.minX && q.x <= f.maxX && q.y >= top && q.y <= top + f.height
+        return inOurs ? "ours" : "outside the viewer window"
+    }
+    private func covered(_ e: NSEvent) -> Bool {
+        guard let win = window else { return false }
+        return coveredByOtherWindow(screenPoint: win.convertPoint(toScreen: e.locationInWindow))
+    }
+    /// Global monitor: mouse moves over other apps' windows (the viewer gets none of them) give the arrow back at once.
+    private var globalMonitor: Any?
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if let m = globalMonitor { NSEvent.removeMonitor(m); globalMonitor = nil }
+        guard window != nil else { return }
+        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]) { [weak self] _ in
+            guard let self, self.buttons == 0 else { return }
+            self.macCursor(hidden: false)
+        }
+    }
     private func onPicture(_ e: NSEvent) -> Bool {
         let p = convert(e.locationInWindow, from: nil)
         guard let r = pictureRect(), r.contains(p) else { return false }
+        if buttons == 0, covered(e) { return false }
         if let over = isOverControls, over(e.locationInWindow) { return false }
         return true
     }

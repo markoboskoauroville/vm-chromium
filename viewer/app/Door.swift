@@ -12,6 +12,7 @@ final class Door {
     static let actions: [(String, String, [String: String])] = [
         ("status", "connected or not, the VM's screen size, the window's size", [:]),
         ("show", "brings the window to the front", [:]),
+        ("hit_test", "who owns the point under x,y (screen, top-left origin): ours or covered by <app>; never moves the pointer", ["x": "num", "y": "num"]),
         ("fullscreen", "switches full screen on or off", [:]),
         ("reconnect", "drops the VNC connection and connects again", [:]),
         ("send_file", "sends a Mac file to ~/Downloads on the VM", ["path": "str"]),
@@ -73,7 +74,10 @@ final class Door {
         case "status":
             let s = app.screen.bounds.size
             reply(200, ["ok": true, "result": ["connected": app.connected, "vm": "\(app.rfb?.width ?? 0)x\(app.rfb?.height ?? 0)",
-                                               "window": "\(Int(s.width))x\(Int(s.height))", "fullscreen": app.window.styleMask.contains(.fullScreen)]])
+                                               "window": "\(Int(s.width))x\(Int(s.height))", "fullscreen": app.window.styleMask.contains(.fullScreen), "pointer_sent": pointerSent]])
+        case "hit_test":
+            let r = app.screen.hitTest(cgX: (args["x"] as? Double) ?? 0, cgY: (args["y"] as? Double) ?? 0)
+            reply(200, ["ok": true, "result": r])
         case "show":
             app.window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true); reply(200, ["ok": true, "result": "shown"])
         case "fullscreen":
