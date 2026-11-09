@@ -252,3 +252,7 @@ the classic way"
 
 **Status:** saved first.
 **Status (7.11.2026, ~06:05):** new layout **Claude Code | Pixel 1 | Pixel 2** (code-pixels), a copy of claude-pixels with Claude Code in the first stripe; both are in the dock (now four layout displays). Deployed dock + snap, seen on screen.
+
+> (9.11.2026) please fix the VM machine remote viewer. Add also 'viewer' at the end: 'VM Machine Remote Viewer', and change the name now. We need to build it to detect overlaying windows. This is a disaster now. When I come to this remote with the mouse and some other window is on top of it — right now it's Speechify — I cannot click on Speechify. The VM machine is taking my mouse, and then I'm handicapped.
+
+**Status:** saved first.
