@@ -260,3 +260,7 @@ the classic way"
 ## 9.11.2026, Marko (confirmed)
 "I can confirm that you fixed VM machine remote viewer and it works with overlaying windows. Thank you."
 **Status:** confirmed by Marko: VM Machine Remote Viewer (Mantra) v28 takes the mouse only where its own window is on top; covered points (Speechify, Firefox, the menu bar, banners) keep the Mac pointer. Nothing else changed.
+
+> (9.11.2026) Close anything that doesn't run now, and make this automatic in the machine: it just closes it and puts that application down there in the dock at the bottom of the display, and I can start it again. For now just close what is idle.
+
+**Status:** saved first. Building the idle reaper (chromium-vm-reaper) + dock buttons + on-demand start.
