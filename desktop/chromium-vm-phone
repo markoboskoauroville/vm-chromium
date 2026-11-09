@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+"""chromium-vm-phone: start, stop and mark the two cloud Pixel 7s (redroid containers) on demand.
+
+Marko, 9.11.2026: "Close anything that doesn't run now, and make this automatic in the machine: it just closes it and
+puts that application down there in the dock, and I can start it again." The phones are not always on: the reaper
+(chromium-vm-reaper) stops an idle one, the dock's "Pixel N ▶" button, pixel7d and pixel7-jobs start it again.
+
+  chromium-vm-phone start N [--mirror]   docker start, wait for Android to boot; --mirror also starts its scrcpy screen
+  chromium-vm-phone ensure N             same without the mirror (what pixel7d / pixel7-jobs call); marks use
+  chromium-vm-phone stop N [reason]      mirror first (else scrcpy loops on a dead device), then the container
+  chromium-vm-phone touch N              marks the phone as used now (the reaper's idle clock)
+  chromium-vm-phone status               one line per phone: running / stopped, mirror
+N: 1 = container pixel7 (adb 127.0.0.1:5555), 2 = container pixel7b (127.0.0.1:5556).
+"""
+import fcntl, os, subprocess, sys, time
+
+PH = {1: dict(c='pixel7', serial='127.0.0.1:5555', units=['chromium-vm-pixel7', 'chromium-vm-pixel7-bar']),
+      2: dict(c='pixel7b', serial='127.0.0.1:5556', units=['chromium-vm-pixel7b'])}
+CACHE = os.path.expanduser('~/.cache/chromium-vm'); os.makedirs(CACHE, exist_ok=True)
+LOG = os.path.join(CACHE, 'reaper.log')
+
+
+def log(msg):
+    with open(LOG, 'a') as f:
+        f.write(time.strftime('%Y-%m-%d %H:%M:%S ') + msg + '\n')
+
+
+def run(*a, t=60):
+    return subprocess.run(a, capture_output=True, text=True, timeout=t)
+
+
+def running(n):
+    return run('docker', 'inspect', '-f', '{{.State.Running}}', PH[n]['c']).stdout.strip() == 'true'
+
+
+def touch(n):
+    open(os.path.join(CACHE, f'phone-{n}.touch'), 'a').close()
+    os.utime(os.path.join(CACHE, f'phone-{n}.touch'))
+
+
+def unit_active(u):
+    return run('systemctl', 'is-active', '--quiet', u).returncode == 0
+
+
+def booted(n):
+    s = PH[n]['serial']
+    run('adb', 'connect', s, t=15)
+    return run('adb', '-s', s, 'shell', 'getprop sys.boot_completed', t=15).stdout.strip() == '1'
+
+
+def start(n, mirror=False, wait=240):
+    with open(os.path.join(CACHE, f'phone-{n}.lock'), 'w') as lk:
+        fcntl.flock(lk, fcntl.LOCK_EX)
+        touch(n)
+        if not running(n):
+            r = run('docker', 'start', PH[n]['c'], t=120)
+            log(f'phone {n} started ({"mirror" if mirror else "on demand"}); docker: {r.stdout.strip() or r.stderr.strip()}')
+        t0 = time.time()
+        while time.time() - t0 < wait and not booted(n):
+            time.sleep(2)
+        ok = booted(n)
+        touch(n)
+        if mirror:
+            for u in PH[n]['units']:
+                if not unit_active(u):
+                    run('sudo', '-n', 'systemctl', 'start', u)
+        print(f'phone {n}: {"booted" if ok else "NOT booted"} after {int(time.time() - t0)} s')
+        return ok
+
+
+def stop(n, reason='manual'):
+    with open(os.path.join(CACHE, f'phone-{n}.lock'), 'w') as lk:
+        fcntl.flock(lk, fcntl.LOCK_EX)
+        for u in PH[n]['units']:                 # the mirror first: scrcpy restarts every 3 s while the device is gone
+            if unit_active(u):
+                run('sudo', '-n', 'systemctl', 'stop', u)
+                log(f'STOP {u}: {reason}')
+        if running(n):
+            run('docker', 'stop', '-t', '10', PH[n]['c'], t=60)
+            run('adb', 'disconnect', PH[n]['serial'], t=10)
+            log(f'STOP container {PH[n]["c"]} (Pixel {n}): {reason}')
+
+
+if __name__ == '__main__':
+    a = sys.argv[1:]
+    if not a:
+        sys.exit(__doc__)
+    if a[0] == 'status':
+        for n in PH:
+            print(f'Pixel {n}: {"running" if running(n) else "stopped"}, mirror {"on" if unit_active(PH[n]["units"][0]) else "off"}')
+    else:
+        n = int(a[1])
+        if a[0] == 'start': sys.exit(0 if start(n, '--mirror' in a) else 1)
+        elif a[0] == 'ensure': sys.exit(0 if start(n) else 1)
+        elif a[0] == 'stop': stop(n, ' '.join(a[2:]) or 'manual')
+        elif a[0] == 'touch': touch(n)
+        else: sys.exit(__doc__)

@@ -57,6 +57,30 @@ SNAP_NAMES = ['code', 'claude', 'chrome', 'pixel', 'pixel2']       # the snap to
 COLOURS = [(0.85, 0.47, 0.34), (0.55, 0.45, 0.85), (0.30, 0.62, 0.90), (0.36, 0.75, 0.45), (0.90, 0.72, 0.25)]   # Claude Code, Claude app, Chrome, Pixel 1, Pixel 2
 REFRESH_MS = 330      # thumbnails while the dock is up
 
+# 9.11.2026 (Marko: "it just closes it and puts that application down there in the dock, and I can start it again"):
+# the reaper (chromium-vm-reaper) stops idle phones; a stopped app is a button "Pixel 1 ▶" in its tile. This thread
+# asks docker which phone containers run, and reads the load, every 3 s.
+PHONE_C = {3: 'pixel7', 4: 'pixel7b'}          # tile index -> container
+STATE = {'up': {3: True, 4: True}, 'load': '', 'starting': {}}
+_cpu = [0, 0]
+
+
+def poll_state():
+    while True:
+        try:
+            names = subprocess.run(['docker', 'ps', '--format', '{{.Names}}'], capture_output=True, text=True, timeout=10).stdout.split()
+            STATE['up'] = {n: c in names for n, c in PHONE_C.items()}
+            l1 = open('/proc/loadavg').read().split()[0]
+            f = [int(x) for x in open('/proc/stat').readline().split()[1:]]
+            tot, idle = sum(f), f[3] + f[4]
+            pct = 100 * (1 - (idle - _cpu[1]) / max(1, tot - _cpu[0])) if _cpu[0] else 0
+            _cpu[0], _cpu[1] = tot, idle
+            STATE['load'] = f'load {l1} · cpu {pct:.0f}%'
+        except Exception:
+            pass
+        time.sleep(3)
+
+
 XD = xdisplay.Display()
 ROOT = XD.screen().root
 A_STACK = XD.intern_atom('_NET_CLIENT_LIST_STACKING')
@@ -110,6 +134,7 @@ class Dock(Gtk.Window):
         Keybinder.init()
         Keybinder.bind('<Super>Tab', self.on_cmd_tab)
         threading.Thread(target=self.watch_super, daemon=True).start()
+        threading.Thread(target=poll_state, daemon=True).start()
         GLib.timeout_add(70, self.poll)
         GLib.timeout_add(REFRESH_MS, self.refresh)
         GLib.timeout_add(1000, self.track)
@@ -156,6 +181,7 @@ class Dock(Gtk.Window):
             subprocess.run(['wmctrl', '-i', '-r', str(wid), '-b', 'add,maximized_vert,maximized_horz'],
                            capture_output=True, timeout=3)
         else:   # 5.11.2026: no window = not running: the snap tool starts it, waits for it, shows it full
+            STATE['starting'][n] = time.time()
             subprocess.Popen([SNAP, 'show', SNAP_NAMES[n]], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                              start_new_session=True)
         GLib.timeout_add(150, lambda: (self.track(), self.queue_draw(), False)[2])
@@ -291,16 +317,27 @@ class Dock(Gtk.Window):
                 cr.paint(); cr.restore()
             else:
                 rounded(tx, ty, self.tw, self.th, 6); cr.set_source_rgb(0.2, 0.2, 0.22); cr.fill()
-                cr.set_source_rgba(1, 1, 1, 0.5); cr.move_to(tx + 10, ty + self.th / 2); cr.show_text('starting …')
+                starting = time.time() - STATE['starting'].get(n, 0) < 120
+                cr.set_source_rgba(*COLOURS[n], 0.9 if not starting else 0.5); cr.set_font_size(15)
+                big = 'starting …' if starting else f'{label} ▶'
+                be = cr.text_extents(big); cr.move_to(tx + (self.tw - be.x_advance) / 2, ty + self.th / 2 + 4); cr.show_text(big)
+                cr.set_font_size(10); cr.set_source_rgba(1, 1, 1, 0.45)
+                sm = 'stopped, click to start' if not starting else 'booting Android'
+                if n in PHONE_C and STATE['up'].get(n) and not starting: sm = 'running, screen off ▶'
+                se = cr.text_extents(sm); cr.move_to(tx + (self.tw - se.x_advance) / 2, ty + self.th / 2 + 22); cr.show_text(sm)
+                cr.set_font_size(12)
             if n == self.front:
                 rounded(tx - 1.5, ty - 1.5, self.tw + 3, self.th + 3, 7)
                 cr.set_source_rgb(0.85, 0.47, 0.34); cr.set_line_width(3); cr.stroke()      # Claude's orange
             elif n == self.hover:
                 rounded(tx - 1, ty - 1, self.tw + 2, self.th + 2, 7)
                 cr.set_source_rgba(1, 1, 1, 0.7); cr.set_line_width(2); cr.stroke()
-            ext = cr.text_extents(label)
+            lab = label + ('  ●' if pb is not None else '  ▶')
+            ext = cr.text_extents(lab)
             cr.set_source_rgb(1, 1, 1) if n == self.front else cr.set_source_rgba(1, 1, 1, 0.8)
-            cr.move_to(tx + (self.tw - ext.x_advance) / 2, ty + self.th + 16); cr.show_text(label)
+            cr.move_to(tx + (self.tw - ext.x_advance) / 2, ty + self.th + 16); cr.show_text(lab)
+        cr.set_font_size(11); cr.set_source_rgba(1, 1, 1, 0.55)                   # the load readout, top right
+        le = cr.text_extents(STATE['load']); cr.move_to(self.w - PAD - le.x_advance, 12); cr.show_text(STATE['load'])
         return False
 
     # ---- input ---------------------------------------------------------------------------------------------------

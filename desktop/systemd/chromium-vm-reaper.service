@@ -1,0 +1,9 @@
+[Unit]
+Description=chromium-vm: the reaper stops idle heavy apps (Pixel phones, their mirrors) and logs why
+After=docker.service
+
+[Service]
+Type=oneshot
+User=@VM_USER@
+EnvironmentFile=-/etc/chromium-vm-reaper.conf
+ExecStart=/usr/bin/python3 /usr/local/lib/chromium-vm/chromium-vm-reaper.py

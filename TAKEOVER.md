@@ -1,5 +1,15 @@
 # TAKEOVER
 
+**9.11.2026 (idle reaper, task 66):** the two cloud phones are on demand. `chromium-vm-reaper.timer` (every 2 min, idle
+20 min from /etc/chromium-vm-reaper.conf) runs `chromium-vm-reaper.py`: stops a Pixel mirror (scrcpy + bar) nobody looks at,
+then the container when no job/pixel7d use (mark `chromium-vm-phone touch`, the pixel7 lock) and no viewer; also the Claude
+app when hot (>40% CPU) and unattended. Never touched: transcriber, Xvnc, dock, vm-agent, Gemini worker, Chrome, sshd, tailscale.
+Every stop is a line in ~/.cache/chromium-vm/reaper.log. `chromium-vm-phone start|ensure|stop|touch|status N` does the work;
+the dock shows "Pixel N ▶" for a stopped phone (click = start, boots Android, mirror opens) and a load/cpu readout;
+pixel7d and pixel7-jobs call `ensure 1` (docker start, wait for boot). The scrcpy services and the bar are no longer
+enabled at boot. Verified: dock click via xdotool started Pixel 1 (boot ~40 s), reaper (idle 1 min) stopped mirror then
+container, pixel7d /screenshot started it again in 28 s. Load 12 -> 0.35 after the stops.
+
 **5.11.2026 (session mac-os-ses1-05-nov, closed):** later the same afternoon v23 ⌘W minimizes, v24 Rectangle's keys stay on the Mac (RectangleKeys.swift), v25 hover mouse baked in (Mac arrow hidden over the picture, BackgroundCursor). Installed in /Applications: **v25**. Not yet tried by Marko's hand: green/yellow, ⌘W, a Rectangle key, the hover.
 
 **5.11.2026 (~15:00):** viewer **v22**: a normal Mac title bar again (close, minimize, green =

@@ -48,8 +48,10 @@ LAUNCH = {
     'code': ['sudo', '-n', 'systemctl', 'start', 'chromium-vm-claude-code'],
     'claude': ['claude-desktop'],
     'chrome': ['google-chrome-stable', f'--user-data-dir={CHROME_PROFILE}', '--new-window'],
-    'pixel': ['sudo', '-n', 'systemctl', 'start', 'chromium-vm-pixel7'],
-    'pixel2': ['sudo', '-n', 'systemctl', 'start', 'chromium-vm-pixel7b'],
+    # 9.11.2026: the phones are on demand (the reaper stops idle ones): the phone tool starts the container, waits for
+    # Android and starts the scrcpy screen
+    'pixel': ['/usr/local/lib/chromium-vm/chromium-vm-phone', 'start', '1', '--mirror'],
+    'pixel2': ['/usr/local/lib/chromium-vm/chromium-vm-phone', 'start', '2', '--mirror'],
 }
 
 def launch(name):
@@ -62,6 +64,7 @@ def launch(name):
     if unit and subprocess.run(['systemctl', 'is-active', '--quiet', unit]).returncode == 0:
         subprocess.run(['sudo', '-n', 'systemctl', 'restart', unit], capture_output=True)
         return
+    # 9.11.2026: not active = the reaper stopped it (or never started): the phone tool brings the container up first
     subprocess.Popen(LAUNCH[name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
 
 def ensure(names, wait=40):

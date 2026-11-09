@@ -121,3 +121,9 @@
 ## 9.11.2026
 - Never test a mouse fix with synthetic CGEvent moves: they merge with Marko's real pointer and take it. Ask the app (door `hit_test`) instead; the debug entry is cheaper and safe.
 - A hidden Mac arrow (CGDisplayHideCursor + SetsCursorInBackground) survives a window covering the viewer: decide per event whether the point is the viewer's own pixels, and add a global monitor for moves the viewer never receives.
+
+## 9.11.2026 (idle reaper)
+- Stop the scrcpy mirror before the container: with Restart=always it loops on `adb wait-for-device` and burns CPU. 30 fps software mirrors of idle phones put the 2-core VM at load 12.
+- "Is anyone looking" = VNC client on :5901 + its window mapped + (it is the front window or X input within the idle time); X idle comes from python-xlib screensaver_query_info (no xprintidle on the VM).
+- redroid takes ~40 s to boot_completed: on-demand callers (pixel7d, jobs) must wait; a request to a stopped phone takes ~30 s the first time.
+- Disabled units (scrcpy x2, bar) stay disabled; docker restart policy unless-stopped keeps a stopped container stopped across reboot.

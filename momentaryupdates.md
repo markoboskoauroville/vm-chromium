@@ -264,3 +264,4 @@ the classic way"
 > (9.11.2026) Close anything that doesn't run now, and make this automatic in the machine: it just closes it and puts that application down there in the dock at the bottom of the display, and I can start it again. For now just close what is idle.
 
 **Status:** saved first. Building the idle reaper (chromium-vm-reaper) + dock buttons + on-demand start.
+**Status (9.11.2026, ~16:35):** built and tested: reaper + timer, chromium-vm-phone, dock buttons "Pixel N ▶" + load readout, on-demand start in pixel7d/pixel7-jobs, scrcpy/bar autostart disabled. See TAKEOVER.
