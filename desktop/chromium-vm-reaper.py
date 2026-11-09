@@ -12,7 +12,7 @@ vm-agent, the Gemini worker, Chrome, sshd, tailscale, Claude Code are never in t
    job holding the pixel7 lock, and nobody looking at its mirror, for IDLE minutes.
  * Pixel N mirror (scrcpy, 30 fps): looked at = a VNC client is connected AND its window is the front window or the
    keyboard/mouse was used within IDLE minutes while it is mapped. Not looked at for IDLE minutes: mirror stopped.
- * Claude app (Electron): the CPU of the unit above 40% on average for IDLE minutes, no input for IDLE minutes, not the front window.
+ * NEVER: claude-desktop, claude (a session works without human input; stopping it could kill a task mid-run).
 """
 import fcntl, json, os, subprocess, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -106,22 +106,7 @@ def main():
             phone.touch(n)
         if up and not mirror and not busy and touch_age(n) >= IDLE:
             phone.stop(n, f'idle: no job/adb use, no viewer for {int(touch_age(n) / 60)} min')
-    # Claude app: hot and unattended
-    u = 'chromium-vm-claude-app'
-    if phone.unit_active(u):
-        cpu = int(run('systemctl', 'show', '-p', 'CPUUsageNSec', '--value', u).strip() or 0)
-        prev = st.get('claude_cpu')
-        st['claude_cpu'] = [NOW, cpu]
-        hot = prev and (cpu - prev[1]) / 1e9 / max(1, NOW - prev[0]) > 0.40
-        if not hot or ftitle and 'claude' in fclass.lower() or idle_x < IDLE:
-            st['claude_hot'] = NOW
-        st.setdefault('claude_hot', NOW)
-        if NOW - st['claude_hot'] >= IDLE:
-            phone.log(f'reaper: Claude app hot (>40% CPU) with no input for {int((NOW - st["claude_hot"]) / 60)} min')
-            subprocess.run(['sudo', '-n', 'systemctl', 'stop', u]); phone.log(f'STOP {u}: hot and unattended')
-            st.pop('claude_cpu', None); st.pop('claude_hot', None)
-    else:
-        st.pop('claude_cpu', None); st.pop('claude_hot', None)
+    # Claude app / Claude Code (claude-desktop, claude): NEVER stopped (Marko/main 9.11.2026): a Claude session works with no input by design.
     json.dump(st, open(STATE, 'w'))
 
 
