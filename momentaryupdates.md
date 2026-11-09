@@ -256,3 +256,7 @@ the classic way"
 > (9.11.2026) please fix the VM machine remote viewer. Add also 'viewer' at the end: 'VM Machine Remote Viewer', and change the name now. We need to build it to detect overlaying windows. This is a disaster now. When I come to this remote with the mouse and some other window is on top of it — right now it's Speechify — I cannot click on Speechify. The VM machine is taking my mouse, and then I'm handicapped.
 
 **Status:** saved first.
+
+## 9.11.2026, Marko (confirmed)
+"I can confirm that you fixed VM machine remote viewer and it works with overlaying windows. Thank you."
+**Status:** confirmed by Marko: VM Machine Remote Viewer (Mantra) v28 takes the mouse only where its own window is on top; covered points (Speechify, Firefox, the menu bar, banners) keep the Mac pointer. Nothing else changed.
