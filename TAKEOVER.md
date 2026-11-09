@@ -2,7 +2,7 @@
 
 **9.11.2026 (idle reaper, task 66):** the two cloud phones are on demand. `chromium-vm-reaper.timer` (every 2 min, idle
 20 min from /etc/chromium-vm-reaper.conf) runs `chromium-vm-reaper.py`: stops a Pixel mirror (scrcpy + bar) nobody looks at,
-then the container when no job/pixel7d use (mark `chromium-vm-phone touch`, the pixel7 lock) and no viewer; also the Claude
+then the container when no job/pixel7d use (mark `chromium-vm-phone touch`, the pixel7 lock) and no viewer; never the Claude
 app when hot (>40% CPU) and unattended. Never touched: transcriber, Xvnc, dock, vm-agent, Gemini worker, Chrome, sshd, tailscale.
 Every stop is a line in ~/.cache/chromium-vm/reaper.log. `chromium-vm-phone start|ensure|stop|touch|status N` does the work;
 the dock shows "Pixel N ▶" for a stopped phone (click = start, boots Android, mirror opens) and a load/cpu readout;
