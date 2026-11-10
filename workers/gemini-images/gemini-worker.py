@@ -181,7 +181,7 @@ def one(tab, batch, item, refs):
 # ---- RESULTS.txt in the pictures' folder ------------------------------------------------------------------------
 def write_results(batch, rounds, pending, next_at):
     ct = lambda t: t.replace(tzinfo=dt.timezone.utc).astimezone(zoneinfo.ZoneInfo('Europe/Zagreb')).strftime('%d.%m.%Y %H:%M CT')
-    lines = [f"RESULTS of the Gemini worker on chromium-vm  ({batch['name']}, {batch['account']})",
+    lines = [f"RESULTS of the Gemini worker on chromium-vm  ({batch['name']}, {batch.get('account') or ', '.join(batch.get('accounts', []))})",
              f"written {ct(dt.datetime.utcnow())}", '',
              f"Pictures in this folder: {len(done_names(batch['folder']))}   still to make: {pending}",
              (f"Next round: {ct(next_at)} (Gemini's limit resets then)" if next_at else
