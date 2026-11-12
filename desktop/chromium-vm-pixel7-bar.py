@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""chromium-vm Pixel 7 bar: a small control strip (PORTRAIT | LANDSCAPE | POWER ▾ with a menu) over the Pixel 7 screen (screen 4), only while it is in front.
+"""chromium-vm Pixel 7 bar: a small control strip (one PORTRAIT/LANDSCAPE toggle | POWER ▾ with a menu) over the Pixel 7 screen (screen 4), only while it is in front.
 
 Marko, 5.11.2026: "I want to have some overlay on the screen just to control this emulator: change orientation and
 reboot it." PORTRAIT | LANDSCAPE (wm user-rotation lock 0/1; apps turn, the Pixel's home screen stays upright like on
@@ -63,11 +63,10 @@ class Bar(Gtk.Window):
         Gtk.StyleContext.add_provider_for_screen(scr, prov, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         self.box = Gtk.Box(spacing=0); self.box.set_margin_start(6); self.box.set_margin_end(6)
         self.box.set_margin_top(4); self.box.set_margin_bottom(4); self.add(self.box)
-        self.portrait = self.button('PORTRAIT', lambda *_: self.rotate(0))
-        self.bar1 = Gtk.Label(label='|'); self.box.pack_start(self.bar1, False, False, 0)
-        self.landscape = self.button('LANDSCAPE', lambda *_: self.rotate(1))
+        # 12.11.2026 (Marko: "portrait and landscape can be toggled"): ONE button shows the current orientation, a click flips it
+        self.turn = self.button('PORTRAIT', self.toggle_rotation)
         self.gap = Gtk.Label(label=' '); self.box.pack_start(self.gap, False, False, 0)
-        self.orient = [self.portrait, self.bar1, self.landscape, self.gap]
+        self.orient = [self.turn, self.gap]
         # 12.11.2026 (Marko: "group items so the additional menu is opening up"): the three power actions sit under one POWER button
         self.power = self.button('POWER ▾', self.open_menu); self.acts = [self.power]
         self.menu = Gtk.Menu()
@@ -91,8 +90,11 @@ class Bar(Gtk.Window):
 
     def mark(self):
         r = self.rot.get(self.phone, 0)
-        for b, on in ((self.portrait, r == 0), (self.landscape, r == 1)):
-            c = b.get_style_context(); c.add_class('lit') if on else c.remove_class('lit')
+        self.turn.set_label('LANDSCAPE' if r == 1 else 'PORTRAIT')
+        c = self.turn.get_style_context(); c.add_class('lit') if r == 1 else c.remove_class('lit')
+
+    def toggle_rotation(self, *_):
+        self.rotate(1 - self.rot.get(self.phone, 0))
 
     def place(self):
         # 5.11.2026: GTK kept the old screen width after the Mac window was zoomed (the bar cut on the right): ask X itself
