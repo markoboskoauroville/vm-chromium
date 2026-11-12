@@ -24,15 +24,15 @@ XD = xdisplay.Display(); ROOT = XD.screen().root
 A_ACTIVE = XD.intern_atom('_NET_ACTIVE_WINDOW')
 A_NAME, A_UTF8 = XD.intern_atom('_NET_WM_NAME'), XD.intern_atom('UTF8_STRING')
 CSS = b"""
-window { background: rgba(20,20,22,0.82); border-radius: 10px; }
-button { background: none; border: none; box-shadow: none; color: #9e9e9e; font: 600 11px sans-serif; padding: 2px 4px; }
+window { background: rgba(20,20,22,0.38); border-radius: 10px; }
+button { background: none; border: none; box-shadow: none; color: #d8d8d8; font: 600 11px sans-serif; padding: 2px 4px; }
 button:hover { color: #ffffff; text-decoration: underline; }
 button.lit { color: #5cbf73; }
 button.warn { color: #ff9f0a; }
 label { color: #555; font: 11px sans-serif; }
-menu, .menu { background: rgba(28,28,30,0.96); border-radius: 8px; }
+menu, .menu { background: rgba(28,28,30,0.62); border-radius: 8px; }
 menuitem { color: #d0d0d0; font: 600 11px sans-serif; padding: 5px 10px; }
-menuitem:hover { background: #3a3a3c; color: #ffffff; }
+menuitem:hover { background: rgba(90,90,95,0.8); color: #ffffff; }
 label.note { color: #ff9f0a; font: 600 11px sans-serif; }
 """
 
@@ -82,6 +82,11 @@ class Bar(Gtk.Window):
         self.rot = {}; self.busy = False; self.phone = 'Pixel 1'; self.win = None
         self.show_all(); self.cancel(); self.note.hide(); self.hide()
         self.mark()
+        self.add_events(Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK)
+        self.connect('enter-notify-event', lambda *_: self.set_opacity(1.0))
+        self.connect('leave-notify-event', lambda *_: self.set_opacity(0.55) if not self.menu.get_visible() else None)
+        self.menu.connect('hide', lambda *_: self.set_opacity(0.55))
+        self.set_opacity(0.55)
         GLib.timeout_add(300, self.poll)
 
     def button(self, t, cb):
