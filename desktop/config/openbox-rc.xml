@@ -26,6 +26,7 @@
     <keybind key="C-A-g"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap third3</command></action></keybind>  <!-- Last third -->
     <keybind key="C-A-e"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap two1</command></action></keybind>  <!-- First two thirds -->
     <keybind key="C-A-t"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap two2</command></action></keybind>  <!-- Last two thirds -->
+    <keybind key="C-A-x"><action name="Execute"><command>/usr/local/lib/chromium-vm/vmfull</command></action></keybind>  <!-- Job terminal: full screen / back to its third -->
     <keybind key="C-A-BackSpace"><action name="Execute"><command>/usr/local/lib/chromium-vm/chromium-vm-snap restore</command></action></keybind>  <!-- Restore -->
   </keyboard>
   <mouse>

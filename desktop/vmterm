@@ -1,0 +1,7 @@
+#!/bin/bash
+# vmterm "<title>" "<command>": opens a terminal on the VM screen (:1) running the command, so Marko watches it live.
+# vmterm "<title>" -f <log>  : follows a log (ffmpeg \r progress turned into lines).
+t="$1"; shift
+if [ "$1" = "-f" ]; then c="tail -n 40 -F \"$2\" | stdbuf -o0 tr \"\\r\" \"\\n\""; else c="$*"; fi
+DISPLAY=:1 setsid xfce4-terminal --title="$t" --geometry=110x30 -x bash -c "echo \"== $t ==\"; $c; echo; echo \"== finished, press Enter to close ==\"; read" >/dev/null 2>&1 &
+sleep 2; /usr/local/lib/chromium-vm/vmthirds

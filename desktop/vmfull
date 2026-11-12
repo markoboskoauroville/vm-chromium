@@ -1,0 +1,14 @@
+#!/bin/bash
+# vmfull (Marko, 12.11.2026: "add a full-screen view for the terminal"): toggles the job terminal between full screen and
+# its third on the right. Key: Ctrl+Alt+X (openbox-rc.xml). `vmfull on|off` forces a state.
+export DISPLAY=:1; S=/usr/local/lib/chromium-vm/chromium-vm-snap
+act=$(printf '0x%08x' $(xdotool getactivewindow 2>/dev/null) 2>/dev/null)
+id=$(wmctrl -lx | awk -v a="$act" '$3 ~ /erminal/ {i=$1; if ($1==a) {f=$1}} END{print (f ? f : i)}')   # the active terminal, else the newest
+[ -z "$id" ] && { echo "no terminal window"; exit 1; }
+W=$(xdotool getdisplaygeometry | cut -d' ' -f1)
+w=$(xdotool getwindowgeometry --shell $((id)) | sed -n 's/^WIDTH=//p')
+xdotool windowactivate --sync $((id))
+case "${1:-toggle}" in
+  on) $S max ;; off) $S third3 ;;
+  *) if [ "${w:-0}" -lt $((W * 9 / 10)) ]; then $S max; else $S third3; fi ;;
+esac

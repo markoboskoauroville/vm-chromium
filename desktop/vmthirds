@@ -1,0 +1,10 @@
+#!/bin/bash
+# vmthirds (Marko, 12.11.2026): job terminals (vmterm) on the right third, every other window on the left two thirds.
+# Uses the VM snap tool (slots are remembered, so a screen-size change keeps the layout).
+export DISPLAY=:1; S=/usr/local/lib/chromium-vm/chromium-vm-snap
+term=""
+while read -r id d cls rest; do
+  xdotool windowactivate --sync $((id)) 2>/dev/null || continue
+  case "$cls" in *erminal*) $S third3; term=$id ;; *) $S two1 ;; esac
+done < <(wmctrl -lx)
+[ -n "$term" ] && xdotool windowactivate $((term))
