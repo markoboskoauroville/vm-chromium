@@ -1,5 +1,5 @@
 [Unit]
-Description=chromium-vm: the Pixel 7 bar (PORTRAIT | LANDSCAPE, REBOOT) over screen 4
+Description=chromium-vm: the Pixel 7 bar (PORTRAIT | LANDSCAPE, REBOOT, HARD REBOOT, SHUTDOWN) over screen 4
 After=chromium-vm-session.service docker.service
 BindsTo=chromium-vm-xvnc.service
 
