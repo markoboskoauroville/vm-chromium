@@ -1,0 +1,5 @@
+#!/bin/bash
+ffmpeg -nostdin -v error -f lavfi -i "sine=frequency=440:duration=3" -af volume=0.35 -f pulse -device vmout tone
+sleep 2
+ffmpeg -nostdin -v error -re -ss 150 -t 90 -i "$HOME/mpa/2026-11-12/out/MPA 2026-11-12 class.mp4" -vn -f pulse -device vmout classvideo
+echo "playback finished"

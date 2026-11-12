@@ -1,0 +1,10 @@
+#!/bin/bash
+# vmaudio-send <mac-tailscale-ip> [port]: the VM's sound (vmout.monitor) as Opus in MPEG-TS over UDP to the Mac, through Tailscale.
+# Mac side: ffplay -nodisp -fflags nobuffer -flags low_delay -probesize 32 -analyzeduration 0 "udp://<ip>:<port>?fifo_size=100000&overrun_nonfatal=1"
+# stop: vmaudio-send stop
+PID=$HOME/.cache/chromium-vm/vmaudio.pid; mkdir -p "$(dirname "$PID")"
+if [ "$1" = stop ]; then [ -f "$PID" ] && kill "$(cat "$PID")" 2>/dev/null; rm -f "$PID"; echo stopped; exit 0; fi
+[ -f "$PID" ] && kill "$(cat "$PID")" 2>/dev/null
+IP=${1:?mac tailscale ip}; PORT=${2:-5004}
+nohup ffmpeg -nostdin -v warning -f pulse -i vmout.monitor -c:a libopus -b:a 96k -application lowdelay -frame_duration 20 -f mpegts "udp://$IP:$PORT?pkt_size=1316" > $HOME/vmaudio-send.log 2>&1 &
+echo $! > "$PID"; echo "sending to $IP:$PORT (pid $(cat "$PID"))"
