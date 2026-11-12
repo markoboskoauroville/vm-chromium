@@ -1,0 +1,15 @@
+[Unit]
+Description=chromium-vm: clicks "Still Evaluating" on REAPER's evaluation notice, by itself
+After=chromium-vm-xvnc.service
+BindsTo=chromium-vm-xvnc.service
+
+[Service]
+Type=simple
+User=ubuntu
+Environment=DISPLAY=:1
+ExecStart=/usr/local/lib/chromium-vm/chromium-vm-reaper-evaluating
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=chromium-vm-xvnc.service

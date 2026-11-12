@@ -1,0 +1,27 @@
+#!/bin/bash
+# chromium-vm-reaper-evaluating (Marko, 12.11.2026: "make a routine that always evaluates the 'still evaluating' thing, it is closed automatically").
+# REAPER's evaluation notice ("About REAPER ... REAPER IS NOT FREE") opens at every start. This watcher finds that window and
+# clicks ONLY its "Still Evaluating" button (60-day evaluation, the licence is Marko's decision: it never touches Purchase or
+# Import license key). The dialog is 573x421; the button sits at (488, 395) inside it. The window is moved to a fixed spot first,
+# because REAPER opens it half off the screen, under the dock.
+export DISPLAY=:1
+seen=""
+while true; do
+  for w in $(xdotool search --onlyvisible --name '^About REAPER' 2>/dev/null); do
+    [ "$w" = "$seen" ] && continue
+    sleep 1.5                                   # let the window finish drawing
+    prev=$(xdotool getactivewindow 2>/dev/null)
+    wmctrl -i -r "$(printf '0x%08x' "$w")" -e 0,300,150,573,421
+    xdotool windowactivate --sync "$w" 2>/dev/null; sleep 0.4
+    eval "$(xdotool getwindowgeometry --shell "$w")"      # X, Y, WIDTH, HEIGHT
+    if [ "${WIDTH:-0}" -ge 540 ] && [ "${HEIGHT:-0}" -ge 380 ]; then
+      xdotool mousemove $((X + WIDTH - 85)) $((Y + HEIGHT - 26)) click 1
+      echo "$(date '+%F %T') clicked Still Evaluating on window $w"
+    fi
+    seen="$w"
+    [ -n "$prev" ] && xdotool windowactivate "$prev" 2>/dev/null
+  done
+  # forget the id once the window is gone, so the next start is handled too
+  [ -n "$seen" ] && ! xdotool search --onlyvisible --name '^About REAPER' 2>/dev/null | grep -qx "$seen" && seen=""
+  sleep 2
+done
