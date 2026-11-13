@@ -265,3 +265,7 @@ the classic way"
 
 **Status:** saved first. Building the idle reaper (chromium-vm-reaper) + dock buttons + on-demand start.
 **Status (9.11.2026, ~16:35):** built and tested: reaper + timer, chromium-vm-phone, dock buttons "Pixel N ▶" + load readout, on-demand start in pixel7d/pixel7-jobs, scrcpy/bar autostart disabled. See TAKEOVER.
+
+13.11.2026, Marko: "if picture is still, can you even reduce this by reducing the frame rate to minimum or even freezing the
+picture until I click on it? It's kind of screensaver, let's call it, but this is actually bandwidth saver"
+13.11.2026, Marko: "yes, and make a small snowflake icon in the upper left corner so I know the picture is frozen"

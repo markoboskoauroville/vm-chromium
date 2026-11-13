@@ -17,6 +17,7 @@ final class Door {
         ("reconnect", "drops the VNC connection and connects again", [:]),
         ("send_file", "sends a Mac file to ~/Downloads on the VM", ["path": "str"]),
         ("push_clipboard", "puts the Mac clipboard on the VM clipboard now", [:]),
+        ("saver", "bandwidth saver: idle seconds before the picture freezes (0 = off), freeze or wake now", ["idle": "int", "freeze": "bool", "wake": "bool"]),
         ("fetch_downloads", "fetches new VM downloads into ~/Downloads/Chromium Downloads now", [:]),
     ]
 
@@ -74,7 +75,13 @@ final class Door {
         case "status":
             let s = app.screen.bounds.size
             reply(200, ["ok": true, "result": ["connected": app.connected, "vm": "\(app.rfb?.width ?? 0)x\(app.rfb?.height ?? 0)",
-                                               "window": "\(Int(s.width))x\(Int(s.height))", "fullscreen": app.window.styleMask.contains(.fullScreen), "pointer_sent": pointerSent]])
+                                               "window": "\(Int(s.width))x\(Int(s.height))", "fullscreen": app.window.styleMask.contains(.fullScreen), "pointer_sent": pointerSent,
+                                               "saver_idle": app.saverIdle, "frozen": app.rfb?.isFrozen ?? false, "bytes_in": app.rfb?.bytesIn ?? 0]])
+        case "saver":   // {"idle": seconds (0 = off)} and/or {"freeze": true} / {"wake": true}
+            if let i = args["idle"] as? Int { app.saverIdle = max(0, i) }
+            if args["freeze"] as? Bool == true { app.freezeNow() }
+            if args["wake"] as? Bool == true, app.rfb?.isFrozen == true { app.rfb?.wake(); app.saverWoke() }
+            reply(200, ["ok": true, "result": ["saver_idle": app.saverIdle, "frozen": app.rfb?.isFrozen ?? false]])
         case "hit_test":
             let r = app.screen.hitTest(cgX: (args["x"] as? Double) ?? 0, cgY: (args["y"] as? Double) ?? 0)
             reply(200, ["ok": true, "result": r])

@@ -61,6 +61,10 @@ final class ScreenView: NSView {
     // lives on its own sublayer, aspect-fitted and centred. Before, it was the view's own layer, which AppKit scales on
     // both axes (layerContentsPlacement) whenever it redraws or the window is resized live.
     let picture = CALayer()
+    // v30 (Marko, 13.11.2026: "make a small snowflake icon in the upper left corner so I know the picture is frozen")
+    let snow = NSImageView()
+
+    func showFrozen(_ on: Bool) { snow.isHidden = !on }
 
     override init(frame: NSRect) {
         super.init(frame: frame)
@@ -72,6 +76,16 @@ final class ScreenView: NSView {
         picture.borderColor = NSColor.systemOrange.withAlphaComponent(0.9).cgColor
         picture.actions = ["contents": NSNull(), "bounds": NSNull(), "position": NSNull(), "frame": NSNull()]
         layer?.addSublayer(picture)
+        let cfg = NSImage.SymbolConfiguration(pointSize: 15, weight: .semibold)
+        snow.image = NSImage(systemSymbolName: "snowflake", accessibilityDescription: "picture frozen")?.withSymbolConfiguration(cfg)
+        snow.contentTintColor = NSColor(calibratedRed: 0.55, green: 0.85, blue: 1, alpha: 1)
+        snow.wantsLayer = true
+        snow.layer?.shadowColor = NSColor.black.cgColor; snow.layer?.shadowOpacity = 0.9; snow.layer?.shadowRadius = 2
+        snow.layer?.shadowOffset = .zero
+        snow.toolTip = "Bandwidth saver: the picture is paused and nothing is sent. Click to wake."
+        snow.frame = NSRect(x: 10, y: 10, width: 20, height: 20)
+        snow.isHidden = true
+        addSubview(snow)
         registerForDraggedTypes([.fileURL])
         addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseMoved, .mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self))
     }
@@ -213,6 +227,7 @@ final class ScreenView: NSView {
     }
     func showMacCursor() { macCursor(hidden: false) }
     private func send(_ e: NSEvent) {
+        if rfb?.isFrozen == true && buttons == 0 { macCursor(hidden: false); return }   // frozen: the VM's pointer stays put
         let inside = onPicture(e)
         macCursor(hidden: inside)
         guard inside || buttons != 0 else { return }
@@ -221,8 +236,16 @@ final class ScreenView: NSView {
     override func mouseExited(with e: NSEvent) { if buttons == 0 { macCursor(hidden: false) } }
     override func mouseEntered(with e: NSEvent) { send(e) }
 
+    var onWake: (() -> Void)?
+    /// true when the event only woke the frozen picture (bandwidth saver, v30): it is not passed to the VM
+    private func wokeUp() -> Bool {
+        guard let rfb, rfb.isFrozen else { return false }
+        rfb.wake(); onWake?(); return true
+    }
+
     override func mouseDown(with e: NSEvent) {
         cmdAlone = false; onClick?(); window?.makeFirstResponder(self)
+        if wokeUp() { return }
         guard onPicture(e) else { return }            // a click on the bars beside the picture stays on the Mac
         buttons |= 1; send(e)
     }
@@ -230,10 +253,10 @@ final class ScreenView: NSView {
         guard buttons & 1 != 0 else { return }
         buttons &= ~1; let (x, y) = vmPoint(e); rfb?.pointer(x: x, y: y, buttons: buttons); macCursor(hidden: onPicture(e))
     }
-    override func rightMouseDown(with e: NSEvent) { cmdAlone = false; guard onPicture(e) else { return }; buttons |= 4; send(e) }
+    override func rightMouseDown(with e: NSEvent) { cmdAlone = false; if wokeUp() { return }; guard onPicture(e) else { return }; buttons |= 4; send(e) }
     override func rightMouseUp(with e: NSEvent) {
         guard buttons & 4 != 0 else { return }; buttons &= ~4; let (x, y) = vmPoint(e); rfb?.pointer(x: x, y: y, buttons: buttons) }
-    override func otherMouseDown(with e: NSEvent) { cmdAlone = false; guard onPicture(e) else { return }; buttons |= 2; send(e) }
+    override func otherMouseDown(with e: NSEvent) { cmdAlone = false; if wokeUp() { return }; guard onPicture(e) else { return }; buttons |= 2; send(e) }
     override func otherMouseUp(with e: NSEvent) {
         guard buttons & 2 != 0 else { return }; buttons &= ~2; let (x, y) = vmPoint(e); rfb?.pointer(x: x, y: y, buttons: buttons) }
     override func mouseMoved(with e: NSEvent) { send(e) }
@@ -243,6 +266,7 @@ final class ScreenView: NSView {
 
     override func scrollWheel(with e: NSEvent) {
         cmdAlone = false
+        if wokeUp() { scrollAcc = 0; scrollAccX = 0; return }
         // Trackpad deltas are fine-grained: one wheel click on the VM per ~12 points.
         let step: CGFloat = e.hasPreciseScrollingDeltas ? 12 : 1
         scrollAcc += e.scrollingDeltaY; scrollAccX += e.scrollingDeltaX
@@ -279,6 +303,7 @@ final class ScreenView: NSView {
     var onRectangleKey: ((NSEvent) -> Void)?
 
     override func keyDown(with e: NSEvent) {
+        if !heldForMac.contains(e.keyCode) && !RectangleKeys.matches(e) && wokeUp() { return }
         // F1 / F2 held for the Mac (Marko, 2.11.2026: "When I'm transcribing I'm pressing F1 or F2 ... it needs to be
         // blocked from sending it"): never to the VM; handed to Speechify / Voice to Text on the Mac
         if heldForMac.contains(e.keyCode) {

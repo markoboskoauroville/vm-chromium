@@ -32,6 +32,18 @@ final class RFB {
 
     private(set) var canResize = false        // the server announced ExtendedDesktopSize
     private var screenId: UInt32 = 0
+    // v30 BANDWIDTH SAVER (Marko, 13.11.2026: "freezing the picture until I click on it ... bandwidth saver"):
+    // after every picture the client asks for the next one; while frozen it does not ask, so the VM sends nothing.
+    private let saverLock = NSLock()
+    private var frozen = false, owed = false
+    private(set) var lastInput = Date()
+    var isFrozen: Bool { saverLock.lock(); defer { saverLock.unlock() }; return frozen }
+    func freeze() { saverLock.lock(); frozen = true; saverLock.unlock() }
+    /// back to live: the picture request that was held back goes out now (the VM sends only what changed meanwhile)
+    func wake() {
+        saverLock.lock(); let ask = frozen && owed; frozen = false; owed = false; lastInput = Date(); saverLock.unlock()
+        if ask { try? request(incremental: true) }
+    }
     private var zs = z_stream()
     private var zInit = false
 
@@ -107,7 +119,10 @@ final class RFB {
         while !closed {
             let t = try u8()
             switch t {
-            case 0: try framebufferUpdate(); try request(incremental: true)
+            case 0:
+                try framebufferUpdate()
+                saverLock.lock(); let hold = frozen; if hold { owed = true }; saverLock.unlock()
+                if !hold { try request(incremental: true) }
             case 1: _ = try read(1); _ = try u16(); let k = Int(try u16()); _ = try read(k * 6)
             case 2: break                                            // bell
             case 3: _ = try read(3); _ = try read(Int(try u32()))   // the VM clipboard changed: fetch it as UTF-8
@@ -126,11 +141,12 @@ final class RFB {
     }
 
     func pointer(x: Int, y: Int, buttons: UInt8) {
-        pointerSent += 1
+        pointerSent += 1; lastInput = Date()
         try? write([5, buttons] + be16(max(0, x)) + be16(max(0, y)))
     }
 
     func key(_ keysym: UInt32, down: Bool) {
+        lastInput = Date()
         try? write([4, down ? 1 : 0, 0, 0] + be32(keysym))
     }
 

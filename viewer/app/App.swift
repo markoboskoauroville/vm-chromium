@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 29
+let VERSION = 30
 let APP_NAME = "Mantra Remote Viewing"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -149,6 +149,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
             guard let o = self?.overlay else { return false }
             return o.hitTest(o.superview!.convert(p, from: nil)) != nil }
         screen.onClick = { [weak self] in self?.overlay.close() }
+        screen.onWake = { [weak self] in self?.saverWoke() }
         screen.onTypeText = { [weak self] text in self?.typeOnVM(text) }
         screen.onDropFiles = { [weak self] in self?.upload($0) }
         screen.beforePaste = { [weak self] go in self?.pushClipboard(go) ?? go() }
@@ -283,15 +284,37 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         setStatus("● CHROMIUM VM  \(VNC_HOST)", .systemGreen, tip: false)
         if overlay.tip.textColor == .systemOrange && overlay.tip.stringValue.hasPrefix("not connected") { overlay.setTip("") }
         window.makeFirstResponder(screen)
+        startSaver()
         scheduleResize(delay: 0.2)
         pushClipboard {}
     }
+
+    // MARK: bandwidth saver (v30)
+    /// seconds without a click, key, scroll or pointer move before the picture freezes; 0 = off. Default 60.
+    var saverIdle: Int {
+        get { UserDefaults.standard.object(forKey: "saverIdle") as? Int ?? 60 }
+        set { UserDefaults.standard.set(newValue, forKey: "saverIdle") }
+    }
+    var saverTimer: Timer?
+    func startSaver() {
+        saverTimer?.invalidate()
+        saverTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in self?.saverTick() }
+    }
+    func saverTick() {
+        guard connected, let rfb, saverIdle > 0, !rfb.isFrozen else { return }
+        if Date().timeIntervalSince(rfb.lastInput) >= Double(saverIdle) { freezeNow() }
+    }
+    func freezeNow() {
+        guard let rfb else { return }
+        rfb.freeze(); screen.showFrozen(true)       // the small snowflake top left is the only sign
+    }
+    func saverWoke() { screen.showFrozen(false) }
 
     func rfbFrame() { screen.refresh() }
     func rfbResized(width: Int, height: Int) { screen.refresh() }
 
     func rfbClosed(reason: String) {
-        connected = false
+        connected = false; screen.showFrozen(false)
         if reason.contains("refused") {   // a wrong password: no retry loop, the login opens under the gear
             setStatus("password refused: enter it under the gear, LOGIN", .systemOrange); overlay.openLogin(); return
         }
