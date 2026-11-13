@@ -5,8 +5,8 @@
 import AppKit
 import Security
 
-let VERSION = 28
-let APP_NAME = "VM Machine Remote Viewer (Mantra)"
+let VERSION = 29
+let APP_NAME = "Mantra Remote Viewing"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
 /// v21: the green button and a double-click on the title bar zoom the classic way (fill the screen's visible frame and back),

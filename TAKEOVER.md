@@ -1,5 +1,7 @@
 # TAKEOVER
 
+**Renamed 13.11.2026:** VM Machine Remote Viewer (Mantra) is now **Mantra Remote Viewing** (Marko). Done by Queen.
+
 **9.11.2026 (idle reaper, task 66):** the two cloud phones are on demand. `chromium-vm-reaper.timer` (every 2 min, idle
 20 min from /etc/chromium-vm-reaper.conf) runs `chromium-vm-reaper.py`: stops a Pixel mirror (scrcpy + bar) nobody looks at,
 then the container when no job/pixel7d use (mark `chromium-vm-phone touch`, the pixel7 lock) and no viewer; never any Claude process;

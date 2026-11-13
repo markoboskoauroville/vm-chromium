@@ -1,4 +1,4 @@
-# VM Machine Remote Viewer (Mantra)
+# Mantra Remote Viewing
 
 The Mac's window onto chromium-vm (Oracle Cloud, Tailscale 100.102.86.30). Swift, no Xcode: `./build.sh` builds,
 signs "Mantra Apps", installs in /Applications and quits the running copy. Star: folder Mac, row `chromiumvm`.

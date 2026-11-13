@@ -1,10 +1,10 @@
 #!/bin/sh
-# build.sh: VM Machine Remote Viewer (Mantra).app, swiftc straight, no Xcode, arm64 (the-machine.md), signed
+# build.sh: Mantra Remote Viewing.app, swiftc straight, no Xcode, arm64 (the-machine.md), signed
 # "Mantra Apps" (mac-app-signing.md), installed in /Applications. The version is the one number in app/App.swift.
 set -e
 cd "$(dirname "$0")"
 V=$(sed -n 's/^let VERSION = \([0-9]*\)/\1/p' app/App.swift)
-NAME="VM Machine Remote Viewer (Mantra)"
+NAME="Mantra Remote Viewing"
 APP="build/$NAME.app"
 rm -rf "$APP"; mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 swiftc -O -swift-version 5 -parse-as-library -target arm64-apple-macosx14.0 -o "$APP/Contents/MacOS/ChromiumVM" app/*.swift
