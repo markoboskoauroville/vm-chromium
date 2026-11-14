@@ -77,11 +77,13 @@ webrtcLocalUDPAddress: :8189
 webrtcLocalTCPAddress: :8189
 # the public IP for everyone; the private and Tailscale addresses too, for a phone whose traffic leaves through this VM (Tailscale exit
 # node / the Frankfurt bond): Oracle does not loop a packet from the VM back to its own public IP (15.11.2026, the Pixel's ICE timed out)
-webrtcIPsFromInterfaces: true
-webrtcIPsFromInterfacesList: [enp0s6, tailscale0]
-webrtcAdditionalHosts: ["130.61.181.83"]
+# (an interface list with tailscale0 brought IPv6 link-local pairs that dropped every few seconds: only these two IPv4 addresses)
+webrtcIPsFromInterfaces: false
+webrtcAdditionalHosts: ["130.61.181.83", "100.102.86.30"]
 webrtcICEServers2: []
 webrtcHandshakeTimeout: 15s
+# a phone's H.264 can come a few seconds after its Opus on a fresh connection: wait for both, or the path is audio only
+webrtcTrackGatherTimeout: 8s
 
 srt: true
 srtAddress: :8890
