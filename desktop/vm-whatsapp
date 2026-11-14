@@ -21,7 +21,10 @@ PROFILE = os.path.expanduser('~/.config/vm-firefox')
 PORT = 9223
 HOME = 'https://web.whatsapp.com/'
 CLASS = 'VMFirefox'
-ENV = dict(os.environ, DISPLAY=os.environ.get('DISPLAY', ':1'), PULSE_SINK='vmout')
+# Calls (14.11.2026): the microphone is the null sink "wamic" (the phone's mic through the WhatsApp door), its sound vmout
+ENV = dict(os.environ, DISPLAY=os.environ.get('DISPLAY', ':1'), PULSE_SINK='vmout', PULSE_SOURCE='wamic_src')
+# WhatsApp Web shows the voice/video call buttons only to Chromium browsers: the profile says it is Chrome on Linux
+CHROME_UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36'
 PREFS = {
     'browser.startup.homepage': f'"{HOME}"',
     'browser.startup.page': '1',                                   # start on the home page = WhatsApp
@@ -38,15 +41,25 @@ PREFS = {
     'browser.warnOnQuit': 'false',
     'remote.prefs.recommended': 'true',
     'dom.webnotifications.enabled': 'true',
+    'media.navigator.permission.disabled': 'true',                 # no microphone prompt: the mic is wamic_src
+    'media.navigator.streams.fake': 'false',
 }
+# Calls (14.11.2026, tested): with a Chrome user agent and the page cross-origin isolated (the temporary add-on
+# ~/wa-door/wa-isolation, COOP same-origin) WhatsApp says the browser is supported, but on the web it still shows no call
+# button: calling is gated per account by WhatsApp's server flag enable_web_calling (false for Marko's account on
+# 14.11.2026). The calling prefs apply only while ~/.config/chromium-vm/wa-calls exists (touch it once the flag is on).
+CALLS_FLAG = os.path.expanduser('~/.config/chromium-vm/wa-calls')
+CALL_PREFS = {'general.useragent.override': f'"{CHROME_UA}"'}
 
 
 def write_prefs():
     os.makedirs(PROFILE, exist_ok=True)
     p = os.path.join(PROFILE, 'user.js')
     lines = open(p).read().splitlines() if os.path.exists(p) else []
-    keep = [l for l in lines if not any(f'"{k}"' in l for k in PREFS)]
-    keep += [f'user_pref("{k}", {v});' for k, v in PREFS.items()]
+    prefs = dict(PREFS, **(CALL_PREFS if os.path.exists(CALLS_FLAG) else {}))
+    keep = [l for l in lines if not any(f'"{k}"' in l for k in list(PREFS) + list(CALL_PREFS)
+                                        + ['dom.postMessage.sharedArrayBuffer.bypassCOOP_COEP.insecure.enabled'])]
+    keep += [f'user_pref("{k}", {v});' for k, v in prefs.items()]
     open(p, 'w').write('\n'.join(keep) + '\n')
 
 
@@ -152,8 +165,15 @@ def front():
         sh('wmctrl', '-i', '-r', w, '-b', 'add,maximized_vert,maximized_horz')
 
 
+def audio_setup():
+    s = os.path.expanduser('~/wa-door/wa-audio-setup')
+    if os.path.exists(s):
+        subprocess.run(['sh', s], capture_output=True, timeout=20)
+
+
 def start():
     write_prefs()
+    audio_setup()
     if pid() and not bidi_up():                     # running without remote control: close politely, start again
         w = window()
         if w: sh('wmctrl', '-i', '-c', w)
