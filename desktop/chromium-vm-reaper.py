@@ -4,7 +4,7 @@
 Marko, 9.11.2026: "Close anything that doesn't run now, and make this automatic in the machine: it just closes it and
 puts that application down there in the dock at the bottom of the display, and I can start it again. For now just
 close what is idle." Run by chromium-vm-reaper.timer every 2 minutes; every stop is logged with its reason in
-~/.cache/chromium-vm/reaper.log (and the journal). Idle time: CVM_REAPER_IDLE_MIN (default 20) from /etc/chromium-vm-reaper.conf.
+~/.cache/chromium-vm/reaper.log (and the journal). Idle time: CVM_REAPER_IDLE_MIN (default 20) from /etc/chromium-vm-reaper.conf; CVM_REAPER_KEEP_PHONES=2 keeps Pixel 2 always on.
 
 Reaped (only these; everything else is untouchable by design: YouTube transcriber and its monitor, Xvnc, the dock,
 vm-agent, the Gemini worker, Chrome, sshd, tailscale, Claude Code are never in this file):
@@ -21,6 +21,9 @@ _l = importlib.machinery.SourceFileLoader('phone', os.path.join(os.path.dirname(
 _s = importlib.util.spec_from_loader('phone', _l); phone = importlib.util.module_from_spec(_s); _l.exec_module(phone)
 
 IDLE = float(os.environ.get('CVM_REAPER_IDLE_MIN', '20')) * 60
+# Phones that are never stopped (Marko, 14.11.2026: Pixel 2 carries WhatsApp for Android as a companion device for calls,
+# it must be on to ring). /etc/chromium-vm-reaper.conf: CVM_REAPER_KEEP_PHONES=2 (comma list). Their mirrors still close.
+KEEP = {int(x) for x in os.environ.get('CVM_REAPER_KEEP_PHONES', '').replace(' ', '').split(',') if x.isdigit()}
 CACHE = phone.CACHE
 STATE = os.path.join(CACHE, 'reaper-state.json')
 os.environ.setdefault('DISPLAY', ':1')
@@ -104,6 +107,9 @@ def main():
         busy = (n == 1 and pixel_lock_held())
         if busy or viewed or mirror:                  # a mirror still up (looked at) or a job running = in use
             phone.touch(n)
+        if n in KEEP:
+            phone.touch(n)
+            continue
         if up and not mirror and not busy and touch_age(n) >= IDLE:
             phone.stop(n, f'idle: no job/adb use, no viewer for {int(touch_age(n) / 60)} min')
     # Claude app / Claude Code (claude-desktop, claude): NEVER stopped (Marko/main 9.11.2026): a Claude session works with no input by design.
