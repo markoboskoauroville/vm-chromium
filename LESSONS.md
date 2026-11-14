@@ -136,3 +136,15 @@
 - Android asks "Allow from this source" once; without the onResume hook the install waited for the next start (fixed in v50).
 - Mac: sign the new copy "Mantra Apps" before swapping, or Accessibility is lost; failures reopen the old copy.
 - From now on: MANTRA_MANIFEST modules/update-at-start.md, kits mac-updater / android-updater, skill update-at-start.
+
+## 14.11.2026: core-only boot (vmctl)
+- A dash in a slice name is a level: `vm-core.slice` lives under `vm.slice`. Top-level slices: `vmcore.slice`, `vmsvc.slice`.
+- Test a priority drop-in for a live service on a throwaway copy first (`systemd-run -p ...` on another port), never by
+  restarting the real one; the drop-in then takes effect at the reboot.
+- Never ask `docker` while docker.service is off: docker.socket starts the daemon. Check `systemctl is-active docker` first.
+- A program started by a long-running service with Popen lives in that service's cgroup and dies with it (Firefox from the
+  dock): programs are started through their own unit (vmctl), never as children of the dock.
+- Chrome moves its browser process into a user scope (app-com.google.Chrome-*.scope); stopping its unit still ended it.
+- `pgrep -o -f <pattern>` over ssh finds the ssh shell first (its command line contains the pattern): read the unit's CGroup.
+- A `--auto` (dependency) start of a service that already runs must not mark it "by hand", or gc never stops it.
+- The Mac reached :8896 only after a few seconds on the first try (Tailscale path warming): retry before blaming the firewall.

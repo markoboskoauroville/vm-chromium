@@ -1,5 +1,24 @@
 # TAKEOVER
 
+**14.11.2026: core-only boot, every program a service (vmctl).** Marko: "only thing which is running is connection keeper
+... all other services are optional ... on the gear icon". Read tools/vmctl/README.md.
+- Core (enabled, locked): ckbond (vmcore.slice, Nice -15, OOM -1000), tailscaled, ssh.socket, chromium-vm-xvnc,
+  chromium-vm-session (openbox ONLY now), chromium-vm-statusbar, chromium-vm-agent, chromium-vm-vmctl (:8896), user queen,
+  Oracle agents. Everything else disabled at boot (nothing deleted): claude-app, claude-code, Chrome (new unit
+  chromium-vm-chrome, split from the session), Firefox (user vm-firefox + wa-door), Brave (user vm-brave), pixel1/pixel2
+  (containers restart=no, cpu-shares 128), pixel-door (pixel7d + pixel7-jobs), docker+containerd, idle reaper, macro,
+  dock+refit, gemini worker, yt-monitor/yt-upload/yt-transcribe, two-locations sync, aooserver, reaper-daw helper.
+- `vmctl list|start|stop|lease` on the VM; API + leases; client tools/vmctl/vmctl_client.py (= `vmctl` on the Mac,
+  token ~/Downloads/API/chromium-vm-vmctl.txt). Status bar shows CKBOND (green/red) | TSCALE | QUEEN | running services.
+- Callers: chromium-vm-snap/dock (vmctl start), vm-open-url (starts brave/chrome service first), vm-whatsapp start (goes
+  through the firefox service), chromium-vm-phone (docker + idle reaper as --auto deps, gc after stop), Mac `pixel7`
+  (ensures pixel-door, 30 min lease). Viewer v33 (Mac) and Android v51: gear → SERVICES.
+- Rebooted 14.11.2026 08:13 UTC: up in < 1 min, only core running, 654 MB used (3.4 GB before). Deploy copy used:
+  ~/vmctl-deploy (git archive); ~/vm-chromium-git on the VM has diverged local commits (not touched).
+- Known: starting firefox starts wa-door, whose call bridge starts Pixel 2 (and docker); the reaper keeps Pixel 2
+  (CVM_REAPER_KEEP_PHONES=2), so stop pixel2 by hand. Proposed, not done: disable unified-monitoring-agent (fluentd, ~80 MB),
+  ModemManager, avahi, rpcbind, udisks2.
+
 **Renamed 13.11.2026:** VM Machine Remote Viewer (Mantra) is now **Mantra Remote Viewing** (Marko). Done by Queen.
 
 **9.11.2026 (idle reaper, task 66):** the two cloud phones are on demand. `chromium-vm-reaper.timer` (every 2 min, idle

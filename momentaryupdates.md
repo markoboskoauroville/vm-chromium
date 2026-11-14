@@ -292,3 +292,10 @@ vmcore.slice (CPUWeight 10000, Nice -15, OOM -1000, tested on a throwaway copy);
 REBOOT NOW: the bonding relay is down for ~1 min (the Mac's bond.json is "on": false, so Marko's internet is not cut);
 the VM's Claude Code tmux session, Chrome tabs (restored on next Chrome start), sunoctl serve and the http.server on
 172.17.0.1:8765 end with it.
+
+**Status (14.11.2026, ~08:30 UTC):** done. Rebooted 08:13 UTC: ckbond active in vmcore.slice (nice -15) and reachable on
+443 from the Mac, Tailscale, Xvnc, Queen up; no optional service running; used memory 654 MB (3.4 GB before), load 0.15-0.8
+idle. Proven through the API from the Mac: chrome start/stop, firefox start/stop (also via `vm-whatsapp start`), pixel1
+lease → boot in 26 s → release → container and docker stopped; leases expire by themselves. Status bar shows the running
+services (CKBOND green first). Gear: Mac viewer v33 (Latest, CI green), Android v51 (Latest, CI green), not yet installed.
+Not yet: the bond speed test under load (Claude on the Mac), Marko's hand on the gear.
