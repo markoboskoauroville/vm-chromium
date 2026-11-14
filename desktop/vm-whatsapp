@@ -172,7 +172,12 @@ def start():
     if bidi_up():                                     # a WhatsApp tab, in front
         b = Bidi()
         try:
-            ctx = b.wa_tab()
+            # one WhatsApp tab only: the home page AND the command-line URL opened two, and two tabs fight
+            # ("WhatsApp is open in another window", 14.11.2026)
+            wa = [c['context'] for c in b.call('browsingContext.getTree', {'maxDepth': 0})['contexts'] if 'web.whatsapp.com' in c.get('url', '')]
+            for extra in wa[1:]:
+                b.call('browsingContext.close', {'context': extra})
+            ctx = wa[0] if wa else None
             if not ctx:
                 ctx = b.call('browsingContext.create', {'type': 'tab'})['context']
                 b.call('browsingContext.navigate', {'context': ctx, 'url': HOME, 'wait': 'interactive'})
