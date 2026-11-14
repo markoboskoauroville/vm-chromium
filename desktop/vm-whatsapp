@@ -171,8 +171,9 @@ PHONE_FILE = os.path.expanduser('~/.config/chromium-vm/whatsapp-phone')   # Mark
 
 
 def _rect(b, ctx, js):
-    return b.eval(ctx, f"(() => {{ const e = {js}; if (!e) return null; e.scrollIntoView({{block:'center'}});"
-                       " const r = e.getBoundingClientRect(); return [r.x + r.width/2, r.y + r.height/2]; })()")
+    r = b.eval(ctx, f"(() => {{ const e = {js}; if (!e) return null; e.scrollIntoView({{block:'center'}});"
+                    " const r = e.getBoundingClientRect(); return JSON.stringify([r.x + r.width/2, r.y + r.height/2]); })()")
+    return json.loads(r) if r else None   # BiDi serialises arrays as typed objects: a JSON string comes back plain
 
 
 def _click(b, ctx, xy):
@@ -216,20 +217,19 @@ def phone_login(number=None):
         _keys(b, ctx, list(number))
         time.sleep(1)
         typed = b.eval(ctx, f"{box}.value")
-        country = b.eval(ctx, "(document.querySelector('button[type=submit]')||{}).innerText||''").strip()
+        country = (b.eval(ctx, "(document.querySelector('button[type=submit]')||{}).innerText||''") or '').strip()
         digits = lambda s: ''.join(c for c in s if c.isdigit())
         if digits(typed) != digits(number):
             raise SystemExit(f'the box shows "{typed}", not {number}: nothing pressed')
         _click(b, ctx, _rect(b, ctx, "[...document.querySelectorAll('button')].find(e => (e.innerText||'').trim() === 'Next')"))
         code = ''
-        for _ in range(30):                                  # the link code: 8 characters in boxes, e.g. ABCD-EFGH
-            time.sleep(1)
+        for _ in range(30):                                  # the link code: 8 characters, one per box (read 14.11.2026:
+            time.sleep(1)                                    # "Enter code on phone ... J V P C - Z Z Q K", one per line)
             t = b.eval(ctx, "document.body.innerText") or ''
-            cells = b.eval(ctx, "[...document.querySelectorAll('[data-link-code], [aria-details=\"link-device-phone-number-code-screen-instructions\"] span')].map(e=>e.innerText).join('')") or ''
-            import re
-            m = re.search(r'\b([A-Z0-9]{4})[-\s]?([A-Z0-9]{4})\b', cells) or re.search(r'Enter (?:this )?code[^\n]*\n+([A-Z0-9]{4})[-\s]?([A-Z0-9]{4})', t)
-            if m: code = m.group(1) + '-' + m.group(2); break
-            if 'code' in t.lower() and len(cells.replace('-', '')) == 8: code = cells; break
+            if 'Enter code on phone' in t or 'enter this code' in t.lower():
+                chars = [l.strip() for l in t.split('\n') if len(l.strip()) == 1 and l.strip().isalnum() and not l.strip().isdigit()]
+                if len(chars) >= 8:
+                    code = ''.join(chars[:4]) + '-' + ''.join(chars[4:8]); break
         return {'number': number, 'country': country, 'pressed_next': True, 'code': code,
                 'page': (b.eval(ctx, "document.body.innerText") or '')[:400]}
     finally:
