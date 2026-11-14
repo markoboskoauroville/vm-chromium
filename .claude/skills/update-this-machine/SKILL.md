@@ -24,6 +24,12 @@ VM itself gets changed.
 
 `sudo -n` works for user `ubuntu` (no password).
 
+## 0b. Services (14.11.2026)
+
+The VM boots with the core only. Every program is a vmctl service: `vmctl list`, `vmctl start|stop NAME` (registry
+/etc/chromium-vm/services.json, source tools/vmctl). Chrome is its own unit `chromium-vm-chrome` (no longer inside
+chromium-vm-session, which is openbox only). Never enable an optional unit at boot; add a new program to services.json.
+
 ## 1. The order of work
 
 1. **Save the request first** in `momentaryupdates.md`: Marko's words as a `>` quote, then `**Status:** saved first.`
