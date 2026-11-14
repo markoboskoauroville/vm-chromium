@@ -49,12 +49,13 @@ final class SettingsOverlay: Solid {
     let tip = NSTextField(labelWithString: "")            // a short note beside the gear (upload, clipboard, not connected)
     let permissions = WordButton()
     private let panel = NSVisualEffectView()
+    let services = ServicesPanel()                       // v33: the VM's services (vmctl), opened by SERVICES
     let statusLine = NSTextField(labelWithString: "connecting…")
     let userField = NSTextField()
     let passField = NSSecureTextField()
     private var keyButtons: [UInt16: (WordButton, WordButton)] = [:]
     let sizePopup = NSPopUpButton(frame: .zero, pullsDown: false)
-    var isOpen: Bool { !panel.isHidden }
+    var isOpen: Bool { !panel.isHidden || !services.isHidden }
 
     static let GEAR_W: CGFloat = 34
     static let macKeys: [(String, UInt16, String)] = [("F1", 122, "Speechify"), ("F2", 120, "Voice to Text")]
@@ -113,6 +114,10 @@ final class SettingsOverlay: Solid {
         statusLine.font = .systemFont(ofSize: 12, weight: .semibold); statusLine.textColor = .secondaryLabelColor
         stack.addArrangedSubview(name); stack.addArrangedSubview(statusLine)
         stack.addArrangedSubview(hairline())
+        // v33 (Marko, 14.11.2026: "on the gear icon I will have each program ... we call the program services"):
+        // SERVICES opens the list of the VM's services, each started or stopped with a click
+        stack.addArrangedSubview(row([WordButton("SERVICES", self, #selector(openServices))]))
+        stack.addArrangedSubview(hairline())
 
         // v11 (Marko, 5.11.2026): username and password inside the gear; SAVE AND CONNECT stores and connects
         stack.addArrangedSubview(label("LOGIN  (chromium-vm, \(VNC_HOST):\(VNC_PORT))", 11, NSColor(white: 0.55, alpha: 1), .medium))
@@ -153,6 +158,8 @@ final class SettingsOverlay: Solid {
         stack.addArrangedSubview(row([WordButton("CLOSE WINDOW", self, #selector(closeWindow)), pipe(),
                                       WordButton("QUIT", self, #selector(quit))]))
         addSubview(panel)
+        addSubview(services)
+        services.onBack = { [weak self] in self?.panel.isHidden = false }
         addSubview(moveGrip); addSubview(resizeGrip)
         let g = CornerGrip.SIZE, inset: CGFloat = 3   // a hair in from the edge, where macOS's own edge-resize begins
         NSLayoutConstraint.activate([
@@ -166,7 +173,9 @@ final class SettingsOverlay: Solid {
             stack.leadingAnchor.constraint(equalTo: panel.leadingAnchor), stack.trailingAnchor.constraint(equalTo: panel.trailingAnchor),
             stack.topAnchor.constraint(equalTo: panel.topAnchor), stack.bottomAnchor.constraint(equalTo: panel.bottomAnchor),
             panel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -6), panel.bottomAnchor.constraint(equalTo: gear.topAnchor, constant: -6),
-            panel.widthAnchor.constraint(greaterThanOrEqualToConstant: 330)])
+            panel.widthAnchor.constraint(greaterThanOrEqualToConstant: 330),
+            services.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -6),
+            services.bottomAnchor.constraint(equalTo: gear.topAnchor, constant: -6)])
         refreshKeys()
     }
     required init?(coder: NSCoder) { fatalError() }
@@ -178,7 +187,7 @@ final class SettingsOverlay: Solid {
         for v in [moveGrip, resizeGrip] as [NSView] where !v.isHidden && v.frame.contains(local) {
             return v
         }
-        for v in [panel, pill, gear] where !v.isHidden && v.frame.contains(local) {
+        for v in [panel, services, pill, gear] where !v.isHidden && v.frame.contains(local) {
             return super.hitTest(p) ?? self
         }
         return nil
@@ -215,7 +224,11 @@ final class SettingsOverlay: Solid {
         panel.isHidden = false; refreshKeys()
         DispatchQueue.main.async { [weak self] in guard let self else { return }; self.window?.makeFirstResponder(self.passField) }
     }
-    @objc func toggle() { panel.isHidden.toggle(); refreshKeys(); if isOpen { loadSizes() } }
+    @objc func toggle() {
+        if !services.isHidden { services.close(); return }          // the gear closes the services list too
+        panel.isHidden.toggle(); refreshKeys(); if isOpen { loadSizes() }
+    }
+    @objc func openServices() { panel.isHidden = true; services.open() }
 
     /// the sizes the VM's display offers (vm-agent screen_modes, xrandr), biggest first; FOLLOW WINDOW on top
     func loadSizes() {
@@ -234,7 +247,7 @@ final class SettingsOverlay: Solid {
         sizePopup.selectItem(at: items.firstIndex(where: { $0.1 == cur }) ?? 0)
     }
     @objc func pickSize() { app?.setScreenSize(sizePopup.selectedItem?.representedObject as? String ?? "") }
-    func close() { panel.isHidden = true; showNotes() }
+    func close() { panel.isHidden = true; services.close(); showNotes() }
     @objc func keyToMac(_ b: NSButton) { setHeld(UInt16(b.tag), true) }
     @objc func keyToVM(_ b: NSButton) { setHeld(UInt16(b.tag), false) }
     func setHeld(_ c: UInt16, _ on: Bool) {
