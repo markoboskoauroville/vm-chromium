@@ -33,6 +33,8 @@ APPS = [   # (label, test on WM_CLASS (instance, class) and the window title, ho
     # emulators, "Pixel One, Pixel Two"): both are scrcpy windows, told apart by their titles "Pixel 1" / "Pixel 2"
     ('Pixel 1',     lambda i, c, t: c.lower() == 'scrcpy' and t != 'Pixel 2', None),
     ('Pixel 2',     lambda i, c, t: c.lower() == 'scrcpy' and t == 'Pixel 2', None),
+    # 14.11.2026 (Marko: "give it its own window down there ... I need to have Firefox only view"): click = Firefox alone, full
+    ('Firefox',     lambda i, c, t: c == 'VMFirefox', None),
 ]
 NA = len(APPS)
 BAR_H = 22            # the status bar's band; the dock sits above it
@@ -53,8 +55,8 @@ LAYOUTS = [   # Marko, 5.11.2026: only these four, 40 | 60, Claude Code or Claud
 ]
 NT = NA + len(LAYOUTS)      # tiles: the three programs, then the layouts
 SNAP = '/usr/local/lib/chromium-vm/chromium-vm-snap'
-SNAP_NAMES = ['code', 'claude', 'chrome', 'pixel', 'pixel2']       # the snap tool's names of APPS, in the same order
-COLOURS = [(0.85, 0.47, 0.34), (0.55, 0.45, 0.85), (0.30, 0.62, 0.90), (0.36, 0.75, 0.45), (0.90, 0.72, 0.25)]   # Claude Code, Claude app, Chrome, Pixel 1, Pixel 2
+SNAP_NAMES = ['code', 'claude', 'chrome', 'pixel', 'pixel2', 'firefox']       # the snap tool's names of APPS, in the same order
+COLOURS = [(0.85, 0.47, 0.34), (0.55, 0.45, 0.85), (0.30, 0.62, 0.90), (0.36, 0.75, 0.45), (0.90, 0.72, 0.25), (0.95, 0.45, 0.15)]   # Claude Code, Claude app, Chrome, Pixel 1, Pixel 2, Firefox
 REFRESH_MS = 330      # thumbnails while the dock is up
 
 # 9.11.2026 (Marko: "it just closes it and puts that application down there in the dock, and I can start it again"):
