@@ -269,3 +269,10 @@ the classic way"
 13.11.2026, Marko: "if picture is still, can you even reduce this by reducing the frame rate to minimum or even freezing the
 picture until I click on it? It's kind of screensaver, let's call it, but this is actually bandwidth saver"
 13.11.2026, Marko: "yes, and make a small snowflake icon in the upper left corner so I know the picture is frozen"
+
+14.11.2026, Marko: "please, for all 100 apps, make them have to update when new things are available. When the application
+starts, it checks for it, downloads it, and asks you, "Do you want to update?" Then I say "yes," and it downloads and runs the
+update. Let's test this with the Remote Viewer application first. Update this application to check for updates, and if
+something new is there, when I start it, it's going to ask to update"
+
+**Status:** saved first. Building Updater.swift (v31) in Mantra Remote Viewing; v32 released after it to test the question.
