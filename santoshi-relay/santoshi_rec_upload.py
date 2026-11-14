@@ -211,7 +211,7 @@ def upload(sess, batch):
     with open(lst, "w") as f:
         f.write("".join(pc["f"] + "\n" for pc in batch))
     r = subprocess.run(["rclone", "copy", REC, "gdrive,root_folder_id=%s:" % sess["video"], "--files-from-raw", lst, "--no-traverse",
-                        "--transfers", "2", "--retries", "5", "--low-level-retries", "20", "--tpslimit", "4"],
+                        "--transfers", "2", "--drive-chunk-size", "64M", "--retries", "5", "--low-level-retries", "20", "--tpslimit", "4"],
                        capture_output=True, text=True, timeout=3600)
     if r.returncode != 0:
         raise RuntimeError("rclone: " + (r.stderr.strip().splitlines() or ["?"])[-1][:200])
