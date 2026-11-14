@@ -75,7 +75,10 @@ webrtcServerCert: /etc/mediamtx/tls/fullchain.pem
 webrtcAllowOrigins: ["*"]
 webrtcLocalUDPAddress: :8189
 webrtcLocalTCPAddress: :8189
-webrtcIPsFromInterfaces: false
+# the public IP for everyone; the private and Tailscale addresses too, for a phone whose traffic leaves through this VM (Tailscale exit
+# node / the Frankfurt bond): Oracle does not loop a packet from the VM back to its own public IP (15.11.2026, the Pixel's ICE timed out)
+webrtcIPsFromInterfaces: true
+webrtcIPsFromInterfacesList: [enp0s6, tailscale0]
 webrtcAdditionalHosts: ["130.61.181.83"]
 webrtcICEServers2: []
 webrtcHandshakeTimeout: 15s
