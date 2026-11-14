@@ -6,6 +6,8 @@ and my messages. Queen is going to do what I ask her to do with my WhatsApp").
     vm-whatsapp start     Firefox (own profile ~/.config/vm-firefox, WM_CLASS VMFirefox) running with remote control
                           (WebDriver BiDi on 127.0.0.1:9223), a WhatsApp Web tab, in front and full; prints the status
     vm-whatsapp status    {"running", "bidi", "state": "linked" | "qr" | "loading" | "no-tab"}  (JSON, one line)
+    vm-whatsapp phone-login [+NUMBER]   log in by phone number (number from ~/.config/chromium-vm/whatsapp-phone if not
+                          given): types it, checks the country, presses Next, prints the 8-character link code
     vm-whatsapp qr PATH   a PNG of the WhatsApp page (the QR code while not linked) taken by BiDi
 
 A Firefox already running WITHOUT remote control is closed politely (its window closed, tabs kept by the profile) and
@@ -165,6 +167,75 @@ def start():
     return s
 
 
+PHONE_FILE = os.path.expanduser('~/.config/chromium-vm/whatsapp-phone')   # Marko's number, VM only (chmod 600), never in a repo
+
+
+def _rect(b, ctx, js):
+    return b.eval(ctx, f"(() => {{ const e = {js}; if (!e) return null; e.scrollIntoView({{block:'center'}});"
+                       " const r = e.getBoundingClientRect(); return [r.x + r.width/2, r.y + r.height/2]; })()")
+
+
+def _click(b, ctx, xy):
+    b.call('input.performActions', {'context': ctx, 'actions': [{'type': 'pointer', 'id': 'm', 'parameters': {'pointerType': 'mouse'},
+        'actions': [{'type': 'pointerMove', 'x': int(xy[0]), 'y': int(xy[1])}, {'type': 'pointerDown', 'button': 0},
+                    {'type': 'pause', 'duration': 60}, {'type': 'pointerUp', 'button': 0}]}]})
+
+
+def _keys(b, ctx, seq):
+    acts = []
+    for k in seq:
+        acts += [{'type': 'keyDown', 'value': k}, {'type': 'keyUp', 'value': k}]
+    b.call('input.performActions', {'context': ctx, 'actions': [{'type': 'key', 'id': 'k', 'actions': acts}]})
+
+
+def phone_login(number=None):
+    """Marko, 14.11.2026: "I cannot log in with QR code through this interface ... enter my phone number and my country and
+    press Next". Opens "Log in with phone number" if needed, types the number with its + country code (WhatsApp picks the
+    country from it), checks the country, presses Next (real BiDi input), and returns the 8-character code WhatsApp shows.
+    Marko types that code on his phone: WhatsApp > Linked devices > Link a device > Link with phone number instead."""
+    number = (number or (open(PHONE_FILE).read().strip() if os.path.exists(PHONE_FILE) else '')).replace(' ', '')
+    if not number.startswith('+'):
+        raise SystemExit('the number needs its country code, e.g. +385 ... (or put it in ' + PHONE_FILE + ')')
+    b = Bidi()
+    try:
+        ctx = b.wa_tab()
+        if not ctx: raise SystemExit('no WhatsApp tab: vm-whatsapp start')
+        b.call('browsingContext.activate', {'context': ctx})
+        box = "document.querySelector('input[aria-label*=\"phone number\" i]')"
+        if not b.eval(ctx, f"!!{box}"):                       # still the QR page: its "Log in with phone number" link
+            xy = _rect(b, ctx, "[...document.querySelectorAll('div,span,a,button')].filter(e => /^Log in with phone number/i.test((e.innerText||'').trim()) && e.children.length < 3).pop()")
+            if not xy: raise SystemExit('no "Log in with phone number" on the page (state: ' + str(b.eval(ctx, STATE_JS)) + ')')
+            _click(b, ctx, xy)
+            for _ in range(20):
+                if b.eval(ctx, f"!!{box}"): break
+                time.sleep(0.5)
+        _click(b, ctx, _rect(b, ctx, box))
+        b.call('input.performActions', {'context': ctx, 'actions': [{'type': 'key', 'id': 'k', 'actions': [
+            {'type': 'keyDown', 'value': ''}, {'type': 'keyDown', 'value': 'a'}, {'type': 'keyUp', 'value': 'a'},
+            {'type': 'keyUp', 'value': ''}, {'type': 'keyDown', 'value': ''}, {'type': 'keyUp', 'value': ''}]}]})
+        _keys(b, ctx, list(number))
+        time.sleep(1)
+        typed = b.eval(ctx, f"{box}.value")
+        country = b.eval(ctx, "(document.querySelector('button[type=submit]')||{}).innerText||''").strip()
+        digits = lambda s: ''.join(c for c in s if c.isdigit())
+        if digits(typed) != digits(number):
+            raise SystemExit(f'the box shows "{typed}", not {number}: nothing pressed')
+        _click(b, ctx, _rect(b, ctx, "[...document.querySelectorAll('button')].find(e => (e.innerText||'').trim() === 'Next')"))
+        code = ''
+        for _ in range(30):                                  # the link code: 8 characters in boxes, e.g. ABCD-EFGH
+            time.sleep(1)
+            t = b.eval(ctx, "document.body.innerText") or ''
+            cells = b.eval(ctx, "[...document.querySelectorAll('[data-link-code], [aria-details=\"link-device-phone-number-code-screen-instructions\"] span')].map(e=>e.innerText).join('')") or ''
+            import re
+            m = re.search(r'\b([A-Z0-9]{4})[-\s]?([A-Z0-9]{4})\b', cells) or re.search(r'Enter (?:this )?code[^\n]*\n+([A-Z0-9]{4})[-\s]?([A-Z0-9]{4})', t)
+            if m: code = m.group(1) + '-' + m.group(2); break
+            if 'code' in t.lower() and len(cells.replace('-', '')) == 8: code = cells; break
+        return {'number': number, 'country': country, 'pressed_next': True, 'code': code,
+                'page': (b.eval(ctx, "document.body.innerText") or '')[:400]}
+    finally:
+        b.close()
+
+
 def qr(path):
     b = Bidi()
     try:
@@ -183,6 +254,8 @@ if __name__ == '__main__':
         print(json.dumps(start()))
     elif a[0] == 'status':
         print(json.dumps(status()))
+    elif a[0] == 'phone-login':
+        print(json.dumps(phone_login(' '.join(a[1:]) or None)))
     elif a[0] == 'qr':
         qr(a[1] if len(a) > 1 else '/tmp/whatsapp-qr.png')
     else:
