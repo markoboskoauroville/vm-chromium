@@ -299,3 +299,5 @@ idle. Proven through the API from the Mac: chrome start/stop, firefox start/stop
 lease → boot in 26 s → release → container and docker stopped; leases expire by themselves. Status bar shows the running
 services (CKBOND green first). Gear: Mac viewer v33 (Latest, CI green), Android v51 (Latest, CI green), not yet installed.
 Not yet: the bond speed test under load (Claude on the Mac), Marko's hand on the gear.
+
+**14.11.2026 (Marko: "oramon goes off"):** unified-monitoring-agent (+ its restarter path and config timer) disabled and stopped; ORAMON is now an ordinary service, off (services.json core false). VM memory used 1.1 GB.
