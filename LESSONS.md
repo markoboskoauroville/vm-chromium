@@ -127,3 +127,12 @@
 - "Is anyone looking" = VNC client on :5901 + its window mapped + (it is the front window or X input within the idle time); X idle comes from python-xlib screensaver_query_info (no xprintidle on the VM).
 - redroid takes ~40 s to boot_completed: on-demand callers (pixel7d, jobs) must wait; a request to a stopped phone takes ~30 s the first time.
 - Disabled units (scrcpy x2, bar) stay disabled; docker restart policy unless-stopped keeps a stopped container stopped across reboot.
+
+## 14.11.2026: the updater (update at start)
+- The app asks gh / GitHub for the Latest release; tag vN must equal the app's version number or it never sees itself as current.
+- Test it with two releases: vN with the updater installed by hand once, then vN+1 as a bump only; the question must come.
+- Emulator taps only by text (uiautomator dump): blind coordinates answered Play Protect wrong once and opened the Pixel 7 row
+  (connected to the real phone) once.
+- Android asks "Allow from this source" once; without the onResume hook the install waited for the next start (fixed in v50).
+- Mac: sign the new copy "Mantra Apps" before swapping, or Accessibility is lost; failures reopen the old copy.
+- From now on: MANTRA_MANIFEST modules/update-at-start.md, kits mac-updater / android-updater, skill update-at-start.

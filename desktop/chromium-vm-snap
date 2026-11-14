@@ -55,8 +55,8 @@ LAUNCH = {
     # Android and starts the scrcpy screen
     'pixel': ['/usr/local/lib/chromium-vm/chromium-vm-phone', 'start', '1', '--mirror'],
     'pixel2': ['/usr/local/lib/chromium-vm/chromium-vm-phone', 'start', '2', '--mirror'],
-    'firefox': ['env', 'PULSE_SINK=vmout', 'firefox', '--new-instance', '--profile', os.path.expanduser('~/.config/vm-firefox'),
-                '--class', 'VMFirefox'],
+    # 14.11.2026: Firefox is the WhatsApp machine: remote control on 9223, home page WhatsApp (vm-whatsapp)
+    'firefox': ['/usr/local/lib/chromium-vm/vm-whatsapp', 'start'],
 }
 
 def launch(name):
