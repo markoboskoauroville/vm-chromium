@@ -308,3 +308,5 @@ Not yet: the bond speed test under load (Claude on the Mac), Marko's hand on the
 
 **Status:** ttt-relay built (ttt-relay/, tests 7/7), registered as core service TTT. NOT YET INSTALLED: a session on the VM or the Mac runs `sudo ttt-relay/install.sh` (cloud sessions reach only :443 of the VM).
 
+
+**Status (14.11.2026, Mac session MAC_SES2_14-NOV, live test):** 1 relay install PASSED (active on 100.102.86.30:8897, /health ok, vmctl TTT CORE running). 2 build PASSED (682 Frankfurt; 684 mic selector; 685 Frankfurt not gated by chain_on), installed on the Pixel 7 (not the Nothing, by Marko's choice). 3a PASSED (answers · assemblyai 1/21, deepgram 1/1, gemini 1/20, groq 1/4, speechmatics 1/1; keys.json counts match). 3b PASSED by Marko ("Frankfurt is working"); jobs.log: "deepgram en 17.1s key 1/1 attempts 1 ok 1356ms". Mic selector PASSED by Marko. 3c trash/cancel, 3d FRA chip off, 3e relay stopped: NOT RUN (session closed by Marko).
