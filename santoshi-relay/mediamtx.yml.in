@@ -73,13 +73,14 @@ webrtcEncryption: true
 webrtcServerKey: /etc/mediamtx/tls/privkey.pem
 webrtcServerCert: /etc/mediamtx/tls/fullchain.pem
 webrtcAllowOrigins: ["*"]
-webrtcLocalUDPAddress: :8189
-webrtcLocalTCPAddress: :8189
+webrtcLocalUDPAddress: 10.0.0.86:8189
+webrtcLocalTCPAddress: 10.0.0.86:8189
 # the public IP for everyone; the private and Tailscale addresses too, for a phone whose traffic leaves through this VM (Tailscale exit
 # node / the Frankfurt bond): Oracle does not loop a packet from the VM back to its own public IP (15.11.2026, the Pixel's ICE timed out)
-# (an interface list with tailscale0 brought IPv6 link-local pairs that dropped every few seconds: only these two IPv4 addresses)
+# Only the public address, and the media listeners only on the Oracle interface (10.0.0.86, NATed 1:1 to 130.61.181.83): with
+# Tailscale in the candidates the Pixel and the Mac (both on Tailscale) chose Tailscale paths that dropped every 5-30 s (15.11.2026)
 webrtcIPsFromInterfaces: false
-webrtcAdditionalHosts: ["130.61.181.83", "100.102.86.30"]
+webrtcAdditionalHosts: ["130.61.181.83"]
 webrtcICEServers2: []
 webrtcHandshakeTimeout: 15s
 # a phone's H.264 can come a few seconds after its Opus on a fresh connection: wait for both, or the path is audio only
