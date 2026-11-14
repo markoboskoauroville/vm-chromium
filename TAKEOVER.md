@@ -215,3 +215,13 @@ viewer/app/Updater.swift: at start `gh release view` on this repo; a Latest vN n
 to update?" (Update / Later). Update: a detached script waits for the quit, signs "Mantra Apps", swaps the .app, reopens.
 Tested v31 → v32 the same morning. From now on a push to main (viewer/**) reaches the Mac by the question; no manual install.
 The same file is the kit MANTRA_MANIFEST/kits/mac-updater for every Mac app.
+
+## 15.11.2026: santoshi-relay (core service SRELAY)
+MediaMTX v1.21.3 (pinned, sha256 checked) for the Santoshi live stream: Manual Camera sends ONE stream by WHIP, viewers read WHEP/LL-HLS
+at https://relay.ples-duse.org (:8889 WHIP/WHEP, :8888 HLS, :8443 API with key, 8189 udp+tcp media on 10.0.0.86 only, 8890/udp SRT).
+Install: `printf 'sha256:…' | sudo santoshi-relay/install.sh` (first time; then plain sudo). Publish key: /etc/santoshi-relay/key (root:ubuntu 640),
+its hash in /etc/mediamtx/publish.hash; the Pages secret RELAY_KEY of santoshi-band holds the same key. Oracle security list rules added
+by oci CLI (8888-8889, 8189, 8443 tcp; 8189, 8890 udp; 80 was already open). TLS: certbot standalone, renewal hook copies to /etc/mediamtx/tls.
+Recording: /srv/santoshi-rec/santoshi (1 min fmp4, 72 h) → santoshi-rec-upload (user ubuntu, rclone drive.file) → Drive
+"Santoshi Band live (relay)/Santoshi live <date time>/Video" + Docs "Chat" and "Stream statistics" from the site's /api/relay.
+Proven 15.11.2026 with the Sony on the Pixel: 1 publisher, 8 viewers, MediaMTX 13 % of one core. YouTube/RTMP forward: santoshi-forward, off.
