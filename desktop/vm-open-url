@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+"""vm-open-url: the VM's default web browser is this dispatcher (Marko, 14.11.2026: "add the Brave browser ... and make it
+default to open YouTube links"). Linux has no default per domain, so every http/https link and .html file other programs
+open (xdg-open) comes here: YouTube hosts (youtube.com, *.youtube.com, youtu.be, youtube-nocookie.com) go to Brave as a new tab
+(started when it is not running; own profile ~/.config/vm-brave, WM_CLASS VMBrave, sound to the sink vmout), everything else
+goes to the browser that was the default before: the session's Chrome (chromium-vm-chrome.desktop, profile
+~/.config/chromium-vm-chrome). Another fallback can be put on one line in ~/.config/chromium-vm/fallback-browser (a command, the URL is appended)."""
+import os, shlex, subprocess, sys
+from urllib.parse import urlparse
+
+HOME = os.path.expanduser('~')
+ENV = dict(os.environ, DISPLAY=os.environ.get('DISPLAY', ':1'), PULSE_SINK='vmout')
+BRAVE = ['brave-browser', f'--user-data-dir={HOME}/.config/vm-brave', '--class=VMBrave', '--no-first-run', '--no-default-browser-check']
+CHROME = ['/usr/bin/google-chrome-stable', f'--user-data-dir={HOME}/.config/chromium-vm-chrome']   # the previous default browser
+YT = ('youtube.com', 'youtu.be', 'youtube-nocookie.com')
+
+def is_youtube(url):
+    try: p = urlparse(url); host = (p.hostname or '').lower().rstrip('.')
+    except Exception: return False
+    return p.scheme in ('http', 'https') and any(host == d or host.endswith('.' + d) for d in YT)   # music.youtube.com, m., www. ...
+
+def fallback():
+    try: return shlex.split(open(f'{HOME}/.config/chromium-vm/fallback-browser').read().strip()) or CHROME
+    except Exception: return CHROME
+
+def run(cmd):
+    subprocess.Popen(cmd, env=ENV, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+
+urls = sys.argv[1:]
+yt = [u for u in urls if is_youtube(u)]
+rest = [u for u in urls if u not in yt]
+if yt:
+    run(BRAVE + yt)
+if rest or not urls:
+    run(fallback() + rest)

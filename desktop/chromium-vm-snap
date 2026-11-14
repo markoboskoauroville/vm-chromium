@@ -3,7 +3,7 @@
 Called by openbox's keybindings (Ctrl+Alt+key = ⌃⌥key from the Mac viewer). Snaps the active window inside the
 work area (screen less the status bar), like Rectangle's defaults:
 left right top bottom | max center | tl tr bl br | third1 third2 third3 | two1 two2 | restore
-`show code|claude|chrome|pixel|pixel2|firefox` one program alone and full, started first when it has no window (5.11.2026)
+`show code|claude|chrome|pixel|pixel2|firefox|brave` one program alone and full, started first when it has no window (5.11.2026)
 `layout code-chrome|claude-chrome|claude-pixels|code-pixels` arranges all three programs at once (the dock's layout displays, Marko 2.11.2026):
 halves = Claude Code left | Chrome right; cc-halves = Claude | Chrome; cc-40-60 = Claude 40% | Chrome 60%; big = Chrome on the first two
 thirds, Claude Code top right, Claude bottom right.
@@ -31,7 +31,9 @@ APPS = {'code': lambda i, c, t: c == 'Xfce4-terminal', 'claude': lambda i, c, t:
         'pixel2': lambda i, c, t: c.lower() == 'scrcpy' and t == 'Pixel 2',
         # 14.11.2026 (Marko: "give it its own window down there ... I need to have Firefox only view"): Firefox, own
         # profile ~/.config/vm-firefox, WM_CLASS VMFirefox
-        'firefox': lambda i, c, t: c == 'VMFirefox'}
+        'firefox': lambda i, c, t: c == 'VMFirefox',
+        # 14.11.2026: Brave = the YouTube browser, own profile ~/.config/vm-brave, WM_CLASS VMBrave (vm-open-url)
+        'brave': lambda i, c, t: c == 'VMBrave'}
 # Marko, 5.11.2026: "Combinations: 40 60 ... you don't need to make any other combinations": four layouts only,
 # Claude Code or Claude on the 40 side (left), Chrome or the Pixel 7 on the 60 side (right)
 LAYOUTS = {'code-chrome': [('code', 'l40'), ('chrome', 'r60')],
@@ -57,6 +59,8 @@ LAUNCH = {
     'pixel2': ['/usr/local/lib/chromium-vm/chromium-vm-phone', 'start', '2', '--mirror'],
     # 14.11.2026: Firefox is the WhatsApp machine: remote control on 9223, home page WhatsApp (vm-whatsapp)
     'firefox': ['/usr/local/lib/chromium-vm/vm-whatsapp', 'start'],
+    'brave': ['env', 'PULSE_SINK=vmout', 'brave-browser', f'--user-data-dir={os.path.expanduser("~/.config/vm-brave")}', '--class=VMBrave',
+              '--no-first-run', '--no-default-browser-check', 'https://www.youtube.com/'],
 }
 
 def launch(name):

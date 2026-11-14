@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Links (YouTube to Brave, the rest to Chrome)
+Comment=The VM's default browser: YouTube links open in Brave, every other link in the session's Chrome
+Exec=/usr/local/lib/chromium-vm/vm-open-url %U
+Terminal=false
+Type=Application
+Icon=web-browser
+Categories=Network;WebBrowser;
+NoDisplay=true
+MimeType=x-scheme-handler/unknown;x-scheme-handler/about;text/html;x-scheme-handler/http;x-scheme-handler/https;

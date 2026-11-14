@@ -16,7 +16,7 @@ echo "deb [arch=amd64,arm64 signed-by=$KEY] https://downloads.claude.ai/claude-d
 dpkg -s claude-desktop >/dev/null 2>&1 || { apt-get update -q >/dev/null; apt-get install -y -q --no-install-recommends claude-desktop >/dev/null; }
 
 # 14.11.2026: vm-whatsapp = Firefox as the WhatsApp machine (apt firefox from the xtradeb PPA, pinned in /etc/apt/preferences.d/firefox-xtradeb)
-install -m 755 chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-snap vm-whatsapp /usr/local/lib/chromium-vm/
+install -m 755 chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-snap vm-whatsapp vm-open-url /usr/local/lib/chromium-vm/
 install -m 644 config/openbox-rc.xml /usr/local/lib/chromium-vm/openbox-rc.xml
 # dark mode for every GTK window and dialog on the VM (Marko, 5.11.2026: "make everything dark mode"); GTK 3 and 4
 for v in 3.0 4.0; do install -D -m 644 -o "${VM_USER:-ubuntu}" -g "${VM_USER:-ubuntu}" config/gtk/settings.ini "/home/${VM_USER:-ubuntu}/.config/gtk-$v/settings.ini"; done
@@ -33,7 +33,17 @@ grep -qs 'chromium-vm: the terminal keeps' "$VM_HOME/.config/gtk-3.0/gtk.css" &&
 as_user mkdir -p "$VM_HOME/.local/share/applications"
 sed "s#@VM_HOME@#$VM_HOME#" config/chromium-vm-chrome.desktop > "$VM_HOME/.local/share/applications/chromium-vm-chrome.desktop"
 chown "$VM_USER:$VM_USER" "$VM_HOME/.local/share/applications/chromium-vm-chrome.desktop"
-as_user env HOME="$VM_HOME" xdg-settings set default-web-browser chromium-vm-chrome.desktop || true
+# 14.11.2026: Brave (official arm64 apt repo, as on brave.com/linux) is the YouTube browser; the default browser is the dispatcher
+# vm-open-url: YouTube hosts -> Brave (profile ~/.config/vm-brave, class VMBrave), everything else -> the session's Chrome above.
+if ! dpkg -s brave-browser >/dev/null 2>&1; then
+  curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+  echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg arch=arm64] https://brave-browser-apt-release.s3.brave.com/ stable main" \
+    > /etc/apt/sources.list.d/brave-browser-release.list
+  apt-get update -q >/dev/null; apt-get install -y -q brave-browser >/dev/null
+fi
+install -m 644 -o "$VM_USER" -g "$VM_USER" config/vm-open-url.desktop "$VM_HOME/.local/share/applications/vm-open-url.desktop"
+as_user env HOME="$VM_HOME" xdg-settings set default-web-browser vm-open-url.desktop || true
+for m in x-scheme-handler/http x-scheme-handler/https text/html; do as_user env HOME="$VM_HOME" xdg-mime default vm-open-url.desktop $m; done
 grep -q 'local/bin' "$VM_HOME/.bashrc" || echo 'case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) PATH="$HOME/.local/bin:$PATH" ;; esac' >> "$VM_HOME/.bashrc"
 
 for u in chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-pixel7b chromium-vm-pixel7-bar chromium-vm-dock chromium-vm-refit; do
