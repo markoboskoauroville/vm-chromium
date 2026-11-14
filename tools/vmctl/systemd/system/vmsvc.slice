@@ -1,5 +1,5 @@
 # chromium-vm: every optional service (Chrome, Claude, the Pixels' docker, ...) lives here, at a low weight, under a
-# memory ceiling, so none of them can starve the relay (vm-core.slice). Marko, 14.11.2026.
+# memory ceiling, so none of them can starve the relay (vmcore.slice). Marko, 14.11.2026.
 [Unit]
 Description=chromium-vm optional services (low priority)
 Before=slices.target

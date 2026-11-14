@@ -6,7 +6,7 @@ BindsTo=chromium-vm-xvnc.service
 [Service]
 Type=simple
 User=@VM_USER@
-Slice=vm-services.slice
+Slice=vmsvc.slice
 OOMScoreAdjust=500
 ExecStart=/usr/local/lib/chromium-vm/chromium-vm-chrome
 Restart=always

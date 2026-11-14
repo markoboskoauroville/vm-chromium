@@ -27,8 +27,8 @@ install -m 755 desktop/chromium-vm-phone desktop/chromium-vm-snap desktop/vm-wha
 install -m 755 statusbar/chromium-vm-statusbar.py $L/
 sed "s/@VM_USER@/$U/" stage1/systemd/chromium-vm-chrome.service > /etc/systemd/system/chromium-vm-chrome.service
 
-echo "== priority: vm-core.slice (ckbond, tailscaled) over vm-services.slice (everything optional)"
-install -m 644 tools/vmctl/systemd/system/vm-core.slice tools/vmctl/systemd/system/vm-services.slice /etc/systemd/system/
+echo "== priority: vmcore.slice (ckbond, tailscaled) over vmsvc.slice (everything optional)"
+install -m 644 tools/vmctl/systemd/system/vmcore.slice tools/vmctl/systemd/system/vmsvc.slice /etc/systemd/system/
 for d in ckbond.service.d tailscaled.service.d; do
   install -d /etc/systemd/system/$d; install -m 644 tools/vmctl/systemd/dropins/$d/10-priority.conf /etc/systemd/system/$d/
 done
@@ -42,12 +42,15 @@ for u in $OPT_SYS; do
   install -d /etc/systemd/system/$u.d; install -m 644 tools/vmctl/systemd/dropins/optional/50-vm-services.conf /etc/systemd/system/$u.d/
 done
 # Docker's containers in the low slice too (takes effect when docker next starts; never recreates a container)
-if [ ! -f /etc/docker/daemon.json ]; then install -d /etc/docker; echo '{"cgroup-parent": "vm-services.slice"}' > /etc/docker/daemon.json; fi
+if [ ! -f /etc/docker/daemon.json ] || grep -q 'vm-services.slice' /etc/docker/daemon.json; then
+  install -d /etc/docker; echo '{"cgroup-parent": "vmsvc.slice"}' > /etc/docker/daemon.json; fi
+# first try of 14.11.2026 named the slices vm-core / vm-services (they nested under vm.slice): our own files, removed
+rm -f /etc/systemd/system/vm-core.slice /etc/systemd/system/vm-services.slice "$UH/.config/systemd/user/vm-services.slice"
 
 echo "== user units (Firefox, Brave, the user slice)"
 UD=$UH/.config/systemd/user
 as_user install -d "$UD"
-as_user install -m 644 tools/vmctl/systemd/user/vm-firefox.service tools/vmctl/systemd/user/vm-brave.service tools/vmctl/systemd/user/vm-services.slice "$UD/"
+as_user install -m 644 tools/vmctl/systemd/user/vm-firefox.service tools/vmctl/systemd/user/vm-brave.service tools/vmctl/systemd/user/vmsvc.slice "$UD/"
 OPT_USR=$(python3 -c "
 import json; r=json.load(open('/etc/chromium-vm/services.json'))['services']
 print(' '.join(u for s in r if not s.get('core') and s['kind']=='user' for u in s['units'] if u.endswith('.service') and not u.startswith('vm-')))")
