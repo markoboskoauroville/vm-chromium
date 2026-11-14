@@ -285,3 +285,10 @@ something new is there, when I start it, it's going to ask to update"
 
 > since machine is very weak, we always need to find solutions and tactics and ways so connection keeper and my VPN protection is at the maximum, the process has maximum priority
 > Also in the lower part, when I have already something like CPU usage etc. Extended to show running services. So between each running service there will be pipe and the next one. And maximum 8 characters. So you need to abbreviate names.
+
+**Status (14.11.2026, ~08:15 UTC, before the reboot):** vmctl (registry, CLI, API :8896 with leases) installed and tested
+(start/stop/lease/expiry on sonobus-server); boot is now core-only (disable only, nothing deleted); ckbond/tailscaled in
+vmcore.slice (CPUWeight 10000, Nice -15, OOM -1000, tested on a throwaway copy); status bar shows the running services.
+REBOOT NOW: the bonding relay is down for ~1 min (the Mac's bond.json is "on": false, so Marko's internet is not cut);
+the VM's Claude Code tmux session, Chrome tabs (restored on next Chrome start), sunoctl serve and the http.server on
+172.17.0.1:8765 end with it.
