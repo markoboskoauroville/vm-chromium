@@ -9,7 +9,7 @@ VM's rclone remote gdrive:, scope drive.file) puts them on Drive in the same lay
 
 "(relay)": drive.file lets each app see only its own files, so the VM cannot write into the folder the admin page made.
 A stream = pieces with less than 3 min between them; its name is the Croatia time of its first piece. A piece is finished when a
-newer one exists, or nothing was written to it for 75 s. The two Docs are rewritten every 45 s while the stream runs and once
+newer one exists, or nothing was written to it for 75 s. The two Docs are rewritten every 2 min while the stream runs and once
 after it ends, from the site's /api/relay (Bearer = the relay key in /etc/santoshi-relay/key; chat and the room's statistics).
 State: ~/.local/state/santoshi-relay/state.json. Status line: /srv/santoshi-rec/upload-status.json. No key is ever printed.
 """
@@ -23,7 +23,7 @@ CONF = os.path.expanduser("~/.config/rclone/rclone.conf")
 SITE = os.environ.get("SITE", "https://santoshi-band.pages.dev")
 KEYFILE = "/etc/santoshi-relay/key"
 ROOT_NAME = "Santoshi Band live (relay)"
-GAP, IDLE, DOCS_EVERY = 180, 75, 45
+GAP, IDLE, DOCS_EVERY = 180, 75, 120
 HR = ZoneInfo("Europe/Zagreb")
 NAME = re.compile(r"^(\d{4})-(\d\d)-(\d\d)_(\d\d)-(\d\d)-(\d\d)-(\d+)\.mp4$")
 
@@ -204,9 +204,15 @@ def ensure_folders(sess):
     log("Drive folders made for", sess["name"])
 
 
-def upload(sess, pc):
-    dst = "gdrive,root_folder_id=%s:%s" % (sess["video"], pc["f"])
-    r = subprocess.run(["rclone", "copyto", pc["p"], dst, "--retries", "5", "--low-level-retries", "10"], capture_output=True, text=True, timeout=1800)
+def upload(sess, batch):
+    """One rclone call for every finished piece of a stream: rclone's shared Google client allows few requests a minute
+    (403 "Queries per minute" on 15.11.2026 made one call per piece take about a minute)."""
+    lst = os.path.join(os.path.dirname(STATE), "batch.txt")
+    with open(lst, "w") as f:
+        f.write("".join(pc["f"] + "\n" for pc in batch))
+    r = subprocess.run(["rclone", "copy", REC, "gdrive,root_folder_id=%s:" % sess["video"], "--files-from-raw", lst, "--no-traverse",
+                        "--transfers", "2", "--retries", "5", "--low-level-retries", "20", "--tpslimit", "4"],
+                       capture_output=True, text=True, timeout=3600)
     if r.returncode != 0:
         raise RuntimeError("rclone: " + (r.stderr.strip().splitlines() or ["?"])[-1][:200])
 
@@ -238,7 +244,28 @@ def status(st, note):
         pass
 
 
+def flush(st, batch):
+    """Uploads the collected pieces of one stream (pieces under 20 kB, the stubs of a reconnect, are only marked done)."""
+    if not batch:
+        return
+    sess = batch[0][0]
+    real = [pc for _, pc in batch if pc["size"] >= 20_000]
+    if real:
+        ensure_folders(sess)
+        upload(sess, real)
+    for _, pc in batch:
+        st["done"][pc["f"]] = sess["name"]
+    sess["pieces"] = sess.get("pieces", 0) + len(real)
+    sess["bytes"] = sess.get("bytes", 0) + sum(pc["size"] for pc in real)
+    sess["seconds"] = sess.get("seconds", 0) + sum(max(1, int(pc["mt"] - pc["t0"])) for pc in real)
+    sess["waiting"] = 0
+    log("uploaded %d piece(s), %.1f MB -> %s/Video" % (len(real), sum(pc["size"] for pc in real) / 1e6, sess["name"]))
+    batch.clear()
+    save(st)
+
+
 def step(st):
+    batch = []
     ps = pieces()
     now = time.time()
     newest = ps[-1]["f"] if ps else None
@@ -259,15 +286,10 @@ def step(st):
         if not finished:
             last["waiting"] = 1
             break
-        ensure_folders(last)
-        upload(last, pc)
-        st["done"][pc["f"]] = last["name"]
-        last["pieces"] = last.get("pieces", 0) + 1
-        last["bytes"] = last.get("bytes", 0) + pc["size"]
-        last["seconds"] = last.get("seconds", 0) + max(1, int(pc["mt"] - pc["t0"]))
-        last["waiting"] = 0
-        log("uploaded", pc["f"], "%.1f MB" % (pc["size"] / 1e6), "->", last["name"] + "/Video")
-        save(st)
+        if batch and batch[0][0] is not last:
+            flush(st, batch)
+        batch.append((last, pc))
+    flush(st, batch)
     # forget pieces MediaMTX has already deleted (recordDeleteAfter)
     have = {p["f"] for p in ps}
     st["done"] = {k: v for k, v in st["done"].items() if k in have}
@@ -293,7 +315,7 @@ def main():
             log("error:", type(x).__name__, str(x)[:200])
             status(st, "error: " + type(x).__name__)
             time.sleep(30)
-        time.sleep(15)
+        time.sleep(30)
 
 
 if __name__ == "__main__":
