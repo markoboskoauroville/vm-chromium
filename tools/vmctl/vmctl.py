@@ -154,7 +154,9 @@ def start(name, who='cli', gui=False, manual=True, _seen=None):
         elif s['kind'] == 'docker' or s.get('start'):
             res = run(s.get('gui_start') if gui and s.get('gui_start') else s['start'])
         else:
-            res = run(_units_cmd(s, 'start'))
+            # unit active but its program gone (a probe fails: Firefox closed by hand): restart, start would be a no-op
+            act = _active(s['units'][:1], s['kind'] == 'user').get(s['units'][0]) == 'active'
+            res = run(_units_cmd(s, 'restart' if act and s.get('probe') else 'start'))
         ok = res[0] == 0
         with State() as d:
             if manual: d['manual'][name] = True; d['auto'].pop(name, None)
@@ -402,7 +404,8 @@ def main(a):
             ds = describe(); print(json.dumps([s for s in ds if not rest or s['name'] == rest[0]], indent=1))
         elif cmd == 'start':
             auto = '--auto' in rest                       # as a dependency (chromium-vm-phone starting docker): gc may stop it
-            auto = auto and not states()[rest[0]]         # only what this call really starts
+            if auto and states()[rest[0]]:                # already running: an --auto call changes nothing
+                print(json.dumps({'name': rest[0], 'running': True, 'note': 'already running'})); return 0
             r = start(rest[0], who, gui='--gui' in rest, manual=not auto)
             if auto:
                 with State() as d: d['auto'][rest[0]] = True

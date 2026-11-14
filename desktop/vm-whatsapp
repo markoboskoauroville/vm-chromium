@@ -312,6 +312,12 @@ def qr(path):
 if __name__ == '__main__':
     a = sys.argv[1:] or ['start']
     if a[0] == 'start':
+        # 14.11.2026: Firefox is the vmctl service "firefox" (vm-firefox.service + wa-door). Called from outside the
+        # unit (Queen, the dock, wa-door's watchdog), the service is started first, so Firefox lives in its own unit
+        # and the gear sees it; then this call only brings the WhatsApp tab to the front.
+        if os.environ.get('VMWA_IN_UNIT') != '1' and os.path.exists('/usr/local/lib/chromium-vm/vmctl'):
+            subprocess.run(['/usr/local/lib/chromium-vm/vmctl', 'start', 'firefox'], capture_output=True, timeout=180,
+                           env=dict(ENV, VMCTL_WHO=os.environ.get('VMCTL_WHO', 'vm-whatsapp')))
         print(json.dumps(start()))
     elif a[0] == 'status':
         print(json.dumps(status()))
