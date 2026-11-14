@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 30
+let VERSION = 31
 let APP_NAME = "Mantra Remote Viewing"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -58,6 +58,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         // door still brings them when asked.
         connect()
         NSApp.activate(ignoringOtherApps: true)
+        Updater.checkAtStart()   // v31 (Marko, 14.11.2026): a newer release is downloaded, then he is asked
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ s: NSApplication) -> Bool { false }
