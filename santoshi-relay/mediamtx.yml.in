@@ -96,13 +96,13 @@ paths:
   santoshi:
     source: publisher
     overridePublisher: true
-    # every stream is kept on the VM's disk in 1 min pieces; santoshi-rec-upload puts them on Drive; the disk keeps 3 days
+    # every stream is kept on the VM's disk in 1 min pieces; santoshi-rec-upload puts them on Drive; the disk keeps 7 days (Drive uploads can lag: rclone shares a Google quota)
     record: true
     recordPath: /srv/santoshi-rec/%path/%Y-%m-%d_%H-%M-%S-%f
     recordFormat: fmp4
     recordPartDuration: 1s
     recordSegmentDuration: 1m
-    recordDeleteAfter: 72h
+    recordDeleteAfter: 168h
     # LATER, OFF (Marko, 14.11.2026: "without YouTube branding"): a forward to YouTube or any RTMP server. To switch it on, put the
     # stream key into /etc/mediamtx/forward.env as FORWARD_URL=rtmp://a.rtmp.youtube.com/live2/<key> and uncomment the two lines:
     # runOnReady: /usr/local/lib/chromium-vm/santoshi-forward
