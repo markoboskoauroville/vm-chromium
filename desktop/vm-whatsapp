@@ -5,6 +5,7 @@ and my messages. Queen is going to do what I ask her to do with my WhatsApp").
 
     vm-whatsapp start     Firefox (own profile ~/.config/vm-firefox, WM_CLASS VMFirefox) running with remote control
                           (WebDriver BiDi on 127.0.0.1:9223), a WhatsApp Web tab, in front and full; prints the status
+    vm-whatsapp stop      Firefox closed politely (window close), killed only if it stays (the vmctl service "firefox")
     vm-whatsapp status    {"running", "bidi", "state": "linked" | "qr" | "loading" | "no-tab"}  (JSON, one line)
     vm-whatsapp phone-login [+NUMBER]   log in by phone number (number from ~/.config/chromium-vm/whatsapp-phone if not
                           given): types it, checks the country, presses Next, prints the 8-character link code
@@ -212,6 +213,21 @@ def start():
     return s
 
 
+def stop():
+    """14.11.2026: Firefox is the vmctl service "firefox" (off at boot). Closed politely (window close: the profile keeps the
+    session and WhatsApp's link), killed only if it does not go."""
+    w = window()
+    if w: sh('wmctrl', '-i', '-c', w)
+    for _ in range(40):
+        if not pid(): break
+        time.sleep(0.25)
+    for _ in range(3):
+        p = pid()
+        if not p: break
+        subprocess.run(['kill', p]); time.sleep(1.5)
+    return {'running': bool(pid())}
+
+
 PHONE_FILE = os.path.expanduser('~/.config/chromium-vm/whatsapp-phone')   # Marko's number, VM only (chmod 600), never in a repo
 
 
@@ -299,6 +315,8 @@ if __name__ == '__main__':
         print(json.dumps(start()))
     elif a[0] == 'status':
         print(json.dumps(status()))
+    elif a[0] == 'stop':
+        print(json.dumps(stop()))
     elif a[0] == 'phone-login':
         print(json.dumps(phone_login(' '.join(a[1:]) or None)))
     elif a[0] == 'qr':

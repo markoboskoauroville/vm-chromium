@@ -1,6 +1,7 @@
 #!/bin/bash
-# chromium-vm's desktop: the window manager (openbox) and Chrome, started again whenever it closes. The other two
-# screens (Claude Code, Claude Desktop) and the dock are their own services (desktop/).
+# chromium-vm's desktop: the window manager (openbox) and the compositor, nothing else (14.11.2026, Marko: "only thing
+# which is running is connection keeper ... all other services are optional"). Chrome is its own service since then
+# (chromium-vm-chrome, started by hand or by vmctl); Claude Code, the Claude app and the dock are services too (desktop/).
 set -uo pipefail
 . /etc/chromium-vm.conf
 export DISPLAY=":${DISPLAY_NUM}"
@@ -66,16 +67,5 @@ else
 fi
 trap 'kill $wm $watcher 2>/dev/null' EXIT
 
-while true; do
-  # A kill or a reboot is not a crash to Chromium's user: no "restore pages?" bubble, the tabs just come back.
-  prefs="$PROFILE/Default/Preferences"
-  [ -f "$prefs" ] && sed -E -i 's/"exit_type": ?"Crashed"/"exit_type":"Normal"/; s/"exited_cleanly": ?false/"exited_cleanly":true/' "$prefs"
-  rm -f "$PROFILE"/Singleton{Lock,Socket,Cookie}
-
-  "$CHROMIUM" \
-    --start-maximized --no-first-run --no-default-browser-check \
-    --disable-session-crashed-bubble --restore-last-session \
-    --password-store=basic --ozone-platform=x11 \
-    --disable-dev-shm-usage "${EXTRA[@]}"
-  sleep 1
-done
+# Chrome no longer lives here (14.11.2026): stage1/bin/chromium-vm-chrome, service chromium-vm-chrome (vmctl start chrome).
+wait $wm

@@ -29,7 +29,22 @@ def run(*a, t=60):
     return subprocess.run(a, capture_output=True, text=True, timeout=t)
 
 
+VMCTL = '/usr/local/lib/chromium-vm/vmctl'
+
+
+def docker_up():
+    # 14.11.2026: docker is a vmctl service, off at boot. Never ask docker while it is off (its socket would start it).
+    return run('systemctl', 'is-active', '--quiet', 'docker.service').returncode == 0
+
+
+def vmctl(*a):
+    if os.path.exists(VMCTL):
+        return run(VMCTL, *a, t=180)
+
+
 def running(n):
+    if not docker_up():
+        return False
     return run('docker', 'inspect', '-f', '{{.State.Running}}', PH[n]['c']).stdout.strip() == 'true'
 
 
@@ -52,6 +67,10 @@ def start(n, mirror=False, wait=240):
     with open(os.path.join(CACHE, f'phone-{n}.lock'), 'w') as lk:
         fcntl.flock(lk, fcntl.LOCK_EX)
         touch(n)
+        if not docker_up():                      # docker started as this phone's dependency: vmctl gc stops it again
+            r = vmctl('start', 'docker', '--auto')
+            if not r or r.returncode: run('sudo', '-n', 'systemctl', 'start', 'docker', t=120)
+        vmctl('start', 'idle-reaper', '--auto')  # the idle clock runs while a phone does
         if not running(n):
             r = run('docker', 'start', PH[n]['c'], t=120)
             log(f'phone {n} started ({"mirror" if mirror else "on demand"}); docker: {r.stdout.strip() or r.stderr.strip()}')
@@ -79,6 +98,7 @@ def stop(n, reason='manual'):
             run('docker', 'stop', '-t', '10', PH[n]['c'], t=60)
             run('adb', 'disconnect', PH[n]['serial'], t=10)
             log(f'STOP container {PH[n]["c"]} (Pixel {n}): {reason}')
+    vmctl('gc')                                  # docker and the reaper stop when no phone needs them (14.11.2026)
 
 
 if __name__ == '__main__':

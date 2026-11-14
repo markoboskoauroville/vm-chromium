@@ -1,0 +1,10 @@
+[Unit]
+Description=Brave, the YouTube browser (service "brave" of vmctl)
+
+[Service]
+Type=simple
+Slice=vm-services.slice
+Environment=DISPLAY=:1
+Environment=PULSE_SINK=vmout
+ExecStart=/usr/bin/brave-browser --user-data-dir=%h/.config/vm-brave --class=VMBrave --no-first-run --no-default-browser-check https://www.youtube.com/
+Restart=no

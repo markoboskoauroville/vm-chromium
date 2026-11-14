@@ -49,32 +49,42 @@ LAYOUTS = {'code-chrome': [('code', 'l40'), ('chrome', 'r60')],
 # them. Chrome's own loop (chromium-vm-session) brings it back after 1 s, but a running Chrome with no window gets one.
 # Claude Desktop can keep running with no window (closed to the tray): claude-desktop shows it again.
 CHROME_PROFILE = os.path.expanduser('~/.config/chromium-vm-chrome')
+# 14.11.2026 (Marko: "all other services are optional ... I enable each service as I need it"): every program is a vmctl
+# service now, off at boot; a screen or layout that needs one starts its service (so the program runs in its own unit,
+# never inside the dock). The Claude app keeps its own window call (it may run closed to the tray).
+VMCTL = '/usr/local/lib/chromium-vm/vmctl'
+SERVICE = {'code': 'claude-code', 'claude': 'claude-app', 'chrome': 'chrome', 'pixel': 'pixel1', 'pixel2': 'pixel2',
+           'firefox': 'firefox', 'brave': 'brave'}
 LAUNCH = {
-    'code': ['sudo', '-n', 'systemctl', 'start', 'chromium-vm-claude-code'],
     'claude': ['claude-desktop'],
     'chrome': ['google-chrome-stable', f'--user-data-dir={CHROME_PROFILE}', '--new-window'],
-    # 9.11.2026: the phones are on demand (the reaper stops idle ones): the phone tool starts the container, waits for
-    # Android and starts the scrcpy screen
-    'pixel': ['/usr/local/lib/chromium-vm/chromium-vm-phone', 'start', '1', '--mirror'],
-    'pixel2': ['/usr/local/lib/chromium-vm/chromium-vm-phone', 'start', '2', '--mirror'],
-    # 14.11.2026: Firefox is the WhatsApp machine: remote control on 9223, home page WhatsApp (vm-whatsapp)
     'firefox': ['/usr/local/lib/chromium-vm/vm-whatsapp', 'start'],
     'brave': ['env', 'PULSE_SINK=vmout', 'brave-browser', f'--user-data-dir={os.path.expanduser("~/.config/vm-brave")}', '--class=VMBrave',
               '--no-first-run', '--no-default-browser-check', 'https://www.youtube.com/'],
 }
 
+def svc_running(svc):
+    r = subprocess.run([VMCTL, 'status', svc], capture_output=True, text=True)
+    try: return json.loads(r.stdout)[0]['running']
+    except Exception: return False
+
 def launch(name):
-    if name == 'chrome' and subprocess.run(['pgrep', '-f', f'user-data-dir={CHROME_PROFILE}'], capture_output=True).returncode:
-        return                                   # no Chrome at all: the session's loop is starting it
-    if name == 'code' and subprocess.run(['systemctl', 'is-active', '--quiet', 'chromium-vm-claude-code']).returncode == 0:
-        subprocess.run(['sudo', '-n', 'systemctl', 'restart', 'chromium-vm-claude-code'], capture_output=True)
-        return                                   # active but no window (a terminal closed by hand): a fresh one
-    unit = {'pixel': 'chromium-vm-pixel7', 'pixel2': 'chromium-vm-pixel7b'}.get(name)
-    if unit and subprocess.run(['systemctl', 'is-active', '--quiet', unit]).returncode == 0:
-        subprocess.run(['sudo', '-n', 'systemctl', 'restart', unit], capture_output=True)
+    svc = SERVICE.get(name)
+    env = dict(os.environ, VMCTL_WHO='dock')
+    if svc and not svc_running(svc):           # off: its service starts it (a phone with its mirror: --gui)
+        subprocess.Popen([VMCTL, 'start', svc, '--gui'], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         start_new_session=True)
         return
-    # 9.11.2026: not active = the reaper stopped it (or never started): the phone tool brings the container up first
-    subprocess.Popen(LAUNCH[name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    if name == 'code':                           # running but no window (a terminal closed by hand): a fresh one
+        subprocess.run([VMCTL, 'restart', 'claude-code'], env=env, capture_output=True)
+        return
+    if name in ('pixel', 'pixel2'):              # the phone runs, its mirror does not: start the mirror
+        n = '1' if name == 'pixel' else '2'
+        subprocess.Popen(['/usr/local/lib/chromium-vm/chromium-vm-phone', 'start', n, '--mirror'],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        return
+    if name in LAUNCH:                           # running without a window: the program's own "new window"
+        subprocess.Popen(LAUNCH[name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
 
 def ensure(names, wait=40):
     """Every program named has a window: the missing ones are started, then waited for (at most `wait` s)."""

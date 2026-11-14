@@ -1,0 +1,16 @@
+[Unit]
+Description=chromium-vm: Chrome (service "chrome" of vmctl; not at boot since 14.11.2026)
+After=chromium-vm-session.service
+BindsTo=chromium-vm-xvnc.service
+
+[Service]
+Type=simple
+User=@VM_USER@
+Slice=vm-services.slice
+OOMScoreAdjust=500
+ExecStart=/usr/local/lib/chromium-vm/chromium-vm-chrome
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=chromium-vm-xvnc.service

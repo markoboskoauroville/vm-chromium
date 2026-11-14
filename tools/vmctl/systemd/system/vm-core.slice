@@ -1,0 +1,10 @@
+# chromium-vm (Marko, 14.11.2026: "connection keeper and my VPN protection is at the maximum, the process has maximum
+# priority"): the relay and Tailscale live here and win every contention for CPU and disk; their memory is protected.
+[Unit]
+Description=chromium-vm core: Connection Keeper relay and Tailscale, highest priority
+Before=slices.target
+
+[Slice]
+CPUWeight=10000
+IOWeight=10000
+MemoryMin=256M

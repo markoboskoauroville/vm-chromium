@@ -1,0 +1,4 @@
+# chromium-vm: Marko's optional user services (Firefox, Brave, Macro, the YouTube jobs): low CPU weight (14.11.2026)
+[Slice]
+CPUWeight=50
+MemoryHigh=6G

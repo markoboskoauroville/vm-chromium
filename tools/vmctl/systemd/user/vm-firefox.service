@@ -1,0 +1,11 @@
+[Unit]
+Description=Firefox = the WhatsApp machine (vm-whatsapp; service "firefox" of vmctl)
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Slice=vm-services.slice
+Environment=DISPLAY=:1
+ExecStart=/usr/local/lib/chromium-vm/vm-whatsapp start
+ExecStop=/usr/local/lib/chromium-vm/vm-whatsapp stop
+TimeoutStartSec=120

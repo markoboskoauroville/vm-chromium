@@ -38,13 +38,14 @@ GEAR = 26   # the Mac viewer's settings gear sits on the line's right end, after
 PARTS = [  # key, label in the settings
     ('cpu', 'CPU'), ('ram', 'Memory'), ('disk', 'Free SSD space'), ('net', 'Internet speed ↓ ↑'),
     ('tail', 'Tailscale speed ↓ ↑'), ('moving', 'What is moving (downloads, Google Drive)'),
-    ('uptime', 'Up since'), ('clock', 'Croatian time'),
+    ('uptime', 'Up since'), ('clock', 'Croatian time'), ('services', 'Running services (vmctl)'),
 ]
 DEFAULT = {'show': {k: True for k, _ in PARTS} | {'tail': False, 'clock': False}, 'size': 13, 'height': 22}
 
 # Two colours (Marko, 2.11.2026: "white is the variable name, and orange is the variable itself").
 COL = {'power': (1.0, 1.0, 1.0), 'name': (1.0, 1.0, 1.0), 'value': (1.0, 0.58, 0.10), 'now': (0.35, 0.95, 0.45),
-       'down': (0.35, 0.95, 0.45), 'up': (1.0, 0.30, 0.30), 'pipe': (0.0, 0.0, 0.0), 'star': (0.93, 0.93, 0.90)}   # a black pipe between parts (Marko)   # NET: download green, upload red (Marko)   # green: what is moving now
+       'down': (0.35, 0.95, 0.45), 'up': (1.0, 0.30, 0.30), 'pipe': (0.0, 0.0, 0.0), 'star': (0.93, 0.93, 0.90),
+       'svc_ok': (0.35, 0.95, 0.45), 'svc_pipe': (0.75, 0.75, 0.75)}   # a black pipe between parts (Marko)   # NET: download green, upload red (Marko)   # green: what is moving now
 
 def load_conf():
     c = json.loads(json.dumps(DEFAULT))
@@ -126,6 +127,35 @@ class Readings:
         return dict(cpu=cpu, load=os.getloadavg()[0], ncpu=os.cpu_count(), ram_used=ram_used, ram_total=ram_total,
                     free=free, size=size, speeds=speeds, agent=self.agent, up=up)
 
+# 14.11.2026 (Marko: "extended to show running services. So between each running service there will be pipe and the next
+# one. And maximum 8 characters"): the short names from vmctl's snapshot (~/.cache/chromium-vm/vmctl-status.json, written
+# every 5 s by chromium-vm-vmctl; reading it costs nothing). CKBOND first, green when up, red when not; core services that
+# are plumbing (bar: false) appear only when they are down, in red.
+VMCTL_SNAP = os.path.expanduser('~/.cache/chromium-vm/vmctl-status.json')
+
+def services_part():
+    try:
+        snap = json.load(open(VMCTL_SNAP))
+    except Exception:
+        return [('VMCTL?', 'up')]
+    if time.time() - snap.get('at', 0) > 30:
+        return [('VMCTL?', 'up')]
+    sv = snap['services']
+    order = [s for s in sv if s['name'] == 'ckbond'] + [s for s in sv if s['core'] and s['name'] != 'ckbond'] + [s for s in sv if not s['core']]
+    out = []
+    for s in order:
+        if s['name'] == 'ckbond':
+            item = (s['short'][:8], 'svc_ok' if s['running'] else 'up')
+        elif s['core'] and not s['running']:
+            item = (s['short'][:8], 'up')
+        elif s['running'] and s.get('bar', True):
+            item = (s['short'][:8], 'name')
+        else:
+            continue
+        if out: out.append((' | ', 'svc_pipe'))
+        out.append(item)
+    return out
+
 def segments(r, show):
     """[(text, 'name'|'value')]. Every field has a fixed width; what changes in length (what is moving) comes last."""
     seg = []
@@ -156,6 +186,8 @@ def segments(r, show):
     if show.get('uptime'):
         h = int(r['up'] // 3600)
         part('UP', (f'{h // 24:2d}d{h % 24:02d}h' if h >= 24 else f'{h:2d}h{int(r["up"] % 3600 // 60):02d}m'))
+    if show.get('services', True):
+        part('', services_part())
     if show.get('clock'):
         os.environ['TZ'] = 'Europe/Zagreb'; time.tzset()
         part('CT', time.strftime('%H:%M'))

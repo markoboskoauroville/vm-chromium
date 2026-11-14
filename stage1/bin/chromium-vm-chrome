@@ -1,0 +1,43 @@
+#!/bin/bash
+# chromium-vm's Chrome, its own service since 14.11.2026 (chromium-vm-chrome.service; vmctl start|stop chrome). Before, it
+# was the loop at the end of chromium-vm-session and started at every boot. Started again whenever it closes, while the
+# service runs. The window manager is chromium-vm-session (core).
+set -uo pipefail
+. /etc/chromium-vm.conf
+export DISPLAY=":${DISPLAY_NUM}"
+uid=$(id -u)
+if [ -d "/run/user/$uid" ]; then
+  export XDG_RUNTIME_DIR="/run/user/$uid"
+  [ -S "$XDG_RUNTIME_DIR/bus" ] && export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+fi
+
+EXTRA=()
+case "$CHROMIUM_SOURCE" in
+  # Chrome 136+ refuses DevTools on the default profile folder, so the profile lives in its own folder.
+  chrome) CHROMIUM=/usr/bin/google-chrome-stable; PROFILE="$HOME/.config/chromium-vm-chrome"
+          EXTRA=(--user-data-dir="$PROFILE" --remote-debugging-address=127.0.0.1 --remote-debugging-port=9222
+                 --remote-allow-origins=http://127.0.0.1
+                 # Dark everywhere (Marko, 2.11.2026): the UI and prefers-color-scheme dark, and pages without a
+                 # dark design darkened by Chrome itself.
+                 --force-dark-mode --enable-features=WebContentsForceDark) ;;
+  snap) CHROMIUM=/snap/bin/chromium; PROFILE="$HOME/snap/chromium/common/chromium" ;;
+  *)    CHROMIUM=/usr/bin/chromium;  PROFILE="$HOME/.config/chromium" ;;
+esac
+
+# Wait for the X server.
+for _ in $(seq 100); do xdpyinfo >/dev/null 2>&1 && break; sleep 0.2; done
+xdpyinfo >/dev/null 2>&1 || { echo "display $DISPLAY not up" >&2; exit 1; }
+
+while true; do
+  # A kill or a reboot is not a crash to Chromium's user: no "restore pages?" bubble, the tabs just come back.
+  prefs="$PROFILE/Default/Preferences"
+  [ -f "$prefs" ] && sed -E -i 's/"exit_type": ?"Crashed"/"exit_type":"Normal"/; s/"exited_cleanly": ?false/"exited_cleanly":true/' "$prefs"
+  rm -f "$PROFILE"/Singleton{Lock,Socket,Cookie}
+
+  "$CHROMIUM" \
+    --start-maximized --no-first-run --no-default-browser-check \
+    --disable-session-crashed-bubble --restore-last-session \
+    --password-store=basic --ozone-platform=x11 \
+    --disable-dev-shm-usage "${EXTRA[@]}"
+  sleep 1
+done
