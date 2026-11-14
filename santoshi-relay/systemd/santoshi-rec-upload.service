@@ -1,0 +1,18 @@
+[Unit]
+Description=chromium-vm: Santoshi relay recording to Google Drive (pieces + Chat and Stream statistics Docs)
+After=network-online.target santoshi-relay.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /usr/local/lib/chromium-vm/santoshi_rec_upload.py
+Restart=always
+RestartSec=10
+Slice=vmsvc.slice
+MemoryMax=300M
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

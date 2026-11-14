@@ -1,0 +1,8 @@
+#!/bin/bash
+# certbot renew --deploy-hook: the new relay.ples-duse.org certificate to MediaMTX, which then restarts
+set -e
+D=/etc/letsencrypt/live/relay.ples-duse.org
+install -d -m 750 -o root -g mediamtx /etc/mediamtx/tls
+install -m 640 -o root -g mediamtx "$D/fullchain.pem" /etc/mediamtx/tls/fullchain.pem
+install -m 640 -o root -g mediamtx "$D/privkey.pem" /etc/mediamtx/tls/privkey.pem
+systemctl try-restart santoshi-relay.service

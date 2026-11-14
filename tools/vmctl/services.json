@@ -43,6 +43,17 @@
    "core": true
   },
   {
+   "name": "santoshi-relay",
+   "short": "SRELAY",
+   "title": "Santoshi live relay (MediaMTX: WHIP in, WHEP/LL-HLS out, relay.ples-duse.org:8889/8888, recording to Drive)",
+   "kind": "systemd",
+   "units": [
+    "santoshi-relay.service",
+    "santoshi-rec-upload.service"
+   ],
+   "core": true
+  },
+  {
    "name": "xvnc",
    "bar": false,
    "short": "XVNC",

@@ -1,0 +1,9 @@
+#!/bin/bash
+# santoshi-forward: OFF by default (mediamtx.yml runOnReady is commented out). Copies the santoshi stream to one RTMP target
+# (YouTube, Facebook, ...) without re-encoding the video; Opus audio becomes AAC (RTMP has no Opus). Target in /etc/mediamtx/forward.env.
+set -eu
+. /etc/mediamtx/forward.env
+[ -n "${FORWARD_URL:-}" ] || { echo "no FORWARD_URL"; exit 0; }
+exec ffmpeg -hide_banner -loglevel warning -rtsp_transport tcp -i "rtsp://127.0.0.1:8554/santoshi" \
+  -c:v copy -c:a aac -b:a 160k -ar 48000 -f flv "$FORWARD_URL"
+# note: needs rtsp: true on 127.0.0.1 (rtspAddress: 127.0.0.1:8554) when switched on

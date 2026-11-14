@@ -1,0 +1,103 @@
+# santoshi-relay: MediaMTX on chromium-vm (Marko, 14.11.2026: "I just want to send one stream, and then it is relayed somewhere").
+# Installed by santoshi-relay/install.sh as /etc/mediamtx/mediamtx.yml (root:mediamtx 640). @PUBLISH_HASH@ = sha256 of the publish
+# key (the key itself is a Cloudflare Pages secret of santoshi-band, RELAY_KEY, given only to a paired camera by /api/live).
+#   phone (WHIP, or SRT) --one stream--> santoshi path --> viewers (WHEP ~1 s, LL-HLS fallback) + recording on disk (fmp4, 1 min)
+# Ports (Oracle security list + iptables): 8889/tcp WHIP+WHEP https, 8888/tcp LL-HLS https, 8443/tcp API https (auth),
+# 8189/udp+tcp WebRTC media, 8890/udp SRT. ckbond keeps :443. TLS: Let's Encrypt relay.ples-duse.org (certbot, port 80 only while renewing).
+logLevel: info
+logDestinations: [stdout]
+readTimeout: 10s
+writeTimeout: 10s
+writeQueueSize: 1024
+udpMaxPayloadSize: 1452
+
+authMethod: internal
+authInternalUsers:
+  # anyone may watch and read the recordings index; nobody anonymous may publish
+  - user: any
+    pass:
+    ips: []
+    permissions:
+      - action: read
+        path: santoshi
+  # the camera (and the site's admin status call): publish + API
+  - user: santoshi
+    pass: "@PUBLISH_HASH@"
+    ips: []
+    permissions:
+      - action: publish
+        path: santoshi
+      - action: read
+        path: santoshi
+      - action: api
+  # this machine itself (the uploader's status, tests)
+  - user: any
+    pass:
+    ips: ["127.0.0.1", "::1"]
+    permissions:
+      - action: api
+      - action: metrics
+
+api: true
+apiAddress: :8443
+apiEncryption: true
+apiServerKey: /etc/mediamtx/tls/privkey.pem
+apiServerCert: /etc/mediamtx/tls/fullchain.pem
+apiAllowOrigins: ["https://santoshi-band.pages.dev"]
+
+metrics: true
+metricsAddress: 127.0.0.1:9998
+pprof: false
+playback: false
+
+rtsp: false
+rtmp: false
+moq: false
+
+hls: true
+hlsAddress: :8888
+hlsEncryption: true
+hlsServerKey: /etc/mediamtx/tls/privkey.pem
+hlsServerCert: /etc/mediamtx/tls/fullchain.pem
+hlsAllowOrigins: ["*"]
+hlsAlwaysRemux: true
+hlsVariant: lowLatency
+hlsSegmentCount: 7
+hlsSegmentDuration: 1s
+hlsPartDuration: 200ms
+hlsMuxerCloseAfter: 60s
+
+webrtc: true
+webrtcAddress: :8889
+webrtcEncryption: true
+webrtcServerKey: /etc/mediamtx/tls/privkey.pem
+webrtcServerCert: /etc/mediamtx/tls/fullchain.pem
+webrtcAllowOrigins: ["*"]
+webrtcLocalUDPAddress: :8189
+webrtcLocalTCPAddress: :8189
+webrtcIPsFromInterfaces: false
+webrtcAdditionalHosts: ["130.61.181.83"]
+webrtcICEServers2: []
+webrtcHandshakeTimeout: 15s
+
+srt: true
+srtAddress: :8890
+
+pathDefaults:
+  record: false
+
+paths:
+  santoshi:
+    source: publisher
+    overridePublisher: true
+    # every stream is kept on the VM's disk in 1 min pieces; santoshi-rec-upload puts them on Drive; the disk keeps 3 days
+    record: true
+    recordPath: /srv/santoshi-rec/%path/%Y-%m-%d_%H-%M-%S-%f
+    recordFormat: fmp4
+    recordPartDuration: 1s
+    recordSegmentDuration: 1m
+    recordDeleteAfter: 72h
+    # LATER, OFF (Marko, 14.11.2026: "without YouTube branding"): a forward to YouTube or any RTMP server. To switch it on, put the
+    # stream key into /etc/mediamtx/forward.env as FORWARD_URL=rtmp://a.rtmp.youtube.com/live2/<key> and uncomment the two lines:
+    # runOnReady: /usr/local/lib/chromium-vm/santoshi-forward
+    # runOnReadyRestart: yes
