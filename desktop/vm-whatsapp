@@ -1,0 +1,189 @@
+#!/usr/bin/env python3
+"""vm-whatsapp: the VM's Firefox is the WhatsApp machine (Marko, 14.11.2026: "from now on the Firefox itself will be the
+WhatsApp machine. It is going to be specialized in WhatsApp only, and when it runs, its homepage needs to come to WhatsApp
+and my messages. Queen is going to do what I ask her to do with my WhatsApp").
+
+    vm-whatsapp start     Firefox (own profile ~/.config/vm-firefox, WM_CLASS VMFirefox) running with remote control
+                          (WebDriver BiDi on 127.0.0.1:9223), a WhatsApp Web tab, in front and full; prints the status
+    vm-whatsapp status    {"running", "bidi", "state": "linked" | "qr" | "loading" | "no-tab"}  (JSON, one line)
+    vm-whatsapp qr PATH   a PNG of the WhatsApp page (the QR code while not linked) taken by BiDi
+
+A Firefox already running WITHOUT remote control is closed politely (its window closed, tabs kept by the profile) and
+started again with it. The dock's Firefox tile and chromium-vm-snap `show firefox` call `vm-whatsapp start`.
+Home page and first-run prefs live in the profile's user.js (written here, other lines in it are kept).
+Port 9223 like the Mac (9222 is Chrome's DevTools on the VM). Bound to the loopback only.
+"""
+import base64, json, os, socket, subprocess, sys, time
+
+PROFILE = os.path.expanduser('~/.config/vm-firefox')
+PORT = 9223
+HOME = 'https://web.whatsapp.com/'
+CLASS = 'VMFirefox'
+ENV = dict(os.environ, DISPLAY=os.environ.get('DISPLAY', ':1'), PULSE_SINK='vmout')
+PREFS = {
+    'browser.startup.homepage': f'"{HOME}"',
+    'browser.startup.page': '1',                                   # start on the home page = WhatsApp
+    'browser.newtabpage.enabled': 'false',
+    'startup.homepage_welcome_url': '""',
+    'startup.homepage_welcome_url.additional': '""',
+    'browser.startup.homepage_override.mstone': '"ignore"',
+    'datareporting.policy.firstRunURL': '""',                      # the "Firefox Privacy Notice" tab
+    'datareporting.policy.dataSubmissionPolicyBypassNotification': 'true',
+    'browser.aboutwelcome.enabled': 'false',
+    'browser.shell.checkDefaultBrowser': 'false',
+    'browser.sessionstore.resume_from_crash': 'false',
+    'browser.tabs.warnOnClose': 'false',
+    'browser.warnOnQuit': 'false',
+    'remote.prefs.recommended': 'true',
+    'dom.webnotifications.enabled': 'true',
+}
+
+
+def write_prefs():
+    os.makedirs(PROFILE, exist_ok=True)
+    p = os.path.join(PROFILE, 'user.js')
+    lines = open(p).read().splitlines() if os.path.exists(p) else []
+    keep = [l for l in lines if not any(f'"{k}"' in l for k in PREFS)]
+    keep += [f'user_pref("{k}", {v});' for k, v in PREFS.items()]
+    open(p, 'w').write('\n'.join(keep) + '\n')
+
+
+def sh(*a, t=5):
+    return subprocess.run(a, capture_output=True, text=True, timeout=t, env=ENV).stdout
+
+
+def pid():
+    out = sh('pgrep', '-f', f'firefox.*--profile {PROFILE}').split()
+    return out[0] if out else None
+
+
+def bidi_up():
+    try:
+        socket.create_connection(('127.0.0.1', PORT), timeout=0.5).close(); return True
+    except OSError:
+        return False
+
+
+def window():
+    for l in sh('wmctrl', '-lx').splitlines():
+        f = l.split(None, 4)
+        if len(f) >= 3 and f[2].endswith('.' + CLASS):
+            return f[0]
+    return None
+
+
+class Bidi:
+    def __init__(self):
+        import websocket
+        self.ws = websocket.create_connection(f'ws://127.0.0.1:{PORT}/session', suppress_origin=True, timeout=30)
+        self.n = 0
+        self.call('session.new', {'capabilities': {}})
+
+    def call(self, m, p=None):
+        self.n += 1; i = self.n
+        self.ws.send(json.dumps({'id': i, 'method': m, 'params': p or {}}))
+        while True:
+            r = json.loads(self.ws.recv())
+            if r.get('id') == i:
+                if r.get('type') == 'error': raise RuntimeError(r.get('message') or r.get('error'))
+                return r.get('result', {})
+
+    def close(self):
+        try: self.call('session.end')
+        except Exception: pass
+        self.ws.close()
+
+    def wa_tab(self):
+        for c in self.call('browsingContext.getTree', {'maxDepth': 0})['contexts']:
+            if 'web.whatsapp.com' in c.get('url', ''): return c['context']
+        return None
+
+    def eval(self, ctx, js):
+        r = self.call('script.evaluate', {'expression': js, 'target': {'context': ctx}, 'awaitPromise': True})
+        return (r.get('result') or {}).get('value')
+
+
+STATE_JS = """(() => {
+  if (document.querySelector('#pane-side, [aria-label="Chat list"], [data-testid="chat-list"]')) return 'linked';
+  if (document.querySelector('canvas[aria-label], [data-ref] canvas, div[data-ref]')) return 'qr';
+  return 'loading'; })()"""
+
+
+def status():
+    d = {'running': bool(pid()), 'bidi': bidi_up(), 'window': bool(window()), 'state': 'off'}
+    if d['bidi']:
+        b = Bidi()
+        try:
+            ctx = b.wa_tab()
+            d['state'] = b.eval(ctx, STATE_JS) if ctx else 'no-tab'
+        finally:
+            b.close()
+    elif d['running']:
+        d['state'] = 'no-remote-control'
+    return d
+
+
+def front():
+    w = window()
+    if w:
+        sh('wmctrl', '-i', '-a', w)
+        sh('wmctrl', '-i', '-r', w, '-b', 'add,maximized_vert,maximized_horz')
+
+
+def start():
+    write_prefs()
+    if pid() and not bidi_up():                     # running without remote control: close politely, start again
+        w = window()
+        if w: sh('wmctrl', '-i', '-c', w)
+        for _ in range(40):
+            if not pid(): break
+            time.sleep(0.25)
+        if pid(): subprocess.run(['kill', pid()]); time.sleep(2)
+    if not pid():
+        subprocess.Popen(['firefox', '--new-instance', '--profile', PROFILE, '--class', CLASS,
+                          '--remote-debugging-port', str(PORT), HOME],
+                         stdout=open(os.path.expanduser('~/.cache/vm-firefox.log'), 'a'), stderr=subprocess.STDOUT,
+                         env=ENV, start_new_session=True)
+    for _ in range(80):
+        if bidi_up() and window(): break
+        time.sleep(0.25)
+    if bidi_up():                                     # a WhatsApp tab, in front
+        b = Bidi()
+        try:
+            ctx = b.wa_tab()
+            if not ctx:
+                ctx = b.call('browsingContext.create', {'type': 'tab'})['context']
+                b.call('browsingContext.navigate', {'context': ctx, 'url': HOME, 'wait': 'interactive'})
+            b.call('browsingContext.activate', {'context': ctx})
+        finally:
+            b.close()
+    front()
+    for _ in range(30):                               # WhatsApp needs a few seconds to show the chats or the QR
+        s = status()
+        if s['state'] in ('linked', 'qr'): break
+        time.sleep(1)
+    return s
+
+
+def qr(path):
+    b = Bidi()
+    try:
+        ctx = b.wa_tab()
+        if not ctx: raise SystemExit('no WhatsApp tab: vm-whatsapp start')
+        data = b.call('browsingContext.captureScreenshot', {'context': ctx})['data']
+        open(path, 'wb').write(base64.b64decode(data))
+    finally:
+        b.close()
+    print(path)
+
+
+if __name__ == '__main__':
+    a = sys.argv[1:] or ['start']
+    if a[0] == 'start':
+        print(json.dumps(start()))
+    elif a[0] == 'status':
+        print(json.dumps(status()))
+    elif a[0] == 'qr':
+        qr(a[1] if len(a) > 1 else '/tmp/whatsapp-qr.png')
+    else:
+        sys.exit(__doc__)
