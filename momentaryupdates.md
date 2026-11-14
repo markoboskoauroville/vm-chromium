@@ -275,4 +275,4 @@ starts, it checks for it, downloads it, and asks you, "Do you want to update?" T
 update. Let's test this with the Remote Viewer application first. Update this application to check for updates, and if
 something new is there, when I start it, it's going to ask to update"
 
-**Status:** saved first. Building Updater.swift (v31) in Mantra Remote Viewing; v32 released after it to test the question.
+**Status (14.11.2026, 05:50):** done and tested. v31 (Updater.swift) installed from the release; v32 released; v31 restarted, found v32, downloaded it, asked "Do you want to update?", Update pressed, swapped in place, signed Mantra Apps, v32 running. Kit for the other apps: MANTRA_MANIFEST kits/mac-updater, rule modules/update-at-start.md.

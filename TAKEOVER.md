@@ -185,3 +185,10 @@ token ~/.config/mantra-door.token, rule in ~/.claude/CLAUDE.md). MANTRA_MANIFEST
 - Left on screen: the Claude app alone, full screen. Nothing running in the background from this session.
 
 - 9.11.2026 (viewer **v28**, renamed **VM Machine Remote Viewer (Mantra)**, bundle id unchanged): the mouse is the VM's only where the point under the arrow is the viewer's own pixels. ScreenView checks CGWindowListCopyWindowInfo(.optionOnScreenAboveWindow) (cache 50 ms; skips own windows, alpha 0, layer < 0, see-through full-display overlays) on every move/click, and a global mouse monitor gives the arrow back when the pointer is over another app's window (Speechify, Firefox, menu bar). Door actions: `hit_test {x,y}` (CG screen coords, never moves the pointer) and `pointer_sent` in `status`. Built locally (repo is private, compile-only-on-github 8.11.2026). Verified with a floating test panel via hit_test (covered by panel / Firefox / menu bar, ours on a free strip). Marko's hand test: Speechify over the viewer, click it.
+
+## 14.11.2026: the viewer updates itself (v31, v32)
+viewer/app/Updater.swift: at start `gh release view` on this repo; a Latest vN newer than VERSION is downloaded to
+~/Library/Caches/community.auroville.chromiumvm/update/vN, then the question "Mantra Remote Viewing vN is ready · Do you want
+to update?" (Update / Later). Update: a detached script waits for the quit, signs "Mantra Apps", swaps the .app, reopens.
+Tested v31 → v32 the same morning. From now on a push to main (viewer/**) reaches the Mac by the question; no manual install.
+The same file is the kit MANTRA_MANIFEST/kits/mac-updater for every Mac app.
