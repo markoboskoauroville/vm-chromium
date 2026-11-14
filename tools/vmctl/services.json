@@ -33,6 +33,16 @@
    "core": true
   },
   {
+   "name": "ttt-relay",
+   "short": "TTT",
+   "title": "TTT relay (:8897, the phone's transcription in Frankfurt)",
+   "kind": "systemd",
+   "units": [
+    "ttt-relay.service"
+   ],
+   "core": true
+  },
+  {
    "name": "xvnc",
    "bar": false,
    "short": "XVNC",

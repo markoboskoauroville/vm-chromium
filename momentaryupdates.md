@@ -301,3 +301,10 @@ services (CKBOND green first). Gear: Mac viewer v33 (Latest, CI green), Android 
 Not yet: the bond speed test under load (Claude on the Mac), Marko's hand on the gear.
 
 **14.11.2026 (Marko: "oramon goes off"):** unified-monitoring-agent (+ its restarter path and config timer) disabled and stopped; ORAMON is now an ordinary service, off (services.json core false). VM memory used 1.1 GB.
+
+## 14.11.2026 (TTT transcription through Frankfurt; request given in a TTT session)
+
+> "I want to do the same for TTT meaning in the settings I have Frankfurt relay and this is by default selected ... all API keys which exist in ... my Nothing Phone should be available in the secrets of virtual machine and then it rotates the key and does everything same as my TTT right now. We are offloading this part to Frankfurt so you just receive the call and do key rotations and bring back the transcription plus report if something went wrong and it can also retry multiple times and I need to see my TTT status what is going on with Frankfurt and I can then cancel the transcription and try different engine etc." (Marko, 14.11.2026)
+
+**Status:** ttt-relay built (ttt-relay/, tests 7/7), registered as core service TTT. NOT YET INSTALLED: a session on the VM or the Mac runs `sudo ttt-relay/install.sh` (cloud sessions reach only :443 of the VM).
+

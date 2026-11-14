@@ -1,0 +1,25 @@
+[Unit]
+Description=chromium-vm: TTT relay, TTT's transcription in Frankfurt (keys, rotation, retries) on the Tailscale address :8897
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ttt-relay
+Group=ttt-relay
+Environment=PYTHONUNBUFFERED=1
+Environment=TTT_RELAY_STATE=/var/lib/ttt-relay
+ExecStart=/usr/bin/python3 /usr/local/lib/chromium-vm/ttt_relay.py
+Restart=always
+RestartSec=3
+# Below Connection Keeper: the bond keeps the CPU first (README "Priority: Connection Keeper first").
+Slice=vmsvc.slice
+MemoryMax=300M
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/ttt-relay
+
+[Install]
+WantedBy=multi-user.target

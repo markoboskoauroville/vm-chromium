@@ -1,3 +1,7 @@
+**14.11.2026: ttt-relay (TTT's transcription in Frankfurt).** New core service `ttt-relay` (short TTT, :8897 on the
+Tailscale address, user ttt-relay, keys in /var/lib/ttt-relay, vmsvc.slice). Read ttt-relay/README.md. Not installed yet:
+`sudo ttt-relay/install.sh`.
+
 # TAKEOVER
 
 **14.11.2026: core-only boot, every program a service (vmctl).** Marko: "only thing which is running is connection keeper
