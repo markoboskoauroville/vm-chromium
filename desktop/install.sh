@@ -15,7 +15,8 @@ echo "deb [arch=amd64,arm64 signed-by=$KEY] https://downloads.claude.ai/claude-d
   > /etc/apt/sources.list.d/claude-desktop.list
 dpkg -s claude-desktop >/dev/null 2>&1 || { apt-get update -q >/dev/null; apt-get install -y -q --no-install-recommends claude-desktop >/dev/null; }
 
-install -m 755 chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-snap /usr/local/lib/chromium-vm/
+# 14.11.2026: vm-whatsapp = Firefox as the WhatsApp machine (apt firefox from the xtradeb PPA, pinned in /etc/apt/preferences.d/firefox-xtradeb)
+install -m 755 chromium-vm-claude-code chromium-vm-claude-app chromium-vm-pixel7 chromium-vm-snap vm-whatsapp /usr/local/lib/chromium-vm/
 install -m 644 config/openbox-rc.xml /usr/local/lib/chromium-vm/openbox-rc.xml
 # dark mode for every GTK window and dialog on the VM (Marko, 5.11.2026: "make everything dark mode"); GTK 3 and 4
 for v in 3.0 4.0; do install -D -m 644 -o "${VM_USER:-ubuntu}" -g "${VM_USER:-ubuntu}" config/gtk/settings.ini "/home/${VM_USER:-ubuntu}/.config/gtk-$v/settings.ini"; done
