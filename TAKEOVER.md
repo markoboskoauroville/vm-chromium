@@ -230,3 +230,15 @@ by oci CLI (8888-8889, 8189, 8443 tcp; 8189, 8890 udp; 80 was already open). TLS
 Recording: /srv/santoshi-rec/santoshi (1 min fmp4, 72 h) → santoshi-rec-upload (user ubuntu, rclone drive.file) → Drive
 "Santoshi Band live (relay)/Santoshi live <date time>/Video" + Docs "Chat" and "Stream statistics" from the site's /api/relay.
 Proven 15.11.2026 with the Sony on the Pixel: 1 publisher, 8 viewers, MediaMTX 13 % of one core. YouTube/RTMP forward: santoshi-forward, off.
+
+## 15.11.2026: Exit node for VPN (Mantra) (repo MANTRA_VPN)
+chromium-vm is a **Tailscale exit node**: Marko's Mac and phones can send all their internet through Frankfurt
+(public 130.61.181.83, Oracle DE) with the app VPN (Mantra), FRANKFURT | DIRECT. No secret anywhere: only devices in his
+tailnet see the exit node. Done on the VM: `/etc/sysctl.d/99-tailscale.conf` (net.ipv4.ip_forward=1,
+net.ipv6.conf.all.forwarding=1; before, ip_forward was only set at run time by Docker), `sudo tailscale set
+--advertise-exit-node` (AdvertiseRoutes 0.0.0.0/0 + ::/0). Forwarding/NAT are Tailscale's own chains (ts-forward from
+FORWARD, ts-postrouting MASQUERADE); FORWARD policy DROP (Docker) and every other service untouched (MediaMTX ports,
+ckbond :443, session-ack :8899, SSH). Oracle security list: udp 41641 ingress added by oci CLI (Tailscale direct path;
+the Mac went from DERP "fra" to direct 130.61.181.83:41641, 37 ms). The exit node must be **approved once** in the
+Tailscale admin console (Machines → chromium-vm → Edit route settings → Use as exit node). Off again:
+`sudo tailscale set --advertise-exit-node=false`. Manifest: MANTRA_MANIFEST modules/vpn-exit-node.md.

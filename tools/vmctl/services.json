@@ -14,7 +14,7 @@
   {
    "name": "tailscale",
    "short": "TSCALE",
-   "title": "Tailscale (the way in)",
+   "title": "Tailscale (the way in; exit node for VPN (Mantra))",
    "kind": "systemd",
    "units": [
     "tailscaled.service"
