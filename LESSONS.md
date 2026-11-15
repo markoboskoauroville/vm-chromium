@@ -148,3 +148,10 @@
 - `pgrep -o -f <pattern>` over ssh finds the ssh shell first (its command line contains the pattern): read the unit's CGroup.
 - A `--auto` (dependency) start of a service that already runs must not mark it "by hand", or gc never stops it.
 - The Mac reached :8896 only after a few seconds on the first try (Tailscale path warming): retry before blaming the firewall.
+
+## 15.11.2026: the Studio ladder
+- The VM has TWO cores (nproc 2), not four. Plan any ffmpeg job against that: the ladder takes ~1 core with superfast.
+- MediaMTX's HLS muxer keeps one video and one audio track ("skipping track"): alternate audio renditions need ffmpeg's own HLS.
+- ffmpeg 6.1 writes NAME="audio_N" for audio renditions whatever `name:` says: rewrite the master playlist when serving it.
+- `ffmpeg -listen 1` as an RTMP server: one publisher, ends when it leaves; systemd Restart=always gives the next listener.
+- A quick public test server on the VM (python -m http.server on 0.0.0.0) was refused by the permission check: test over Tailscale.

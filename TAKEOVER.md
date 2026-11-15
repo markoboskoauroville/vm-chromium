@@ -252,3 +252,13 @@ publish key read from /etc/santoshi-relay/key. Media in /srv/cloud-mixer/media/<
 concert of 17.10.2026, 1:42:46). The relay has only the path santoshi: dry runs go to a private MediaMTX on 127.0.0.1
 (CLOUD_MIXER/tools/test-mediamtx.sh, SRT :8990). Installed for it: python3-numpy, python3-pil, rsync. Note: the box has
 2 cores; another worker's studio-ladder (HLS ladder) took ~110 % at 04:52 UTC the same day.
+
+## 15.11.2026: studio-stream (core service STUDIO)
+The Mac (SOUND_LINK/studio/studio.py) sends ONE master by RTMP over Tailscale to `studio-ladder` (ffmpeg listening on
+100.102.86.30:1935, `rtmp://100.102.86.30:1935/studio/master`); it writes the HLS ladder to /dev/shm/studio-hls (1080 copied,
+720/480/360 libx264 superfast; audio Q:160/80/40 S and M as EXT-X-MEDIA renditions). `studio-web` serves it at
+https://relay.ples-duse.org:2053/studio/master.m3u8 and /studio/health (live, age, viewers). User `studio`, certificate copy in
+/etc/studio-stream/tls (certbot deploy hook studio-stream). Install: `sudo studio-stream/install.sh` (never touches MediaMTX).
+CPU: ~100 % of one of the two cores while a master runs (CPUQuota 150 %). **Open:** the Oracle security list has no tcp 2053
+ingress yet (the session's permission check refused the oci update): until it is added, the door answers only on the VM and over
+Tailscale. The rule: tcp 2053 from 0.0.0.0/0, description "Studio stream HLS ladder".
