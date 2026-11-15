@@ -292,3 +292,6 @@ Why the proxy: the cert's token may not write Cache Rules (403), and MediaMTX's 
 The proxy holds one session, strips ?session= and answers segments public max-age=60, so Cloudflare's default cache (.mp4) keeps
 each piece once per location; playlists no-cache, LL-HLS blocking reloads pass through. Only /santoshi/*.m3u8|mp4; all else 404
 (checked: /v3/…, /pixel/…, /santoshi/whep → 404). Port 8896 is vmctl serve on the Tailscale address: not free.
+
+## Relay load test 15.11.2026 (result)
+HLS viewers from GitHub runners against relay.ples-duse.org:8888 (test path loadtest, removed): clean to 12 viewers (0 % stalls, 44 Mbit/s), 16 viewers 17 % stalls, 50 viewers 82 %; VM CPU stayed ~20 %. The VM's public egress is only ~50-55 Mbit/s (confirmed by a direct upload test), so direct capacity is 12-13 viewers at 3.65 Mbit/s. Needs: everyone through Cloudflare (live.santoshiband.org), a lower rendition, a YouTube copy, and a look at the OCI VNIC (shape says 2 Gbit/s). Full table and method: MANTRA_MANIFEST modules/studio-stream.md. The VM was left clean (config back to the backup, no loadtest files).
