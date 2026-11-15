@@ -274,3 +274,12 @@ itself: `curl -sk https://127.0.0.1:8443/v3/paths/get/santoshi` and `/v3/webrtcs
 muxer kept running; backup mediamtx.yml.bak-20261115-cloudmixer; template santoshi-relay/mediamtx.yml.in updated). The phone
 publishes there when the site's KV `relay:campath` = pixel (expires 15.11.2026 13:00 UTC); CLOUD MIXER reads it by SRT
 (`streamid=read:pixel`, 127.0.0.1 allowed) and publishes the program with text on santoshi.
+
+**15.11.2026: santoshi-hls tunnel (prepared, waiting for Marko's Cloudflare authorization).** Kit santoshi-relay/hls-tunnel/
+(setup.sh install|login|tunnel, santoshi-hls.yml, santoshi-hls-tunnel.service, cache_rule.py). cloudflared 2026.11.0 is installed
+(apt pkg.cloudflare.com, user cloudflared); no tunnel and no service yet. Why: MediaMTX binds an HLS session to the client IP, so a
+Cloudflare Worker cannot proxy it (changing egress addresses → 401 on segments); through cloudflared every request comes from 127.0.0.1.
+Ingress only ^/santoshi/[A-Za-z0-9_.-]+\.(m3u8|mp4)$ → https://127.0.0.1:8888 (MediaMTX HLS is TLS; originServerName
+relay.ples-duse.org), everything else 404. Next: `santoshi-relay/hls-tunnel/setup.sh login` (as ubuntu; open the printed URL in
+Chrome Profile 15, Marko clicks ples-duse.org → Authorize; the URL expires after about 10 minutes), then `sudo -E … tunnel`, then
+`python3 …/cache_rule.py`. One authorization = one zone: a hostname on santoshiband.org needs a second login for that zone.
