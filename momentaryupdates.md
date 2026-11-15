@@ -317,3 +317,9 @@ Not yet: the bond speed test under load (Claude on the Mac), Marko's hand on the
 
 **Status:** built: ttt-relay/aac_bench.py + /bench endpoints (tests 5/5 with fake engines, HTTP path checked). Not yet installed: `sudo ttt-relay/install.sh` (also installs ffmpeg), then TTT's button or broadcast runs it.
 
+
+## 15.11.2026, Marko (his answer to the question "who publishes on the public path santoshi?"), the mixer-only live route
+"Yes, mixer only (Recommended)". Meaning, as approved: the CLOUD MIXER becomes the ONLY publisher on relay path `santoshi`, so HLS
+viewers always get AAC audio (iPhones). A camera that goes live gets its own private path (`cam-<id>`) from /api/live, the mixer
+switches to it with a short fade, shows a fallback picture with silence while no camera is there, and a scheduled show keeps
+precedence. Deadline: well before the concert of 21.11.2026.
