@@ -295,3 +295,9 @@ each piece once per location; playlists no-cache, LL-HLS blocking reloads pass t
 
 ## Relay load test 15.11.2026 (result)
 HLS viewers from GitHub runners against relay.ples-duse.org:8888 (test path loadtest, removed): clean to 12 viewers (0 % stalls, 44 Mbit/s), 16 viewers 17 % stalls, 50 viewers 82 %; VM CPU stayed ~20 %. The VM's public egress is only ~50-55 Mbit/s (confirmed by a direct upload test), so direct capacity is 12-13 viewers at 3.65 Mbit/s. Needs: everyone through Cloudflare (live.santoshiband.org), a lower rendition, a YouTube copy, and a look at the OCI VNIC (shape says 2 Gbit/s). Full table and method: MANTRA_MANIFEST modules/studio-stream.md. The VM was left clean (config back to the backup, no loadtest files).
+**15.11.2026, santoshi-relay: mixer only** (Marko: "Yes, mixer only"). Cameras (user santoshi, the RELAY_KEY) may publish only on
+`~^cam-[a-z0-9]{4,16}$` (+ the old `pixel`); user **mixer** (key /etc/santoshi-relay/mixer-key, root:ubuntu 640, sha256 in
+/etc/mediamtx/mixer.hash) from 127.0.0.1 is the only publisher on santoshi; anonymous localhost reads cam-*. Reading santoshi stays
+open to everyone (the hls proxy reads anonymously). Config only, in place: `sudo santoshi-relay/apply-config.sh` (masked diff + backup,
+MediaMTX reloads by itself; applied 15:22 UTC, backup mediamtx.yml.20261115-152235). install.sh fills @MIXER_HASH@ too. Proven: the
+camera key on santoshi gets "failed to authenticate", on cam-vmtest it publishes. The program on santoshi: CLOUD_MIXER cloud-mixer-live.
