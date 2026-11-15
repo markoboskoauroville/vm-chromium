@@ -242,12 +242,29 @@ class Bar(Gtk.Window):
             except Exception as e:
                 print('star:', e, flush=True)
         elif pa - 4 <= ev.x <= pb + 6:
-            Reboot().show_all()
+            self.popup('reboot', Reboot, self)
         elif a <= ev.x <= b:
             if SPEEDTEST.get('state') != 'running':
                 threading.Thread(target=run_speedtest, daemon=True).start()
         else:
-            Settings(self).show_all()
+            self.popup('settings', Settings, self)
+
+    # Marko, 15.11.2026: "a pop up I cannot close ... I want to be able to easily close anything what's open."
+    # One instance per popup (a second click raises the open one), near the bar, closable by the x, the title bar, Esc.
+    def popup(self, key, cls, *args):
+        if not hasattr(self, 'popups'): self.popups = {}
+        w = self.popups.get(key)
+        if w is not None and w.get_realized():
+            w.present(); return
+        w = cls(*args) if args and cls is Settings else cls()
+        self.popups[key] = w
+        w.connect('destroy', lambda *_: self.popups.pop(key, None))
+        w.show_all()
+        scr = Gdk.Screen.get_default()
+        req = w.get_preferred_size()[1]
+        bx, by = self.get_position(); bw, bh = self.get_size()
+        w.move(max(0, min(bx + bw - req.width, scr.get_width() - req.width)), max(0, by - req.height - 8))
+        w.present()
 
     # Marko, 2.11.2026: "limit the background and clicking area ... exactly how long the text is, not more": the bar is
     # only as wide as its text, in the bottom-right corner; the rest of the bottom edge belongs to the windows
@@ -357,11 +374,15 @@ class Bar(Gtk.Window):
         cr.set_source_rgba(0, 0, 0, 0.5); cr.paint()                 # the 50% band, like subtitles
         w, h = self.get_size(); self.paint(cr, w, h); return False
 
+def closable(win):
+    """Esc closes any popup of the bar (the x and the title bar close it already)."""
+    win.connect('key-press-event', lambda w, ev: (w.destroy(), True)[1] if ev.keyval == Gdk.KEY_Escape else False)
+
 class Reboot(Gtk.Window):
     """The power button's one choice: REBOOT, confirmed. The Mac viewer reconnects by itself when the VM is back."""
     def __init__(self):
         super().__init__(title='Power (chromium-vm)')
-        self.set_keep_above(True); self.set_border_width(16); self.set_type_hint(Gdk.WindowTypeHint.DIALOG)
+        self.set_border_width(16); self.set_type_hint(Gdk.WindowTypeHint.DIALOG); closable(self)
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12); self.add(box)
         t = Gtk.Label(); t.set_markup('<b>REBOOT chromium-vm?</b>\nEverything open on the VM closes; it is back in about a minute.')
         box.pack_start(t, False, False, 0)
@@ -369,7 +390,6 @@ class Reboot(Gtk.Window):
         go = Gtk.Button(label='REBOOT'); go.connect('clicked', self.reboot)
         no = Gtk.Button(label='CANCEL'); no.connect('clicked', lambda *_: self.destroy())
         row.pack_start(go, False, False, 0); row.pack_start(no, False, False, 0); box.pack_start(row, False, False, 0)
-        self.set_position(Gtk.WindowPosition.CENTER)
 
     def reboot(self, *_):
         self.destroy()
@@ -378,7 +398,7 @@ class Reboot(Gtk.Window):
 class Settings(Gtk.Window):
     def __init__(self, bar):
         super().__init__(title='Status bar (chromium-vm)')
-        self.bar = bar; self.set_keep_above(True); self.set_border_width(14)
+        self.bar = bar; self.set_border_width(14); closable(self)
         self.set_type_hint(Gdk.WindowTypeHint.DIALOG)     # matchbox floats dialogs; a normal window would fill the screen
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8); self.add(box)
         head = Gtk.Box(spacing=8)
@@ -391,7 +411,6 @@ class Settings(Gtk.Window):
         row = Gtk.Box(spacing=8); row.pack_start(Gtk.Label(label='Letter size'), False, False, 0)
         sp = Gtk.SpinButton.new_with_range(9, 24, 1); sp.set_value(bar.conf['size'])
         sp.connect('value-changed', self.size); row.pack_start(sp, False, False, 0); box.pack_start(row, False, False, 0)
-        self.set_position(Gtk.WindowPosition.CENTER)
 
     def save(self):
         os.makedirs(os.path.dirname(CONF), exist_ok=True)
