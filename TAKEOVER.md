@@ -262,3 +262,9 @@ https://relay.ples-duse.org:2053/studio/master.m3u8 and /studio/health (live, ag
 CPU: ~100 % of one of the two cores while a master runs (CPUQuota 150 %). **Open:** the Oracle security list has no tcp 2053
 ingress yet (the session's permission check refused the oci update): until it is added, the door answers only on the VM and over
 Tailscale. The rule: tcp 2053 from 0.0.0.0/0, description "Studio stream HLS ladder".
+
+**15.11.2026, santoshi-relay as a measuring point.** The relay's own recordings are the cleanest phone→relay probe:
+`/srv/santoshi-rec/santoshi/<UTC>.mp4` pieces, concat with `-vn -c:a copy`, decode with ffmpeg (no numpy on the VM: copy the
+small .mka to the Mac). Each piece's audio starts 0.14–0.24 s in (aligned to the first video frame), not a hole. The API on the VM
+itself: `curl -sk https://127.0.0.1:8443/v3/paths/get/santoshi` and `/v3/webrtcsessions/list` (no key from localhost). Measured
+15.11.2026: 716 s of a 1 kHz test tone through the phone with 0 drops; MediaMTX counted 318 lost RTP packets in 50 min (video included).
