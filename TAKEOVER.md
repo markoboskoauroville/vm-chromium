@@ -268,3 +268,7 @@ Tailscale. The rule: tcp 2053 from 0.0.0.0/0, description "Studio stream HLS lad
 small .mka to the Mac). Each piece's audio starts 0.14–0.24 s in (aligned to the first video frame), not a hole. The API on the VM
 itself: `curl -sk https://127.0.0.1:8443/v3/paths/get/santoshi` and `/v3/webrtcsessions/list` (no key from localhost). Measured
 15.11.2026: 716 s of a 1 kHz test tone through the phone with 0 drops; MediaMTX counted 318 lost RTP packets in 50 min (video included).
+15.11.2026 ~05:25 UTC: relay path **pixel** added (live /etc/mediamtx/mediamtx.yml edited in place, hot reload, the santoshi
+muxer kept running; backup mediamtx.yml.bak-20261115-cloudmixer; template santoshi-relay/mediamtx.yml.in updated). The phone
+publishes there when the site's KV `relay:campath` = pixel (expires 15.11.2026 13:00 UTC); CLOUD MIXER reads it by SRT
+(`streamid=read:pixel`, 127.0.0.1 allowed) and publishes the program with text on santoshi.

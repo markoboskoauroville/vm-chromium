@@ -29,6 +29,11 @@ authInternalUsers:
         path: santoshi
       - action: read
         path: santoshi
+      # 15.11.2026 CLOUD MIXER: the camera may publish on pixel (site KV relay:campath), the mixer reads it and publishes santoshi
+      - action: publish
+        path: pixel
+      - action: read
+        path: pixel
       - action: api
   # this machine itself (the uploader's status, tests)
   - user: any
@@ -37,6 +42,8 @@ authInternalUsers:
     permissions:
       - action: api
       - action: metrics
+      - action: read
+        path: pixel
 
 api: true
 apiAddress: :8443
@@ -93,6 +100,11 @@ pathDefaults:
   record: false
 
 paths:
+  # 15.11.2026 CLOUD MIXER: a camera input for the mixer on this VM (only the camera user and 127.0.0.1 read it)
+  pixel:
+    source: publisher
+    overridePublisher: true
+    record: false
   santoshi:
     source: publisher
     overridePublisher: true
