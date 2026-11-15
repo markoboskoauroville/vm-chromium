@@ -1,5 +1,5 @@
 [Unit]
-Description=chromium-vm: santoshi-hls-proxy (127.0.0.1:8896): one MediaMTX session, cacheable segment URLs for the Cloudflare Tunnel
+Description=chromium-vm: santoshi-hls-proxy (127.0.0.1:18888): one MediaMTX session, cacheable segment URLs for the Cloudflare Tunnel
 After=santoshi-relay.service
 
 [Service]

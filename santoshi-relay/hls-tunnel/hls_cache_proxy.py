@@ -7,7 +7,7 @@ URL and Cloudflare's default cache (.mp4 is a cached extension) keeps each piece
 blocking reloads (_HLS_msn/_HLS_part) pass through. Only GET /santoshi/<name>.(m3u8|mp4); everything else 404. Listens on 127.0.0.1 only.
 Nothing about viewers is logged."""
 import http.client, http.server, re, ssl, threading, urllib.parse
-LISTEN = ("127.0.0.1", 8896)
+LISTEN = ("127.0.0.1", 18888)
 PATH = re.compile(r"^/(santoshi)/([A-Za-z0-9_.-]{1,96})\.(m3u8|mp4)$")
 CTX = ssl.create_default_context(); CTX.check_hostname = False; CTX.verify_mode = ssl.CERT_NONE   # loopback to MediaMTX's own TLS port
 SID = re.compile(r"[?&]session=[0-9a-f-]+")
