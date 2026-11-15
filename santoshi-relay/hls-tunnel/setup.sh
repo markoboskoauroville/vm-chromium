@@ -1,14 +1,14 @@
 #!/bin/bash
-# santoshi-relay/hls-tunnel/setup.sh: hls.ples-duse.org, the cached HLS door of the Santoshi relay (15.11.2026).
+# santoshi-relay/hls-tunnel/setup.sh: live.santoshiband.org, the cached HLS door of the Santoshi relay (15.11.2026).
 #   1. sudo santoshi-relay/hls-tunnel/setup.sh install   cloudflared from Cloudflare's apt repo + the user cloudflared
-#   2. santoshi-relay/hls-tunnel/setup.sh login          (as ubuntu) prints the authorization URL; Marko clicks ples-duse.org → Authorize;
+#   2. santoshi-relay/hls-tunnel/setup.sh login          (as ubuntu) prints the authorization URL; Marko clicks santoshiband.org → Authorize;
 #                                                        ~/.cloudflared/cert.pem (600) appears. The only hand step.
 #   3. sudo -E santoshi-relay/hls-tunnel/setup.sh tunnel  creates the tunnel, its DNS CNAME, /etc/cloudflared, the unit, starts it
 #   4. python3 santoshi-relay/hls-tunnel/cache_rule.py    the Cache Rule (segments 60 s, query ignored; playlists bypass)
 # No token or certificate is ever printed. Safe to run again.
 set -euo pipefail
 cd "$(dirname "$0")"
-NAME=santoshi-hls HOST=hls.ples-duse.org
+NAME=santoshi-hls HOST=live.santoshiband.org
 CERT=/home/ubuntu/.cloudflared/cert.pem
 case "${1:-}" in
 install)

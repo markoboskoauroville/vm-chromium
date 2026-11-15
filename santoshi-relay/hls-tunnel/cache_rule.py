@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Cache Rules for hls.ples-duse.org (15.11.2026): segments and parts (.mp4/.m4s) cached 60 s at the edge with the query string left out of
+"""Cache Rules for live.santoshiband.org (15.11.2026): segments and parts (.mp4/.m4s) cached 60 s at the edge with the query string left out of
 the cache key (MediaMTX puts ?session=<viewer> on every URI), errors never stored; playlists (.m3u8) bypass the cache (LL-HLS blocking
 reloads must reach the relay). Token: the one inside ~/.cloudflared/cert.pem (from `cloudflared tunnel login`), or the file named by
-CF_TOKEN_FILE (a token with Zone > Cache Rules > Edit for ples-duse.org). Nothing secret is printed. Safe to run again (replaces only
+CF_TOKEN_FILE (a token with Zone > Cache Rules > Edit for santoshiband.org). Nothing secret is printed. Safe to run again (replaces only
 rules whose ref starts with santoshi-hls)."""
 import base64, json, os, re, sys, urllib.request
-HOST, ZONE = "hls.ples-duse.org", "ples-duse.org"
+HOST, ZONE = "live.santoshiband.org", "santoshiband.org"
 def token():
     f = os.environ.get("CF_TOKEN_FILE")
     if f: return open(f).read().strip(), None

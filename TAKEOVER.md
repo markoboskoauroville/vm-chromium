@@ -281,5 +281,5 @@ publishes there when the site's KV `relay:campath` = pixel (expires 15.11.2026 1
 Cloudflare Worker cannot proxy it (changing egress addresses → 401 on segments); through cloudflared every request comes from 127.0.0.1.
 Ingress only ^/santoshi/[A-Za-z0-9_.-]+\.(m3u8|mp4)$ → https://127.0.0.1:8888 (MediaMTX HLS is TLS; originServerName
 relay.ples-duse.org), everything else 404. Next: `santoshi-relay/hls-tunnel/setup.sh login` (as ubuntu; open the printed URL in
-Chrome Profile 15, Marko clicks ples-duse.org → Authorize; the URL expires after about 10 minutes), then `sudo -E … tunnel`, then
-`python3 …/cache_rule.py`. One authorization = one zone: a hostname on santoshiband.org needs a second login for that zone.
+Chrome Profile 15, Marko clicks santoshiband.org → Authorize; the URL expires after about 10 minutes), then `sudo -E … tunnel`, then
+`python3 …/cache_rule.py`. Hostname live.santoshiband.org (15.11.2026 plan change: his new zone santoshiband.org, not ples-duse.org); one authorization = one zone.

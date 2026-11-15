@@ -1,5 +1,5 @@
 [Unit]
-Description=chromium-vm: Santoshi HLS through a Cloudflare Tunnel (hls.ples-duse.org → MediaMTX :8888, only /santoshi/*.m3u8|mp4)
+Description=chromium-vm: Santoshi HLS through a Cloudflare Tunnel (live.santoshiband.org → MediaMTX :8888, only /santoshi/*.m3u8|mp4)
 After=network-online.target santoshi-relay.service
 Wants=network-online.target
 

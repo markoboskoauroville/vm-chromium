@@ -1,11 +1,11 @@
-# Cloudflare Tunnel "santoshi-hls" (15.11.2026, Marko chose the tunnel): hls.ples-duse.org → MediaMTX HLS on this VM, nothing else.
+# Cloudflare Tunnel "santoshi-hls" (15.11.2026, Marko chose the tunnel): live.santoshiband.org → MediaMTX HLS on this VM, nothing else.
 # Every request reaches MediaMTX from 127.0.0.1, so its IP-bound HLS sessions hold; Cloudflare caches the segments (Cache Rule, cache_rule.py).
 # MediaMTX's HLS listener is TLS (hlsEncryption), so the origin is https://127.0.0.1:8888 checked against its relay.ples-duse.org certificate.
 tunnel: TUNNEL_ID
 credentials-file: /etc/cloudflared/santoshi-hls.json
 no-autoupdate: true
 ingress:
-  - hostname: hls.ples-duse.org
+  - hostname: live.santoshiband.org
     path: ^/santoshi/[A-Za-z0-9_.-]+\.(m3u8|mp4)$
     service: https://127.0.0.1:8888
     originRequest:
