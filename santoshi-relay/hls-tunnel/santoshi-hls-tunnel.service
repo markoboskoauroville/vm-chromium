@@ -1,0 +1,19 @@
+[Unit]
+Description=chromium-vm: Santoshi HLS through a Cloudflare Tunnel (hls.ples-duse.org → MediaMTX :8888, only /santoshi/*.m3u8|mp4)
+After=network-online.target santoshi-relay.service
+Wants=network-online.target
+
+[Service]
+User=cloudflared
+Group=cloudflared
+ExecStart=/usr/bin/cloudflared --no-autoupdate --config /etc/cloudflared/santoshi-hls.yml tunnel run
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadOnlyPaths=/etc/cloudflared
+
+[Install]
+WantedBy=multi-user.target
