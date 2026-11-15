@@ -1,3 +1,8 @@
+**15.11.2026: session-ack (receipts between Claude sessions).** New core service `session-ack` (short ACK, :8899 on the
+Tailscale address + 127.0.0.1, user session-ack, sqlite in /var/lib/session-ack, vmsvc.slice, owner check by tailscale
+whois). Source and installer: repo SESSION_ACK (`sudo server/install.sh`); rule MANTRA_MANIFEST modules/session-ack.md.
+The VM's Claude Code has `ccmsg` + its hooks (~/SESSION_ACK, install.sh).
+
 **14.11.2026: ttt-relay (TTT's transcription in Frankfurt).** New core service `ttt-relay` (short TTT, :8897 on the
 Tailscale address, user ttt-relay, keys in /var/lib/ttt-relay, vmsvc.slice). Read ttt-relay/README.md. Not installed yet:
 `sudo ttt-relay/install.sh`.

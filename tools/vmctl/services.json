@@ -43,6 +43,17 @@
    "core": true
   },
   {
+   "name": "session-ack",
+   "short": "ACK",
+   "title": "Session receipts (:8899, ccmsg mailbox: every message between Claude sessions confirmed)",
+   "kind": "systemd",
+   "units": [
+    "session-ack.service"
+   ],
+   "core": true,
+   "bar": false
+  },
+  {
    "name": "santoshi-relay",
    "short": "SRELAY",
    "title": "Santoshi live relay (MediaMTX: WHIP in, WHEP/LL-HLS out, relay.ples-duse.org:8889/8888, recording to Drive)",
