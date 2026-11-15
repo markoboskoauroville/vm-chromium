@@ -370,6 +370,17 @@
    "units": [
     "chromium-vm-reaper-evaluating.service"
    ]
+  },
+  {
+   "name": "streaming-dashboard",
+   "short": "SDASH",
+   "bar": false,
+   "core": true,
+   "kind": "systemd",
+   "units": [
+    "streaming-dashboard.service"
+   ],
+   "title": "Streaming Dashboard (:8996 Tailscale, the streams' numbers + Meditation Room test stream buttons; repo STREAMING_DASHBOARD vm/)"
   }
  ]
 }
