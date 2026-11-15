@@ -22,7 +22,7 @@ user is the owner (`/etc/ttt-relay.conf` OWNER=...), or a caller with the token 
     GET  /status                       rings {ring: {keys, cursor, resting}}, jobs running, version
     POST /keys                         {"rings": {"groq": ["k1", "k2"], ...}, "replace": true} -> {"rings": {ring: count}}
                                        write only: keys can never be read back
-    POST /jobs?engine=groq_v3&lang=hr  body = the 16 kHz mono WAV; header X-TTT-Names = base64(JSON list of names)
+    POST /jobs?engine=groq_v3&lang=hr  (lang hr | en | auto; auto since version 2) body = the 16 kHz mono WAV; header X-TTT-Names = base64(JSON list of names)
                                        -> {"id": "...", "state": "queued", ...}
     GET  /jobs/ID?since=V&wait=20      long poll: answers as soon as the job's version is above V (or after wait s)
                                        {"id", "state": queued|sending|retry|done|failed|cancelled, "status", "text",
@@ -39,7 +39,7 @@ import base64, hashlib, io, json, os, secrets, socket, subprocess, sys, tempfile
 import urllib.parse, urllib.request, uuid, wave
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-VERSION = 1
+VERSION = 2          # 2 (15.11.2026): lang=auto for the Mac app Voice to Text (Mantra); additive, lang en/hr unchanged
 STATE_DIR = os.environ.get('TTT_RELAY_STATE', '/var/lib/ttt-relay')
 PORT = int(os.environ.get('TTT_RELAY_PORT', '8897'))
 MAX_RETRIES = 10
@@ -269,7 +269,7 @@ def multipart(fields, file_field, wav, filename='clip.wav', ctype='audio/wav'):
 
 
 def lang2(lang):
-    return 'en' if lang == 'en' else 'hr'
+    return 'en' if lang == 'en' else 'auto' if lang == 'auto' else 'hr'
 
 
 def glang(lang):
@@ -285,7 +285,9 @@ def js(text):
 
 def groq(model):
     def run(bud, k, wav, lang, names):
-        f = {'model': model, 'response_format': 'json', 'temperature': '0', 'language': lang2(lang)}
+        f = {'model': model, 'response_format': 'json', 'temperature': '0'}
+        if lang2(lang) != 'auto':
+            f['language'] = lang2(lang)
         if names:
             f['prompt'] = ', '.join(names)[:600]
         body, ct = multipart(f, 'file', wav)
@@ -297,13 +299,16 @@ def groq(model):
 def cloudflare(bud, k, wav, lang, names):
     if len(k) < 2:
         raise Fail('NOT_CONFIGURED', 'needs account id and token')
-    body = json.dumps({'audio': base64.b64encode(wav).decode(), 'language': lang2(lang)}).encode()
+    b = {'audio': base64.b64encode(wav).decode()}
+    if lang2(lang) != 'auto':
+        b['language'] = lang2(lang)
+    body = json.dumps(b).encode()
     return js(send(bud, f'https://api.cloudflare.com/client/v4/accounts/{k[0]}/ai/run/@cf/openai/whisper-large-v3-turbo', body,
                    {'Authorization': f'Bearer {k[1]}', 'Content-Type': 'application/json'}))['result']['text']
 
 
 def gemini(bud, k, wav, lang, names):
-    l = 'English' if lang2(lang) == 'en' else 'Croatian'
+    l = {'en': 'English', 'auto': 'Croatian or English, whichever is spoken (write each part in the language it is in)'}.get(lang2(lang), 'Croatian')
     p = f'Transcribe this speech exactly and verbatim in {l}, with punctuation, no commentary.'
     if names:
         p += ' Names that may occur: ' + ', '.join(names)[:600] + '.'
@@ -314,14 +319,14 @@ def gemini(bud, k, wav, lang, names):
 
 
 def deepgram(bud, k, wav, lang, names):
-    q = [('model', 'nova-3'), ('language', lang2(lang)), ('smart_format', 'true')] + [('keyterm', n) for n in names[:50]]
+    q = [('model', 'nova-3'), ('language', 'multi' if lang2(lang) == 'auto' else lang2(lang)), ('smart_format', 'true')] + [('keyterm', n) for n in names[:50]]
     r = js(send(bud, 'https://api.deepgram.com/v1/listen?' + urllib.parse.urlencode(q), wav,
                 {'Authorization': f'Token {k}', 'Content-Type': 'audio/wav'}))
     return r['results']['channels'][0]['alternatives'][0]['transcript']
 
 
 def elevenlabs(bud, k, wav, lang, names):
-    body, ct = multipart({'model_id': 'scribe_v1', 'language_code': lang2(lang)}, 'file', wav)
+    body, ct = multipart(dict({'model_id': 'scribe_v1'}, **({} if lang2(lang) == 'auto' else {'language_code': lang2(lang)})), 'file', wav)
     return js(send(bud, 'https://api.elevenlabs.io/v1/speech-to-text', body, {'xi-api-key': k, 'Content-Type': ct}))['text']
 
 
@@ -331,6 +336,8 @@ def _results(r):
 
 def google_v1(bud, k, wav, lang, names):
     cfg = {'encoding': 'LINEAR16', 'sampleRateHertz': 16000, 'languageCode': glang(lang), 'enableAutomaticPunctuation': True}
+    if lang2(lang) == 'auto':
+        cfg['alternativeLanguageCodes'] = ['en-US']
     if names:
         cfg['speechContexts'] = [{'phrases': names[:100]}]
     body = json.dumps({'config': cfg, 'audio': {'content': base64.b64encode(wav).decode()}}).encode()
@@ -380,7 +387,7 @@ def google_chirp(bud, k, wav, lang, names):
     if not project:
         raise Fail('NOT_CONFIGURED', 'no project id')
     tok = google_token(bud, sa)
-    body = json.dumps({'config': {'autoDecodingConfig': {}, 'languageCodes': [glang(lang)], 'model': 'chirp_3'},
+    body = json.dumps({'config': {'autoDecodingConfig': {}, 'languageCodes': ['auto'] if lang2(lang) == 'auto' else [glang(lang)], 'model': 'chirp_3'},
                        'content': base64.b64encode(wav).decode()}).encode()
     return _results(js(send(bud, f'https://us-speech.googleapis.com/v2/projects/{project}/locations/us/recognizers/_:recognize',
                             body, {'Authorization': f'Bearer {tok}', 'Content-Type': 'application/json'})))
@@ -388,7 +395,11 @@ def google_chirp(bud, k, wav, lang, names):
 
 def assemblyai(bud, k, wav, lang, names):
     up = js(send(bud, 'https://api.assemblyai.com/v2/upload', wav, {'authorization': k, 'Content-Type': 'application/octet-stream'}))['upload_url']
-    b = {'audio_url': up, 'language_code': lang2(lang), 'speech_models': ['universal-3-5-pro', 'universal-2']}
+    b = {'audio_url': up, 'speech_models': ['universal-3-5-pro', 'universal-2']}
+    if lang2(lang) == 'auto':
+        b.update({'language_detection': True, 'language_detection_options': {'expected_languages': ['en', 'hr']}})
+    else:
+        b['language_code'] = lang2(lang)
     if names:
         b['word_boost'] = names[:100]
     tid = js(send(bud, 'https://api.assemblyai.com/v2/transcript', json.dumps(b).encode(),
@@ -422,7 +433,7 @@ def soniox(bud, k, wav, lang, names):
     body, ct = multipart({}, 'file', wav)
     fid = js(send(bud, 'https://api.soniox.com/v1/files', body, dict(auth, **{'Content-Type': ct})))['id']
     try:
-        b = json.dumps({'model': 'stt-async-v6', 'file_id': fid, 'language_hints': [lang2(lang)]}).encode()
+        b = json.dumps({'model': 'stt-async-v6', 'file_id': fid, 'language_hints': ['en', 'hr'] if lang2(lang) == 'auto' else [lang2(lang)]}).encode()
         tid = js(send(bud, 'https://api.soniox.com/v1/transcriptions', b, dict(auth, **{'Content-Type': 'application/json'})))['id']
         while True:
             st = js(send(bud, f'https://api.soniox.com/v1/transcriptions/{tid}', headers=auth))['status']
@@ -674,7 +685,7 @@ class Handler(BaseHTTPRequestHandler):
                     aac_bench.clear()
                     return self.answer(200, {'clips': 0})
             if parts == ['jobs']:
-                engine = q.get('engine', ''); lang = 'en' if q.get('lang') == 'en' else 'hr'
+                engine = q.get('engine', ''); lang = q.get('lang') if q.get('lang') in ('en', 'auto') else 'hr'
                 if engine not in ENGINES:
                     return self.answer(400, {'error': f'engine {engine or "?"} does not run in Frankfurt'})
                 names = []
