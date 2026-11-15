@@ -32,7 +32,13 @@ if [ ! -s /etc/mediamtx/publish.hash ]; then
   printf '%s\n' "$H" > /etc/mediamtx/publish.hash; chmod 640 /etc/mediamtx/publish.hash; chgrp mediamtx /etc/mediamtx/publish.hash
 fi
 H=$(cat /etc/mediamtx/publish.hash)
-sed "s|@PUBLISH_HASH@|$H|" santoshi-relay/mediamtx.yml.in > /etc/mediamtx/mediamtx.yml
+# 15.11.2026 "mixer only": the CLOUD MIXER's own key (user mixer, the only publisher on santoshi); made here if missing
+if [ ! -s /etc/santoshi-relay/mixer-key ]; then
+  install -d -m 750 -o root -g ubuntu /etc/santoshi-relay
+  ( umask 027; head -c 24 /dev/urandom | base64 | tr -d '/+=' > /etc/santoshi-relay/mixer-key ); chown root:ubuntu /etc/santoshi-relay/mixer-key
+fi
+MH="sha256:$(tr -d '\n' < /etc/santoshi-relay/mixer-key | openssl dgst -binary -sha256 | base64)"
+sed -e "s|@PUBLISH_HASH@|$H|" -e "s|@MIXER_HASH@|$MH|" santoshi-relay/mediamtx.yml.in > /etc/mediamtx/mediamtx.yml
 chown root:mediamtx /etc/mediamtx/mediamtx.yml; chmod 640 /etc/mediamtx/mediamtx.yml
 install -d -m 750 -o root -g ubuntu /etc/santoshi-relay
 [ -f /etc/santoshi-relay/key ] || { touch /etc/santoshi-relay/key; chown root:ubuntu /etc/santoshi-relay/key; chmod 640 /etc/santoshi-relay/key; }

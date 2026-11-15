@@ -20,22 +20,35 @@ authInternalUsers:
     permissions:
       - action: read
         path: santoshi
-  # the camera (and the site's admin status call): publish + API
+  # the cameras (and the site's admin status call). 15.11.2026 "mixer only" (Marko: "Yes, mixer only"): a camera publishes ONLY on its
+  # private path cam-<id> (given by the site's /api/live), never on santoshi; the CLOUD MIXER reads it and is the only publisher there
   - user: santoshi
     pass: "@PUBLISH_HASH@"
     ips: []
     permissions:
       - action: publish
-        path: santoshi
+        path: ~^cam-[a-z0-9]{4,16}$
+      - action: read
+        path: ~^cam-[a-z0-9]{4,16}$
       - action: read
         path: santoshi
-      # 15.11.2026 CLOUD MIXER: the camera may publish on pixel (site KV relay:campath), the mixer reads it and publishes santoshi
+      # 15.11.2026 CLOUD MIXER: the camera may publish on pixel (the morning's hand-set KV relay:campath), unchanged
       - action: publish
         path: pixel
       - action: read
         path: pixel
       - action: api
-  # this machine itself (the uploader's status, tests)
+  # the CLOUD MIXER on this machine: the only publisher on santoshi (key /etc/santoshi-relay/mixer-key, only its sha256 here).
+  # A user of its own, not "any from 127.0.0.1": the HLS tunnel (cloudflared) also reaches MediaMTX from 127.0.0.1
+  - user: mixer
+    pass: "@MIXER_HASH@"
+    ips: ["127.0.0.1", "::1"]
+    permissions:
+      - action: publish
+        path: santoshi
+      - action: read
+        path: santoshi
+  # this machine itself (the uploader's status, tests, the mixer reading the cameras)
   - user: any
     pass:
     ips: ["127.0.0.1", "::1"]
@@ -44,6 +57,8 @@ authInternalUsers:
       - action: metrics
       - action: read
         path: pixel
+      - action: read
+        path: ~^cam-[a-z0-9]{4,16}$
 
 api: true
 apiAddress: :8443
@@ -100,6 +115,11 @@ pathDefaults:
   record: false
 
 paths:
+  # 15.11.2026 "mixer only": every paired camera's private path (cam-<first 10 hex of its token hash>), read by the CLOUD MIXER
+  "~^cam-[a-z0-9]{4,16}$":
+    source: publisher
+    overridePublisher: true
+    record: false
   # 15.11.2026 CLOUD MIXER: a camera input for the mixer on this VM (only the camera user and 127.0.0.1 read it)
   pixel:
     source: publisher
@@ -107,6 +127,7 @@ paths:
     record: false
   santoshi:
     source: publisher
+    # only the mixer publishes here (user mixer); its own reconnect replaces its stale session
     overridePublisher: true
     # every stream is kept on the VM's disk in 1 min pieces; santoshi-rec-upload puts them on Drive; the disk keeps 7 days (Drive uploads can lag: rclone shares a Google quota)
     record: true
