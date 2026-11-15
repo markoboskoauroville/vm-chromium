@@ -242,3 +242,13 @@ ckbond :443, session-ack :8899, SSH). Oracle security list: udp 41641 ingress ad
 the Mac went from DERP "fra" to direct 130.61.181.83:41641, 37 ms). The exit node must be **approved once** in the
 Tailscale admin console (Machines → chromium-vm → Edit route settings → Use as exit node). Off again:
 `sudo tailscale set --advertise-exit-node=false`. Manifest: MANTRA_MANIFEST modules/vpn-exit-node.md.
+
+## 15.11.2026: CLOUD MIXER (vmctl CMIXER, repo CLOUD_MIXER)
+The programmatic vision mixer ("vMix in the cloud"): clone ~/cloud-mixer, daemon `cloud-mixer.service` (API 127.0.0.1 and
+100.102.86.30 port 8841, not enabled at boot), show runner `cloud-mixer-show.service` + `.timer` (settings
+/etc/cloud-mixer/show.env). Its program is published by SRT to the relay (127.0.0.1:8890, path santoshi) with the relay
+publish key read from /etc/santoshi-relay/key. Media in /srv/cloud-mixer/media/<show>/. Site switch token (paired camera
+"Cloud Mixer (VM)") in ~/.config/cloud-mixer/site-camera-token (600). Armed 15.11.2026 for 11:00:00 UTC (the Šubić
+concert of 17.10.2026, 1:42:46). The relay has only the path santoshi: dry runs go to a private MediaMTX on 127.0.0.1
+(CLOUD_MIXER/tools/test-mediamtx.sh, SRT :8990). Installed for it: python3-numpy, python3-pil, rsync. Note: the box has
+2 cores; another worker's studio-ladder (HLS ladder) took ~110 % at 04:52 UTC the same day.
