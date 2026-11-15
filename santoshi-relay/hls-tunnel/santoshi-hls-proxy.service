@@ -1,0 +1,17 @@
+[Unit]
+Description=chromium-vm: santoshi-hls-proxy (127.0.0.1:8896): one MediaMTX session, cacheable segment URLs for the Cloudflare Tunnel
+After=santoshi-relay.service
+
+[Service]
+DynamicUser=yes
+ExecStart=/usr/bin/python3 -I /opt/santoshi-hls/hls_cache_proxy.py
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+MemoryMax=300M
+
+[Install]
+WantedBy=multi-user.target

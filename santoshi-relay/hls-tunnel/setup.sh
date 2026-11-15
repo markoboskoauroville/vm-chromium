@@ -4,7 +4,7 @@
 #   2. santoshi-relay/hls-tunnel/setup.sh login          (as ubuntu) prints the authorization URL; Marko clicks santoshiband.org → Authorize;
 #                                                        ~/.cloudflared/cert.pem (600) appears. The only hand step.
 #   3. sudo -E santoshi-relay/hls-tunnel/setup.sh tunnel  creates the tunnel, its DNS CNAME, /etc/cloudflared, the unit, starts it
-#   4. python3 santoshi-relay/hls-tunnel/cache_rule.py    the Cache Rule (segments 60 s, query ignored; playlists bypass)
+#   4. (optional) python3 …/cache_rule.py: a Cache Rule; not needed, the proxy makes the URLs cacheable by default (needs a token with Cache Rules)
 # No token or certificate is ever printed. Safe to run again.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -36,8 +36,10 @@ tunnel)
   sed "s/TUNNEL_ID/$ID/" santoshi-hls.yml > /etc/cloudflared/$NAME.yml; chown root:cloudflared /etc/cloudflared/$NAME.yml; chmod 640 /etc/cloudflared/$NAME.yml
   cloudflared tunnel --config /etc/cloudflared/$NAME.yml ingress validate
   cloudflared tunnel route dns --overwrite-dns $NAME $HOST
-  install -m 644 santoshi-hls-tunnel.service /etc/systemd/system/
-  systemctl daemon-reload; systemctl enable --now santoshi-hls-tunnel; sleep 3; systemctl is-active santoshi-hls-tunnel
+  install -d -m 755 /opt/santoshi-hls; install -m 644 hls_cache_proxy.py /opt/santoshi-hls/
+  install -m 644 santoshi-hls-proxy.service santoshi-hls-tunnel.service /etc/systemd/system/
+  systemctl daemon-reload; systemctl enable --now santoshi-hls-proxy; systemctl restart santoshi-hls-proxy
+  systemctl enable --now santoshi-hls-tunnel; systemctl restart santoshi-hls-tunnel; sleep 3; systemctl is-active santoshi-hls-tunnel
   echo "tunnel $NAME ($ID) → $HOST" ;;
 *) sed -n 2,8p "$0"; exit 1 ;;
 esac
