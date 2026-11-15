@@ -12,6 +12,22 @@ PATH = re.compile(r"^/(santoshi)/([A-Za-z0-9_.-]{1,96})\.(m3u8|mp4)$")
 CTX = ssl.create_default_context(); CTX.check_hostname = False; CTX.verify_mode = ssl.CERT_NONE   # loopback to MediaMTX's own TLS port
 SID = re.compile(r"[?&]session=[0-9a-f-]+")
 sess, lock = {}, threading.Lock()
+# counts only (no viewer data): what reaches the VM per 30 s, to see whether Cloudflare's cache works (one request per segment name and
+# Cloudflare location = working). Logged to the journal.
+import collections, time
+stat = collections.Counter(); names = collections.defaultdict(set)
+def count(kind, name=None, colo=None):
+    with lock:
+        stat[kind] += 1
+        if name: names[kind].add(name)
+        if colo: names["colo"].add(colo)
+def report():
+    while True:
+        time.sleep(30)
+        with lock:
+            line = " ".join(f"{k}={v}" for k, v in sorted(stat.items())) + " " + " ".join(f"distinct_{k}={len(v)}" for k, v in sorted(names.items()) if k != "colo")
+            colos = ",".join(sorted(names["colo"])); stat.clear(); names.clear()
+        if line.strip(): print(f"30s: {line} colos={colos}", flush=True)
 
 def up(path, timeout=10):
     c = http.client.HTTPSConnection("127.0.0.1", 8888, context=CTX, timeout=timeout)
@@ -50,6 +66,10 @@ class H(http.server.BaseHTTPRequestHandler):
         u = urllib.parse.urlsplit(self.path); m = PATH.match(u.path)
         if not m: return self.send(404, b"not found", "text/plain", "no-store")
         stream, base, ext = m.groups(); name = f"{base}.{ext}"
+        ray = self.headers.get("cf-ray", ""); colo = ray.rsplit("-", 1)[-1] if "-" in ray else None
+        kind = "playlist" if ext == "m3u8" else ("part" if "_part" in base else "segment")
+        count(kind + ("_q" if u.query else ""), name if ext == "mp4" else None, colo)
+        if self.headers.get("cookie"): count("with_cookie")
         try:
             if name == "index.m3u8":
                 st, body = new_session(stream)
@@ -65,5 +85,6 @@ class H(http.server.BaseHTTPRequestHandler):
         return self.send(200, body, "video/mp4", "public, max-age=60, s-maxage=60")
 
 if __name__ == "__main__":
+    threading.Thread(target=report, daemon=True).start()
     http.server.ThreadingHTTPServer.daemon_threads = True
     http.server.ThreadingHTTPServer(LISTEN, H).serve_forever()
