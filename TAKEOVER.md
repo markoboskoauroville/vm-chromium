@@ -3,6 +3,8 @@ Tailscale address + 127.0.0.1, user session-ack, sqlite in /var/lib/session-ack,
 whois). Source and installer: repo SESSION_ACK (`sudo server/install.sh`); rule MANTRA_MANIFEST modules/session-ack.md.
 The VM's Claude Code has `ccmsg` + its hooks (~/SESSION_ACK, install.sh).
 
+**15.11.2026: ttt-relay version 2 (lang=auto).** Voice to Text (Mantra) on the Mac also uses the relay; lang=auto added to every adapter, additive (en/hr unchanged, test 7/7). Installed on the VM with install.sh, /health version 2. Mac keys come in via POST /keys replace:false.
+
 **14.11.2026: ttt-relay (TTT's transcription in Frankfurt).** New core service `ttt-relay` (short TTT, :8897 on the
 Tailscale address, user ttt-relay, keys in /var/lib/ttt-relay, vmsvc.slice). Read ttt-relay/README.md. Not installed yet:
 `sudo ttt-relay/install.sh`.
