@@ -1,0 +1,8 @@
+#!/bin/bash
+# certbot renew --deploy-hook: the relay.ples-duse.org certificate also to studio-web (its own copy, root:studio 640)
+set -e
+D=/etc/letsencrypt/live/relay.ples-duse.org
+install -d -m 750 -o root -g studio /etc/studio-stream/tls
+install -m 640 -o root -g studio "$D/fullchain.pem" /etc/studio-stream/tls/fullchain.pem
+install -m 640 -o root -g studio "$D/privkey.pem" /etc/studio-stream/tls/privkey.pem
+systemctl try-restart studio-web.service

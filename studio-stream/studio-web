@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""studio-web: serves the Studio HLS ladder (studio-ladder) at https://relay.ples-duse.org:2053/studio/...
+
+  /studio/master.m3u8          the multivariant playlist, audio renditions renamed "Q:160 S" ... with CHANNELS
+  /studio/<rendition>/...       the media playlists and 2 s segments (from /dev/shm/studio-hls)
+  /studio/health               {"live": bool, "age_s": seconds since the newest segment, "viewers": n, "by": {...}}
+Only files under the HLS folder with the expected names are served; no listing, no other path. CORS * (the band site
+and anyone may play it, like the relay's own HLS). TLS: the relay.ples-duse.org certificate, own copy in /etc/studio-stream/tls.
+"""
+import json, os, re, ssl, sys, time, threading
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+
+OUT = os.environ.get("STUDIO_OUT", "/dev/shm/studio-hls")
+PORT = int(os.environ.get("STUDIO_WEB_PORT", "2053"))
+BIND = os.environ.get("STUDIO_WEB_BIND", "0.0.0.0")
+CERT = os.environ.get("STUDIO_CERT", "/etc/studio-stream/tls/fullchain.pem")
+KEY = os.environ.get("STUDIO_KEY", "/etc/studio-stream/tls/privkey.pem")
+NAMES = {"Q160S": ("Q:160 S", 2), "Q80S": ("Q:80 S", 2), "Q40S": ("Q:40 S", 2),
+         "Q160M": ("Q:160 M", 1), "Q80M": ("Q:80 M", 1), "Q40M": ("Q:40 M", 1)}
+SAFE = re.compile(r"^/studio/(1080|720|480|360|Q160S|Q80S|Q40S|Q160M|Q80M|Q40M)/(index\.m3u8|seg\d{5,8}\.ts)$")
+seen = {}  # ip -> (time, rendition) of the last segment request
+lock = threading.Lock()
+
+
+def master():
+    with open(os.path.join(OUT, "master.m3u8"), encoding="utf-8") as f:
+        txt = f.read()
+    def media(m):
+        uri = re.search(r'URI="([A-Z0-9]+)/index\.m3u8"', m.group(0))
+        if not uri or uri.group(1) not in NAMES:
+            return m.group(0)
+        name, ch = NAMES[uri.group(1)]
+        line = re.sub(r'NAME="[^"]*"', f'NAME="{name}"', m.group(0))
+        return line.replace("TYPE=AUDIO,", f'TYPE=AUDIO,CHANNELS="{ch}",', 1)
+    return re.sub(r"^#EXT-X-MEDIA:.*$", media, txt, flags=re.M)
+
+
+def health():
+    now = time.time(); newest = 0.0
+    try:
+        for d in os.listdir(OUT):
+            p = os.path.join(OUT, d, "index.m3u8")
+            if os.path.exists(p):
+                newest = max(newest, os.path.getmtime(p))
+    except FileNotFoundError:
+        pass
+    with lock:
+        live = {ip: r for ip, (t, r) in seen.items() if now - t < 20}
+        for ip in [ip for ip, (t, _) in seen.items() if now - t > 120]:
+            del seen[ip]
+    by = {}
+    for r in live.values():
+        by[r] = by.get(r, 0) + 1
+    age = round(now - newest, 1) if newest else None
+    return {"live": bool(newest and now - newest < 8), "age_s": age, "viewers": len(live), "by": by}
+
+
+class H(BaseHTTPRequestHandler):
+    server_version = "studio-web"
+    def log_message(self, *a):  # quiet: one line per error only
+        pass
+    def head(self, code, ctype, length, cache):
+        self.send_response(code)
+        self.send_header("Content-Type", ctype); self.send_header("Content-Length", str(length))
+        self.send_header("Access-Control-Allow-Origin", "*"); self.send_header("Cache-Control", cache)
+        self.end_headers()
+    def body(self, code, ctype, data, cache="no-cache"):
+        self.head(code, ctype, len(data), cache)
+        if self.command != "HEAD":
+            self.wfile.write(data)
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "*"); self.send_header("Access-Control-Allow-Methods", "GET, HEAD")
+        self.send_header("Access-Control-Allow-Headers", "*"); self.end_headers()
+    def do_HEAD(self):
+        self.do_GET()
+    def do_GET(self):
+        path = self.path.split("?", 1)[0]
+        try:
+            if path == "/studio/health":
+                return self.body(200, "application/json", json.dumps(health()).encode())
+            if path == "/studio/master.m3u8":
+                return self.body(200, "application/vnd.apple.mpegurl", master().encode())
+            m = SAFE.match(path)
+            if not m:
+                return self.body(404, "text/plain", b"not found\n")
+            fp = os.path.join(OUT, m.group(1), m.group(2))
+            if m.group(2).endswith(".ts"):
+                ip = self.headers.get("X-Forwarded-For", self.client_address[0]).split(",")[0].strip()
+                with lock:
+                    prev = seen.get(ip)
+                    if m.group(1) in ("1080", "720", "480", "360") or not prev:
+                        seen[ip] = (time.time(), m.group(1))
+                    else:
+                        seen[ip] = (time.time(), prev[1])
+                with open(fp, "rb") as f:
+                    data = f.read()
+                return self.body(200, "video/mp2t", data, "public, max-age=60")
+            with open(fp, "rb") as f:
+                data = f.read()
+            return self.body(200, "application/vnd.apple.mpegurl", data)
+        except FileNotFoundError:
+            return self.body(404, "text/plain", b"not live\n")
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
+
+def main():
+    srv = ThreadingHTTPServer((BIND, PORT), H)
+    srv.daemon_threads = True
+    if "--plain" not in sys.argv:
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ctx.load_cert_chain(CERT, KEY)
+        srv.socket = ctx.wrap_socket(srv.socket, server_side=True)
+    print(f"studio-web on :{PORT}, {OUT}", flush=True)
+    srv.serve_forever()
+
+
+if __name__ == "__main__":
+    main()

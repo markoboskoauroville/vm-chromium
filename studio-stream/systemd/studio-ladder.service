@@ -1,0 +1,26 @@
+[Unit]
+Description=chromium-vm: Studio ladder (the Mac's one master by RTMP over Tailscale -> HLS 1080/720/480/360 + audio Q:160/80/40 S/M)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=studio
+Group=studio
+UMask=0022
+ExecStart=/usr/local/lib/chromium-vm/studio-ladder
+Restart=always
+RestartSec=2
+Slice=vmsvc.slice
+# two cores in all: the ladder may never starve MediaMTX or Connection Keeper
+CPUQuota=150%
+Nice=5
+MemoryMax=1200M
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/dev/shm
+
+[Install]
+WantedBy=multi-user.target

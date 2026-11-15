@@ -1,0 +1,41 @@
+#!/bin/bash
+# studio-ladder (Marko, 15.11.2026: "each user get its own quality ... which cannot be better than the master quality").
+# The Mac ("Studio") sends ONE master over Tailscale by RTMP: 1080p25 H.264 ~5 Mbit/s, GOP 2 s + AAC 160 kbit/s stereo.
+# This builds the YouTube-like ladder from it as HLS with separate audio renditions (EXT-X-MEDIA, one audio group):
+#   video 1080 (the master, copied) / 720 / 480 / 360        audio Q:160 S (default) Q:80 S Q:40 S Q:160 M Q:80 M Q:40 M
+# Output: $OUT/master.m3u8 + $OUT/<name>/index.m3u8, 2 s segments, served by studio-web (https :2053, CORS *).
+# Listens on the Tailscale address only: nobody outside the tailnet can publish. One publisher; when it leaves, ffmpeg
+# ends and systemd starts a fresh listener (Restart=always).
+set -u
+LISTEN="${STUDIO_LISTEN:-rtmp://100.102.86.30:1935/studio/master}"
+OUT="${STUDIO_OUT:-/dev/shm/studio-hls}"
+PRESET="${STUDIO_PRESET:-superfast}"
+mkdir -p "$OUT"
+# a new run starts clean: old segments of a previous stream must not be played after a restart
+find "$OUT" -mindepth 1 -delete 2>/dev/null
+# keyframes of the scaled renditions on the same 2 s grid as the master's (the Mac encodes GOP 50 at 25 fps)
+KF="expr:gte(t,n_forced*2)"
+exec ffmpeg -hide_banner -loglevel warning -stats_period 10 -nostdin \
+  -listen 1 -timeout -1 -i "$LISTEN" \
+  -filter_complex "\
+[0:v]split=3[s1][s2][s3];\
+[s1]scale=-2:720:flags=bilinear[v720];[s2]scale=-2:480:flags=bilinear[v480];[s3]scale=-2:360:flags=bilinear[v360];\
+[0:a]aresample=48000,asplit=4[as][m0][m1][m2];\
+[as]asplit=3[a160s][a80s][a40s];\
+[m0]pan=mono|c0=0.5*c0+0.5*c1[a160m];[m1]pan=mono|c0=0.5*c0+0.5*c1[a80m];[m2]pan=mono|c0=0.5*c0+0.5*c1[a40m]" \
+  -map 0:v -map "[v720]" -map "[v480]" -map "[v360]" \
+  -map "[a160s]" -map "[a80s]" -map "[a40s]" -map "[a160m]" -map "[a80m]" -map "[a40m]" \
+  -c:v:0 copy \
+  -c:v:1 libx264 -preset "$PRESET" -profile:v:1 main -b:v:1 2500k -maxrate:v:1 2800k -bufsize:v:1 5000k \
+  -c:v:2 libx264 -preset "$PRESET" -profile:v:2 main -b:v:2 1100k -maxrate:v:2 1300k -bufsize:v:2 2600k \
+  -c:v:3 libx264 -preset "$PRESET" -profile:v:3 baseline -b:v:3 600k -maxrate:v:3 700k -bufsize:v:3 1400k \
+  -force_key_frames:v:1 "$KF" -force_key_frames:v:2 "$KF" -force_key_frames:v:3 "$KF" -sc_threshold 0 \
+  -c:a aac -ar 48000 \
+  -b:a:0 160k -b:a:1 80k -b:a:2 40k -b:a:3 160k -b:a:4 80k -b:a:5 40k \
+  -f hls -hls_time 2 -hls_list_size 10 -hls_delete_threshold 4 \
+  -hls_flags delete_segments+independent_segments+temp_file -hls_segment_type mpegts \
+  -master_pl_name master.m3u8 -master_pl_publish_rate 30 \
+  -var_stream_map "v:0,agroup:aud,name:1080 v:1,agroup:aud,name:720 v:2,agroup:aud,name:480 v:3,agroup:aud,name:360 \
+a:0,agroup:aud,name:Q160S,default:yes a:1,agroup:aud,name:Q80S a:2,agroup:aud,name:Q40S \
+a:3,agroup:aud,name:Q160M a:4,agroup:aud,name:Q80M a:5,agroup:aud,name:Q40M" \
+  -hls_segment_filename "$OUT/%v/seg%05d.ts" "$OUT/%v/index.m3u8"

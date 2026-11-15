@@ -1,0 +1,23 @@
+[Unit]
+Description=chromium-vm: Studio HLS web (https://relay.ples-duse.org:2053/studio/master.m3u8, CORS *)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=studio
+Group=studio
+ExecStart=/usr/local/lib/chromium-vm/studio-web
+Restart=always
+RestartSec=2
+Slice=vmsvc.slice
+MemoryMax=300M
+LimitNOFILE=65536
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadOnlyPaths=/dev/shm
+
+[Install]
+WantedBy=multi-user.target

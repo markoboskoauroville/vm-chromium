@@ -65,6 +65,26 @@
    "core": true
   },
   {
+   "name": "cloud-mixer",
+   "short": "CMIXER",
+   "title": "CLOUD MIXER (vMix in the cloud): program -> relay path santoshi, API :8841 (127.0.0.1 + Tailscale); show timer cloud-mixer-show",
+   "kind": "systemd",
+   "units": [
+    "cloud-mixer.service"
+   ]
+  },
+  {
+   "name": "studio-stream",
+   "short": "STUDIO",
+   "title": "Studio stream (the Mac's master by RTMP over Tailscale :1935 -> HLS ladder, relay.ples-duse.org:2053/studio/master.m3u8)",
+   "kind": "systemd",
+   "units": [
+    "studio-ladder.service",
+    "studio-web.service"
+   ],
+   "core": true
+  },
+  {
    "name": "xvnc",
    "bar": false,
    "short": "XVNC",
