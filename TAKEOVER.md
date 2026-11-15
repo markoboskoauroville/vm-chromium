@@ -309,3 +309,11 @@ no Tiered Cache, so EVERY Cloudflare location (GitHub runners sit in many) fetch
 Mbit/s ≈ the cap). Fix: Smart Tiered Cache on the zone santoshiband.org. It is free, but the tunnel cert's token gets 403, so it is
 Marko's click: dash → santoshiband.org → Caching → Tiered Cache → Smart Tiered Caching → Enable. The proxy logs counts only, every
 30 s (`journalctl -u santoshi-hls-proxy`: segment=N distinct_segment=M colos=…); N ≈ M × locations shows what reaches the VM.
+
+**15.11.2026 ~17:10: santoshi-hls playlists.** With Smart Tiered Cache on, segments leave the VM once each (segment = distinct_segment).
+At 102 readers the limit was ~80 playlist requests a second (no blocking reloads: playlist_q never appeared, the kit polls like plain
+hls.js), each fetched from MediaMTX over a NEW TLS connection and rewritten: the proxy at 77 % of a core. Now (c9d3556): one fetch per
+playlist per 0.5 s (index 5 s), shared by all, rewritten once; plain HLS (LL lines removed, _HLS_ ignored); kept-alive TLS to MediaMTX.
+Playlists stay `no-cache`: Cloudflare does not cache .m3u8 without a Cache Rule, and the zone's Browser Cache TTL (4 h) rewrites a short
+max-age (segments arrive with max-age=14400), which would freeze a live playlist in the browser. Counter `playlist_shared` = served
+from the shared copy.
