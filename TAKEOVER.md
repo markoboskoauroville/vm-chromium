@@ -301,3 +301,11 @@ HLS viewers from GitHub runners against relay.ples-duse.org:8888 (test path load
 open to everyone (the hls proxy reads anonymously). Config only, in place: `sudo santoshi-relay/apply-config.sh` (masked diff + backup,
 MediaMTX reloads by itself; applied 15:22 UTC, backup mediamtx.yml.20261115-152235). install.sh fills @MIXER_HASH@ too. Proven: the
 camera key on santoshi gets "failed to authenticate", on cam-vmtest it publishes. The program on santoshi: CLOUD_MIXER cloud-mixer-live.
+
+**15.11.2026 ~16:45: santoshi-hls under load.** 45 GitHub-runner readers held the VM at its ~54 Mbit/s egress cap. The URLs are NOT
+per viewer: two "players" fetching the playlist get the same session-free names, and client C got `cf-cache-status: HIT` on A's URL
+(FRA). The MISS of "client C" in tun.sh came from the test script itself (it adds a different ?session= on purpose). Most likely cause:
+no Tiered Cache, so EVERY Cloudflare location (GitHub runners sit in many) fetches each segment from the VM once (~15 locations × 3.7
+Mbit/s ≈ the cap). Fix: Smart Tiered Cache on the zone santoshiband.org. It is free, but the tunnel cert's token gets 403, so it is
+Marko's click: dash → santoshiband.org → Caching → Tiered Cache → Smart Tiered Caching → Enable. The proxy logs counts only, every
+30 s (`journalctl -u santoshi-hls-proxy`: segment=N distinct_segment=M colos=…); N ≈ M × locations shows what reaches the VM.
