@@ -28,6 +28,9 @@ user is the owner (`/etc/ttt-relay.conf` OWNER=...), or a caller with the token 
                                        {"id", "state": queued|sending|retry|done|failed|cancelled, "status", "text",
                                         "engine", "key", "attempt", "error", "version", "ms"}
     POST /jobs/ID/cancel               the job stops at once; a late upstream answer is thrown away
+    POST /bench/clip?id=&lang=&kind=wav|aac   one clip of the AAC-against-WAV test (header X-TTT-Ref = base64 text)
+    POST /bench/run?engines=a,b        starts the test (aac_bench.py) in the background;  GET /bench  progress + report
+    POST /bench/clear                  deletes the test clips
 
 Every finished job is one line in /var/lib/ttt-relay/jobs.log (time, engine, lang, seconds of audio, key number,
 attempts, result, ms): never the text, never a key.
@@ -634,6 +637,9 @@ class Handler(BaseHTTPRequestHandler):
             with Job.lock:
                 running = sum(1 for j in Job.jobs.values() if j.state in ('queued', 'sending', 'retry'))
             return self.answer(200, {'version': VERSION, 'rings': self.store.status(), 'running': running})
+        if parts == ['bench']:
+            import aac_bench
+            return self.answer(200, aac_bench.status())
         if len(parts) == 2 and parts[0] == 'jobs':
             job = Job.jobs.get(parts[1])
             if not job:
@@ -651,6 +657,22 @@ class Handler(BaseHTTPRequestHandler):
                 d = json.loads(self.body(1024 * 1024) or b'{}')
                 rings = d.get('rings') or {}
                 return self.answer(200, {'rings': self.store.set_keys(rings, bool(d.get('replace', True)))})
+            if parts and parts[0] == 'bench':
+                # AAC against WAV (Marko, 15.11.2026): the phone sends clips, Frankfurt compares (aac_bench.py).
+                import aac_bench
+                if parts == ['bench', 'clip']:
+                    ref = ''
+                    if self.headers.get('X-TTT-Ref'):
+                        ref = base64.b64decode(self.headers['X-TTT-Ref']).decode('utf-8', 'replace')
+                    aac_bench.save_clip(q.get('id', ''), q.get('lang', 'hr'), ref, q.get('kind', 'wav'), self.body())
+                    return self.answer(200, {'clips': len(aac_bench.clips())})
+                if parts == ['bench', 'run']:
+                    eng = [e for e in q.get('engines', '').split(',') if e] or None
+                    started = aac_bench.start_async(eng, self.store)
+                    return self.answer(200, dict(aac_bench.status(), started=started))
+                if parts == ['bench', 'clear']:
+                    aac_bench.clear()
+                    return self.answer(200, {'clips': 0})
             if parts == ['jobs']:
                 engine = q.get('engine', ''); lang = 'en' if q.get('lang') == 'en' else 'hr'
                 if engine not in ENGINES:

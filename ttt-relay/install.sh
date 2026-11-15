@@ -11,6 +11,8 @@ OWNER=$(tailscale status --json | python3 -c "import json,sys; d=json.load(sys.s
 id ttt-relay >/dev/null 2>&1 || useradd --system --home /var/lib/ttt-relay --shell /usr/sbin/nologin ttt-relay
 install -d -m 700 -o ttt-relay -g ttt-relay /var/lib/ttt-relay
 install -m 755 ttt-relay/ttt_relay.py /usr/local/lib/chromium-vm/ttt_relay.py
+install -m 755 ttt-relay/aac_bench.py /usr/local/lib/chromium-vm/aac_bench.py
+command -v ffmpeg >/dev/null || apt-get install -y ffmpeg      # the AAC-against-WAV test decodes AAC
 [ -f /etc/ttt-relay.conf ] || printf '# who may call the relay: the Tailscale user of the phones\nOWNER=%s\n' "$OWNER" > /etc/ttt-relay.conf
 chmod 644 /etc/ttt-relay.conf
 install -m 644 ttt-relay/systemd/ttt-relay.service /etc/systemd/system/ttt-relay.service

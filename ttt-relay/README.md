@@ -29,3 +29,13 @@ Registry: core service `ttt-relay` (short TTT), in vmsvc.slice under ckbond, Mem
 `python3 ttt-relay/test_ttt_relay.py` (fake providers on localhost): forward-only ring, same-key retries on network
 errors, every key out = failed without another engine, cancel at once, keys never readable, local engines refused,
 access refused without owner/token.
+
+## AAC against WAV (15.11.2026)
+
+Marko: *"test accuracy between AAC and Wave ... If there is a difference, keep wave, if there is the same, we go with AAC."*
+`aac_bench.py` (endpoints `/bench/clip`, `/bench/run`, `GET /bench`, `/bench/clear`): TTT's button Settings > Voice
+transcription buttons > Advanced > "Test AAC against WAV in Frankfurt" (or adb broadcast `dev.ttt.engines.AAC_BENCH`) sends
+every kept dictation as WAV + the phone's own AAC 32 kbit/s. For each engine with keys: WAV twice (noise) and AAC decoded by
+ffmpeg once; WER against the text he sent. SAME when AAC minus WAV <= noise + 1 point; decision AAC only if no engine is
+WORSE. Report in /var/lib/ttt-relay/bench/report.md (+ report.json with the transcripts, on the VM only). Needs ffmpeg
+(install.sh installs it). Test: `python3 ttt-relay/test_aac_bench.py`. Clear the clips after: `POST /bench/clear`.
