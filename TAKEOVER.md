@@ -283,3 +283,12 @@ Ingress only ^/santoshi/[A-Za-z0-9_.-]+\.(m3u8|mp4)$ → https://127.0.0.1:8888 
 relay.ples-duse.org), everything else 404. Next: `santoshi-relay/hls-tunnel/setup.sh login` (as ubuntu; open the printed URL in
 Chrome Profile 15, Marko clicks santoshiband.org → Authorize; the URL expires after about 10 minutes), then `sudo -E … tunnel`, then
 `python3 …/cache_rule.py`. Hostname live.santoshiband.org (15.11.2026 plan change: his new zone santoshiband.org, not ples-duse.org); one authorization = one zone.
+
+**15.11.2026 14:20: santoshi-hls tunnel is up.** Tunnel santoshi-hls (id 20858b82-57fa-4b0f-96c5-2736af65529b), units
+santoshi-hls-tunnel (cloudflared, /etc/cloudflared/santoshi-hls.{yml,json}, 640 root:cloudflared) and santoshi-hls-proxy
+(127.0.0.1:18888, /opt/santoshi-hls/hls_cache_proxy.py, DynamicUser). Proxied CNAME live.santoshiband.org (zone santoshiband.org;
+apex and www belong to the Pages project, untouched). cert.pem in ~/.cloudflared (600) covers ONLY santoshiband.org.
+Why the proxy: the cert's token may not write Cache Rules (403), and MediaMTX's ?session=<viewer> makes every segment URL different.
+The proxy holds one session, strips ?session= and answers segments public max-age=60, so Cloudflare's default cache (.mp4) keeps
+each piece once per location; playlists no-cache, LL-HLS blocking reloads pass through. Only /santoshi/*.m3u8|mp4; all else 404
+(checked: /v3/…, /pixel/…, /santoshi/whep → 404). Port 8896 is vmctl serve on the Tailscale address: not free.
