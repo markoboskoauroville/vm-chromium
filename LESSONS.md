@@ -155,3 +155,10 @@
 - ffmpeg 6.1 writes NAME="audio_N" for audio renditions whatever `name:` says: rewrite the master playlist when serving it.
 - `ffmpeg -listen 1` as an RTMP server: one publisher, ends when it leaves; systemd Restart=always gives the next listener.
 - A quick public test server on the VM (python -m http.server on 0.0.0.0) was refused by the permission check: test over Tailscale.
+- (16.11.2026) "Frankfurt is banning us" was never a ban: the Mac's Tailscale was OFF (BackendState Stopped) after the
+  morning boot, so 100.102.86.30:8897 timed out and Voice to Text fell back direct. macOS quits Tailscale.app at every
+  shut-down and the app turns its connection off as it quits (WantRunning false). ttt-relay's jobs.log (686 jobs since
+  14.11) has no 403/429 and no retry; the only failures were ElevenLabs with no key on the relay. Before calling the relay
+  down or banned: `tailscale-ensure-up --check` on the Mac, then `curl -m 5 http://100.102.86.30:8897/health`, then
+  `sudo grep -v " ok " /var/lib/ttt-relay/jobs.log | tail` on the VM. The relay costs ~0.15 s over direct (Groq turbo,
+  7.5 s WAV: 0.80 s via Frankfurt, 0.64 s direct, Mac in Croatia, tailscale ping 43 ms direct UDP to 130.61.181.83:41641).
