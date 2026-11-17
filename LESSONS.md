@@ -162,3 +162,9 @@
   down or banned: `tailscale-ensure-up --check` on the Mac, then `curl -m 5 http://100.102.86.30:8897/health`, then
   `sudo grep -v " ok " /var/lib/ttt-relay/jobs.log | tail` on the VM. The relay costs ~0.15 s over direct (Groq turbo,
   7.5 s WAV: 0.80 s via Frankfurt, 0.64 s direct, Mac in Croatia, tailscale ping 43 ms direct UDP to 130.61.181.83:41641).
+- 17.11.2026, the dock "gone": nothing was broken or overwritten. The core-only boot of 14.11.2026 (tools/vmctl) made the dock
+  (chromium-vm-dock + chromium-vm-refit) an optional service, disabled at boot; the VM rebooted on 14.11 08:13 UTC and the dock
+  never came back (journal: last stop 14.11 08:12). The santoshi-hls stop (c4894bf) touched nothing else. Fix: `dock` is
+  `core: true` in services.json, enabled at boot by install.sh, no optional drop-in. Marko's desktop pieces (dock, refit,
+  status bar) belong in the core: a "core only" sweep must ask which visible pieces he uses before switching them off at boot.
+  Test the Super key as a TAP (press + release alone): it toggles the pinned dock; a held key shows nothing yet.

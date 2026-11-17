@@ -303,7 +303,8 @@
    "units": [
     "chromium-vm-dock.service",
     "chromium-vm-refit.service"
-   ]
+   ],
+   "core": true
   },
   {
    "name": "gemini",

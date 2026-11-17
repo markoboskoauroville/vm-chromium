@@ -64,11 +64,12 @@ as_user systemctl --user daemon-reload
 
 echo "== the core stays enabled"
 systemctl enable ckbond.service tailscaled.service ssh.socket chromium-vm-xvnc.service chromium-vm-session.service \
-  chromium-vm-statusbar.service chromium-vm-agent.service chromium-vm-vmctl.service
+  chromium-vm-statusbar.service chromium-vm-agent.service chromium-vm-vmctl.service \
+  chromium-vm-dock.service chromium-vm-refit.service   # the dock is core since 17.11.2026 (Marko: "I want them back")
 as_user systemctl --user enable queen.service pulseaudio.socket
 
 echo "== everything else OFF AT BOOT (disable only, nothing stopped now)"
-systemctl disable chromium-vm-claude-app.service chromium-vm-claude-code.service chromium-vm-dock.service chromium-vm-refit.service \
+systemctl disable chromium-vm-claude-app.service chromium-vm-claude-code.service \
   chromium-vm-reaper-evaluating.service chromium-vm-aooserver.service chromium-vm-reaper.timer chromium-vm-worker-gemini.service \
   chromium-vm-pixel7.service chromium-vm-pixel7b.service chromium-vm-pixel7-bar.service chromium-vm-chrome.service \
   pixel7d.service pixel7-jobs.service docker.service docker.socket containerd.service 2>&1 | grep -v '^Removed' || true
