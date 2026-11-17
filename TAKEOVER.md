@@ -317,3 +317,11 @@ playlist per 0.5 s (index 5 s), shared by all, rewritten once; plain HLS (LL lin
 Playlists stay `no-cache`: Cloudflare does not cache .m3u8 without a Cache Rule, and the zone's Browser Cache TTL (4 h) rewrites a short
 max-age (segments arrive with max-age=14400), which would freeze a live playlist in the browser. Counter `playlist_shared` = served
 from the shared copy.
+
+**17.11.2026: santoshi-hls tunnel stopped (Marko gave up santoshiband.org).** `systemctl disable --now santoshi-hls-tunnel santoshi-hls-proxy`
+(both inactive and disabled). Its only hostname, live.santoshiband.org, had its DNS record deleted by santoshi_band_site's
+tools/release_domain.py; the site's /api/live hands viewers the relay's own HLS door again (relay hostname under ples-duse.org, :8888),
+so the direct capacity limit of the load test applies (~12 viewers). The tunnel object santoshi-hls (credentials /etc/cloudflared/santoshi-hls.json)
+and the kit in santoshi-relay/hls-tunnel/ are kept: to bring the cached door back, put a hostname of a zone this account still has
+(e.g. hls.ples-duse.org, the original plan) in santoshi-hls.yml, `setup.sh login` for that zone (Marko's authorization), route DNS, enable both units.
+~/.cloudflared/cert.pem covers only the santoshiband.org zone and is useless for any other zone.
