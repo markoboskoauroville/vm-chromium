@@ -228,7 +228,11 @@ final class SettingsOverlay: Solid {
         if !services.isHidden { services.close(); return }          // the gear closes the services list too
         panel.isHidden.toggle(); refreshKeys(); if isOpen { loadSizes() }
     }
-    @objc func openServices() { panel.isHidden = true; services.open() }
+    @objc func openServices() {
+        panel.isHidden = true
+        if !Target.isVM { app?.flash("SERVICES is the VM's: choose chromium-vm in the menu bar"); return }
+        services.open()
+    }
 
     /// the sizes the VM's display offers (vm-agent screen_modes, xrandr), biggest first; FOLLOW WINDOW on top
     func loadSizes() {

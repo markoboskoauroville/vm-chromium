@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 33
+let VERSION = 34
 let APP_NAME = "Mantra Remote Viewing"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -41,6 +41,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     var lastPushedChange = NSPasteboard.general.changeCount
     var lastClipText = ""
     var door: Door?
+    var peersMenu: PeersMenu?
     // v6 (Marko, 2.11.2026): "I don't need anything from the top bar ... in the upper left corner one setting button":
     // no title bar, no button bar; the gear (Settings.swift) floats over the picture's top-left corner
     var downloadsTimer: Timer?
@@ -52,6 +53,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         buildMenu()
         buildWindow()
         door = Door(app: self)
+        peersMenu = PeersMenu(app: self)   // v34: the Tailscale machines in the menu bar
         try? FileManager.default.createDirectory(at: App.downloadsFolder, withIntermediateDirectories: true)
         // Since 2.11.2026 downloads go to Google Drive only and are deleted from the VM; nothing comes to the Mac by
         // itself (Marko: "don't transfer anything to my computer ... We are saving the SIM"). fetch_downloads on the
@@ -271,18 +273,24 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     }
 
     func connect() {
-        guard let pw = password, !pw.isEmpty else {
-            setStatus("no password yet: enter it under the gear, LOGIN", .systemOrange)
-            overlay.openLogin(); return
+        let pw: String
+        if Target.isVM {
+            guard let p = password, !p.isEmpty else {
+                setStatus("no password yet: enter it under the gear, LOGIN", .systemOrange)
+                overlay.openLogin(); return
+            }
+            pw = p
+        } else {
+            pw = Target.peerPassword   // v34: another machine: ~/Downloads/API/vnc-<name>.txt, may be empty
         }
-        setStatus("connecting to chromium-vm…", .secondaryLabelColor, tip: false)
+        setStatus("connecting to \(Target.name)…", .secondaryLabelColor, tip: false)
         let r = RFB(); r.delegate = self; rfb = r; screen.rfb = r
-        r.connect(host: VNC_HOST, port: VNC_PORT, password: pw)
+        r.connect(host: Target.host, port: Target.port, password: pw)
     }
 
     func rfbConnected(name: String, width: Int, height: Int) {
         connected = true
-        setStatus("● CHROMIUM VM  \(VNC_HOST)", .systemGreen, tip: false)
+        setStatus("● \(Target.isVM ? "CHROMIUM VM" : Target.name.uppercased())  \(Target.host)", .systemGreen, tip: false)
         if overlay.tip.textColor == .systemOrange && overlay.tip.stringValue.hasPrefix("not connected") { overlay.setTip("") }
         window.makeFirstResponder(screen)
         startSaver()

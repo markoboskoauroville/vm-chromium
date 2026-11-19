@@ -4,6 +4,8 @@ import Foundation
 
 final class Agent: NSObject, URLSessionTaskDelegate {
     static let host = "100.102.86.30"
+    /// v34: false while the viewer shows a machine other than the VM: no vm-agent there, every call answers at once
+    static var enabled = true
     let base = URL(string: "http://\(Agent.host):8890")!
     var token: String { (try? String(contentsOfFile: NSHomeDirectory() + "/Downloads/API/chromium-vm-agent.txt", encoding: .utf8))?
         .trimmingCharacters(in: .whitespacesAndNewlines) ?? "" }
@@ -19,6 +21,7 @@ final class Agent: NSObject, URLSessionTaskDelegate {
 
     /// POST /api/<action>: calls back on the main queue with the result or an error sentence.
     func call(_ action: String, _ args: [String: Any] = [:], done: @escaping (Any?, String?) -> Void) {
+        guard Agent.enabled else { return DispatchQueue.main.async { done(nil, "no vm-agent on this machine") } }
         let body = try? JSONSerialization.data(withJSONObject: args)
         session.dataTask(with: request("api/" + action, body: body)) { d, _, e in
             guard let d, let j = try? JSONSerialization.jsonObject(with: d) as? [String: Any] else {
@@ -32,6 +35,7 @@ final class Agent: NSObject, URLSessionTaskDelegate {
 
     /// PUT /files/<name>: the file's bytes into ~/Downloads on the VM.
     func put(_ file: URL, progress p: @escaping (Double) -> Void, done: @escaping (String?, String?) -> Void) {
+        guard Agent.enabled else { return DispatchQueue.main.async { done(nil, "no vm-agent on this machine") } }
         let name = file.lastPathComponent.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "file"
         var r = request("files/" + name, method: "PUT"); r.timeoutInterval = 3600
         let t = session.uploadTask(with: r, fromFile: file) { d, _, e in
@@ -46,6 +50,7 @@ final class Agent: NSObject, URLSessionTaskDelegate {
 
     /// GET /files/<name>: a file of the VM's ~/Downloads into `dest` (written beside it first, then moved).
     func get(_ name: String, to dest: URL, done: @escaping (String?) -> Void) {
+        guard Agent.enabled else { return DispatchQueue.main.async { done("no vm-agent on this machine") } }
         let n = name.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? name
         var r = request("files/" + n, method: "GET"); r.timeoutInterval = 3600
         session.downloadTask(with: r) { tmp, resp, e in
