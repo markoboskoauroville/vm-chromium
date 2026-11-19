@@ -18,6 +18,9 @@ final class Door {
         ("send_file", "sends a Mac file to ~/Downloads on the VM", ["path": "str"]),
         ("push_clipboard", "puts the Mac clipboard on the VM clipboard now", [:]),
         ("saver", "bandwidth saver: idle seconds before the picture freezes (0 = off), freeze or wake now", ["idle": "int", "freeze": "bool", "wake": "bool"]),
+        ("target", "points the viewer at a machine and connects (same as the menu bar): name, host, optional port; chromium-vm keeps its full protocol", ["name": "str", "host": "str", "port": "int"]),
+        ("pointer", "sends a pointer event to the connected machine (picture pixels): x, y, buttons (bit 0 = left)", ["x": "int", "y": "int", "buttons": "int"]),
+        ("key", "sends one key event to the connected machine (X keysym), down true/false", ["keysym": "int", "down": "bool"]),
         ("fetch_downloads", "fetches new VM downloads into ~/Downloads/Chromium Downloads now", [:]),
     ]
 
@@ -89,6 +92,18 @@ final class Door {
             app.window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true); reply(200, ["ok": true, "result": "shown"])
         case "fullscreen":
             app.toggleFull(); reply(200, ["ok": true, "result": "toggled"])
+        case "target":
+            guard let h = args["host"] as? String, !h.isEmpty else { return reply(400, ["ok": false, "error": "host needed"]) }
+            Target.set(name: (args["name"] as? String) ?? h, host: h, port: args["port"] as? Int)
+            app.reconnect(); reply(200, ["ok": true, "result": "\(Target.name) \(Target.host):\(Target.port)"])
+        case "pointer":
+            guard let r = app.rfb, app.connected else { return reply(400, ["ok": false, "error": "not connected"]) }
+            r.pointer(x: (args["x"] as? Int) ?? 0, y: (args["y"] as? Int) ?? 0, buttons: UInt8((args["buttons"] as? Int) ?? 0))
+            reply(200, ["ok": true, "result": "sent"])
+        case "key":
+            guard let r = app.rfb, app.connected, let k = args["keysym"] as? Int else { return reply(400, ["ok": false, "error": "not connected or keysym missing"]) }
+            r.key(UInt32(k), down: (args["down"] as? Bool) ?? true)
+            reply(200, ["ok": true, "result": "sent"])
         case "reconnect":
             app.reconnect(); reply(200, ["ok": true, "result": "reconnecting"])
         case "push_clipboard":

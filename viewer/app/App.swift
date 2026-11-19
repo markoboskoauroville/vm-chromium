@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 36
+let VERSION = 37
 let APP_NAME = "Remote Viewing (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 

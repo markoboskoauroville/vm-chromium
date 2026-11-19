@@ -15,8 +15,14 @@ enum Target {
         (try? String(contentsOfFile: NSHomeDirectory() + "/Downloads/API/vnc-\(name).txt", encoding: .utf8))?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
-    static func set(name n: String, host h: String) {
-        name = n; host = h; port = (h == Agent.host) ? VNC_PORT : 5900
+    /// the VNC port of another machine: ~/Downloads/API/vnc-<name>.port when it has one (a server on 5901, 5902...), else 5900
+    static func portFor(_ n: String) -> Int {
+        let s = (try? String(contentsOfFile: NSHomeDirectory() + "/Downloads/API/vnc-\(n).port", encoding: .utf8))?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return Int(s) ?? 5900
+    }
+    static func set(name n: String, host h: String, port p: Int? = nil) {
+        name = n; host = h; port = (h == Agent.host) ? VNC_PORT : (p ?? portFor(n))
         Agent.enabled = (h == Agent.host)
     }
 }
