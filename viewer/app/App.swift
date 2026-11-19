@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 41
+let VERSION = 42
 let APP_NAME = "Remote Viewing (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -296,6 +296,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         setStatus("connecting to \(Target.name)…", .secondaryLabelColor, tip: false)
         screen.clearPicture()   // v36: never the previous machine's last frame
         let r = RFB(); r.delegate = self; rfb = r; screen.rfb = r
+        r.viewOnly = Target.isSelf   // v42: this Mac's own server: a picture only, never input looping into the Mac
         r.connect(host: Target.host, port: Target.port, password: pw, user: Target.isVM ? "" : Target.peerUser)
     }
 

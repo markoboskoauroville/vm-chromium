@@ -5,6 +5,18 @@ signs "Mantra Apps", installs in /Applications and quits the running copy. Star:
 
 - **Screen:** own RFB 3.8 client (VncAuth, ZRLE / CopyRect / Raw). The VM follows the window size
   (ExtendedDesktopSize). FULL SCREEN or ⌃⌘F hides the top row.
+- **Built-in VNC (v39-v42, 19.11.2026):** nothing to install on either side.
+  - *Viewer:* the same own RFB 3.8 client for every Tailscale machine in the menu bar (⌖): VNC password, Apple Remote
+    Desktop login (user + password, a Mac's own Screen Sharing on :5900), or no login; ZRLE / Hextile / CopyRect / Raw.
+    The login of a machine other than the VM is typed under the gear (LOGIN, Keychain per machine name), else
+    ~/Downloads/API/vnc-<name>.txt (one line password, or two lines user then password). On a Mac ⌘ goes as ⌘ (Super).
+  - *Server:* **Share this Mac (VNC)** (menu bar ⌖, or gear → SHARE THIS MAC ON | OFF): RFB 3.8 on **port 5901** on every
+    address (5900 is macOS Screen Sharing's own), VNC password (8 characters, shown in the menu and the gear, NEW PASSWORD
+    makes another), the main display through ScreenCaptureKit at its point size (15 fps, only while someone watches),
+    pointer and keys as CGEvents, clipboard text both ways. Needs **Screen Recording** (the picture) and **Accessibility**
+    (input): the amber PERMISSIONS button top right opens the page still missing. Remembered: it comes back on at start.
+  - Door: `POST /api/share {"on":true|false,"new_password":true}` answers on, listening, viewers, password, permissions.
+    Pointing the viewer at 127.0.0.1:5901 (door `target`) shows this Mac's own screen, picture only (v42, no input loop).
 - **Keys:** ⌘ is Ctrl on the VM (⌘C ⌘V ⌘T ⌘W ⌘L), ⌥ composes characters the Mac way, ⌘Q / ⌘H / ⌃⌘F stay the Mac's.
   v26 (5.11.2026): **⌥Tab** switches the VM's programs (Super+Tab); **⌘Tab stays with macOS** (never sent), the Mac's
   global hotkeys are no longer suspended while the viewer is in front.

@@ -168,3 +168,13 @@
   `core: true` in services.json, enabled at boot by install.sh, no optional drop-in. Marko's desktop pieces (dock, refit,
   status bar) belong in the core: a "core only" sweep must ask which visible pieces he uses before switching them off at boot.
   Test the Super key as a TAP (press + release alone): it toggles the pinned dock; a held key shows nothing yet.
+
+- 19.11.2026 (viewer v39-v42): ScreenCaptureKit asks the TCC prompt itself on macOS 15 when Screen Recording is missing, so
+  the server checks CGPreflightScreenCaptureAccess() after the password and answers the viewer "Screen Recording not
+  allowed on that Mac yet" instead of starting a capture; only the PERMISSIONS button (Marko's click) calls
+  CGRequestScreenCaptureAccess. The permission survives a new release because the app is re-signed "Mantra Apps".
+- 19.11.2026: a viewer pointed at its own Mac's server sends its pointer back into the same Mac and the arrow jumps
+  (scaled picture): self-view is picture only (RFB.viewOnly).
+- 19.11.2026: macOS's /opt/homebrew openssl (3.x) refuses des-ecb without the legacy provider; /usr/bin/openssl (LibreSSL)
+  does VNC's DES for a test client. In Swift, `if let (a, b) = dict[k]` is not allowed (bind, then destructure), and `try`
+  cannot sit inside a ternary's branch (`try (c ? f() : x)`).

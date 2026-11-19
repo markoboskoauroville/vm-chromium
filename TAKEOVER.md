@@ -1,3 +1,17 @@
+**19.11.2026: Remote Viewing (Mantra) v39-v42, built-in VNC viewer and server (Mac).** Marko: "update my application to have
+built in server and viewer for VNC inside the app ... The user does not need to install anything". Read viewer/README.md
+(Built-in VNC). New files viewer/app/VNCServer.swift (server: NWListener :5901, ScreenCaptureKit, CGEvent, ZRLE/Raw,
+DesktopSize, cut text) and ARDAuth.swift (Apple login type 30: DH with own Montgomery modPow, MD5, AES-128-ECB). RFB.swift:
+auth types 30/2/1, Hextile, `viewOnly`. Peers.swift: PeerLogin (Keychain), selfIPs, Share menu. Settings.swift: LOGIN per
+target, SHARE THIS MAC, PERMISSIONS top right. Built only by GitHub (runs 44469477705 v39, 44469881147 v40, 44470124455 v41,
+v42 after), installed from the release, re-signed Mantra Apps. Tested 19.11.2026: python RFB client on 127.0.0.1:5901 and on
+the tailnet address 100.79.251.19:5901: wrong password refused, right password → ServerInit 2560×1440 (the BenQ, main
+display), full frame Raw and ZRLE (920 tiles, 593 kB) decoded to PNG = the Mac's screen; the app's own viewer on
+127.0.0.1:5901 showed the Mac's screen; viewer on chromium-vm unchanged. Screen Recording was allowed by Marko during the test;
+Accessibility was already allowed. NOT yet tested: input from a remote viewer (clicks/keys into the Mac), the Apple login (ARD)
+against a real Mac's Screen Sharing (no second Mac on the tailnet), a phone's built-in server (the Android app's server was
+not up on pixel-7 / nothing-phone-2a at :5900/:5901 yet).
+
 **15.11.2026: session-ack (receipts between Claude sessions).** New core service `session-ack` (short ACK, :8899 on the
 Tailscale address + 127.0.0.1, user session-ack, sqlite in /var/lib/session-ack, vmsvc.slice, owner check by tailscale
 whois). Source and installer: repo SESSION_ACK (`sudo server/install.sh`); rule MANTRA_MANIFEST modules/session-ack.md.

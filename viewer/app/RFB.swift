@@ -154,13 +154,19 @@ final class RFB {
         try write([3, incremental ? 1 : 0] + be16(0) + be16(0) + be16(w) + be16(h))
     }
 
+    /// v42: looking at this Mac's own server (a test): only the picture, no pointer or keys (they would loop back into the Mac)
+    var viewOnly = false
+
     func pointer(x: Int, y: Int, buttons: UInt8) {
-        pointerSent += 1; lastInput = Date()
+        lastInput = Date()
+        if viewOnly { return }
+        pointerSent += 1
         try? write([5, buttons] + be16(max(0, x)) + be16(max(0, y)))
     }
 
     func key(_ keysym: UInt32, down: Bool) {
         lastInput = Date()
+        if viewOnly { return }
         try? write([4, down ? 1 : 0, 0, 0] + be32(keysym))
     }
 
