@@ -332,3 +332,7 @@ Mac part (this repo, viewer/): own RFB client for every tailnet machine (VNC aut
 ## 19.11.2026, Marko (through the master session): any password for Share this Mac
 "Next update is that in my remote viewing application for VNC, I need to have also custom password without any security limitations. It can be even one one number."
 Meaning: the built-in server's password is typed by Marko in the app, any length from one character, no rules; empty = no password (RFB None). The viewer takes any length too.
+
+## 19.11.2026, Marko (through the master session): no user names
+"I'm confused with the username. Now I open my remote viewing Mantra on Mac OS. There is a gear icon. I clicked on it. It just asked me password for my v n c pass... Server or Nothing Phone 2. I enter password. I cannot connect. There is some default username. Can we work without losing... Usernames?"
+Meaning: the gear's login is a password only, for every machine; a user name is asked only when a real Mac offers nothing but its Apple login; a closed port says plainly that the phone is not sharing.
