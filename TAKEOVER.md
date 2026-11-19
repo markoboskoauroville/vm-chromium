@@ -1,3 +1,12 @@
+**19.11.2026 v44-v45: password only.** Marko: "I'm confused with the username ... Can we work without ... usernames?" The
+gear's login is PASSWORD OF <MACHINE> only; the user name row is gone (the VM's RFB login never needed one; App.username
+stays only as the Keychain account, automatic). VNC password (2) or none (1) is always preferred; the Apple login (30) is
+used only when a Mac offers nothing else, and only then the USER NAME row appears (Target.askUser). Closed port → "Nothing
+Phone 2a is not sharing: open Mantra Remote Viewing on the phone and turn on SHARE THIS PHONE" (OS from Tailscale, also for a
+door target, v45); refused login → "<name>: wrong password". Runs 44472143256 (v44), 44472451407 (v45), both green. Tested:
+VM connects; own server with password "1" (Python client and the app); wrong "9" refused; the gear shows no user name
+(window screenshots); and the app showed the Nothing Phone 2a's screen through the phone's new built-in server.
+
 **19.11.2026 v43:** Marko: "custom password without any security limitations. It can be even one one number." The share
 password is whatever he types (gear PASSWORD + SET PASSWORD, door share {"password": ...}), stored in UserDefaults
 (sharePassword), empty = RFB None. Tested: "1" → auth ok + full ZRLE frame from 100.79.251.19:5901, "2" refused, empty →

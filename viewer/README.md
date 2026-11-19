@@ -8,7 +8,7 @@ signs "Mantra Apps", installs in /Applications and quits the running copy. Star:
 - **Built-in VNC (v39-v42, 19.11.2026):** nothing to install on either side.
   - *Viewer:* the same own RFB 3.8 client for every Tailscale machine in the menu bar (⌖): VNC password, Apple Remote
     Desktop login (user + password, a Mac's own Screen Sharing on :5900), or no login; ZRLE / Hextile / CopyRect / Raw.
-    The login of a machine other than the VM is typed under the gear (LOGIN, Keychain per machine name), else
+    The login of a machine other than the VM is its password alone, typed under the gear (Keychain per machine name; v44: no user name, asked only from a Mac that offers nothing but its Apple login), else
     ~/Downloads/API/vnc-<name>.txt (one line password, or two lines user then password). On a Mac ⌘ goes as ⌘ (Super).
   - *Server:* **Share this Mac (VNC)** (menu bar ⌖, or gear → SHARE THIS MAC ON | OFF): RFB 3.8 on **port 5901** on every
     address (5900 is macOS Screen Sharing's own), VNC password (8 characters, shown in the menu and the gear, NEW PASSWORD
