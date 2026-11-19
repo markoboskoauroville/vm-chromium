@@ -130,6 +130,9 @@ final class SettingsOverlay: Solid {
 
         let name = label("\(APP_NAME)  v\(VERSION)", 13, .white, .semibold)
         statusLine.font = .systemFont(ofSize: 12, weight: .semibold); statusLine.textColor = .secondaryLabelColor
+        // v40: never cut: a long status wraps inside the panel
+        statusLine.maximumNumberOfLines = 0; statusLine.lineBreakMode = .byWordWrapping; statusLine.preferredMaxLayoutWidth = 300
+        statusLine.widthAnchor.constraint(lessThanOrEqualToConstant: 300).isActive = true
         stack.addArrangedSubview(name); stack.addArrangedSubview(statusLine)
         stack.addArrangedSubview(hairline())
         // v33 (Marko, 14.11.2026: "on the gear icon I will have each program ... we call the program services"):
@@ -249,7 +252,7 @@ final class SettingsOverlay: Solid {
         loginTitle.stringValue = Target.isVM ? "LOGIN  (chromium-vm, \(VNC_HOST):\(VNC_PORT))"
             : "LOGIN  (\(Target.name), \(Target.host):\(Target.port)\(Target.isMac ? ", a Mac: its user and password" : ""))"
         userField.stringValue = Target.isVM ? App.username : Target.peerUser
-        passField.placeholderString = Target.isVM ? "the VM's VNC password" : "the VNC password of \(Target.name)"
+        passField.placeholderString = Target.isVM ? "the VM's VNC password" : "its VNC password"
     }
     @objc func saveLogin() {
         let pw = passField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)

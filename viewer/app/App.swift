@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 39
+let VERSION = 40
 let APP_NAME = "Remote Viewing (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -337,8 +337,13 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         connected = false; screen.showFrozen(false)
         if !Target.isVM {   // v36: another machine: the picture is cleared, a plain sentence, no retry loop, no VM login
             screen.clearPicture()
-            if reason.hasPrefix("VNC password refused") {   // v39: its login opens under the gear
-                setStatus("\(Target.name): \(reason) · the login is under the gear, LOGIN", .systemOrange)
+            if reason.hasPrefix("VNC password refused") {
+                let why = reason.dropFirst("VNC password refused".count).trimmingCharacters(in: CharacterSet(charactersIn: ": "))
+                if why.contains("Screen Recording") {   // v40: the other Mac has not allowed its picture yet: no login to fix
+                    setStatus("\(Target.name): \(why)", .systemOrange); return
+                }
+                // v39: a refused login: the login of that machine opens under the gear
+                setStatus("\(Target.name): login refused\(why.isEmpty ? "" : " (\(why))") · enter it under the gear, LOGIN", .systemOrange)
                 overlay.openLogin(); return
             }
             setStatus("\(Target.name) \(Target.host):\(Target.port): \(reason). No VNC server there; choose another machine in the menu bar.", .systemOrange)
