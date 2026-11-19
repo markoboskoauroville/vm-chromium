@@ -328,3 +328,7 @@ precedence. Deadline: well before the concert of 21.11.2026.
 "Now please update my application to have built in server and viewer for VNC inside the app. Update both local remote viewer on my Mac Swift and Kotlin APK Android application and build it on a GitHub and report new versions already."
 Earlier: "The user does not need to install anything in this app to be able to remotely viewing. So if that's VNC, it's open source, you can build in VNC in both application."
 Mac part (this repo, viewer/): own RFB client for every tailnet machine (VNC auth + Apple ARD auth), and a built-in server "Share this Mac (VNC)" on port 5901 (ScreenCaptureKit + CGEvent, VNC password shown in the app). Android part: repo MANTRA_REMOTE_VIEWING.
+
+## 19.11.2026, Marko (through the master session): any password for Share this Mac
+"Next update is that in my remote viewing application for VNC, I need to have also custom password without any security limitations. It can be even one one number."
+Meaning: the built-in server's password is typed by Marko in the app, any length from one character, no rules; empty = no password (RFB None). The viewer takes any length too.
