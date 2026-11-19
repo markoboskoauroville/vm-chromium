@@ -21,6 +21,7 @@ final class Door {
         ("target", "points the viewer at a machine and connects (same as the menu bar): name, host, optional port; chromium-vm keeps its full protocol", ["name": "str", "host": "str", "port": "int"]),
         ("pointer", "sends a pointer event to the connected machine (picture pixels): x, y, buttons (bit 0 = left)", ["x": "int", "y": "int", "buttons": "int"]),
         ("key", "sends one key event to the connected machine (X keysym), down true/false", ["keysym": "int", "down": "bool"]),
+        ("share", "Share this Mac (VNC, port 5901): on true/false switches it; always answers on, listening, viewers, password, permissions", ["on": "bool"]),
         ("fetch_downloads", "fetches new VM downloads into ~/Downloads/Chromium Downloads now", [:]),
     ]
 
@@ -109,6 +110,13 @@ final class Door {
         case "push_clipboard":
             app.lastPushedChange = -1; app.lastClipText = ""
             app.pushClipboard { reply(200, ["ok": true, "result": "pushed"]) }
+        case "share":
+            if let on = args["on"] as? Bool, on != Share.on { app.setShare(on) }
+            let srv = VNCServer.shared
+            reply(200, ["ok": true, "result": ["on": Share.on, "listening": srv.listening, "port": Int(SHARE_PORT),
+                                               "viewers": srv.clientCount, "password": Share.password, "error": srv.lastError,
+                                               "screen_recording": Share.screenAllowed, "accessibility": Share.inputAllowed,
+                                               "target": "\(Target.name) \(Target.host):\(Target.port)"]])
         case "fetch_downloads":
             app.fetchDownloads(); reply(200, ["ok": true, "result": "fetching"])
         case "send_file":

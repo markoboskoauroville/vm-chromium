@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 38
+let VERSION = 39
 let APP_NAME = "Remote Viewing (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -54,6 +54,9 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         buildWindow()
         door = Door(app: self)
         peersMenu = PeersMenu(app: self)   // v34: the Tailscale machines in the menu bar
+        // v39: Share this Mac (VNC), the app's own RFB server on :5901 (VNCServer.swift), back on if it was on
+        VNCServer.shared.onChange = { [weak self] in self?.peersMenu?.rebuild(); self?.overlay.refreshShare() }
+        if Share.on { VNCServer.shared.start() }
         try? FileManager.default.createDirectory(at: App.downloadsFolder, withIntermediateDirectories: true)
         // Since 2.11.2026 downloads go to Google Drive only and are deleted from the VM; nothing comes to the Mac by
         // itself (Marko: "don't transfer anything to my computer ... We are saving the SIM"). fetch_downloads on the
@@ -72,7 +75,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     // the Mac's global hotkeys are suspended (CGSSetGlobalHotKeyOperatingMode: per connection, the WindowServer
     // gives them back when the app resigns, quits or dies). Mac-wide ⌘Tab/Spotlight work again as soon as another
     // app is in front.
-    func applicationDidBecomeActive(_ n: Notification) { RectangleKeys.load(); HotKeys.capture(true); pushClipboard {} }
+    func applicationDidBecomeActive(_ n: Notification) { RectangleKeys.load(); HotKeys.capture(true); pushClipboard {}; overlay.refreshShare() }
     func applicationDidResignActive(_ n: Notification) { HotKeys.capture(false); screen.releaseAll() }
     func applicationWillTerminate(_ n: Notification) { HotKeys.capture(false); screen.showMacCursor() }
 
@@ -229,6 +232,13 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
 
     @objc func reconnect() { rfb?.close(); rfb = nil; connected = false; connect() }
 
+    /// v39: Share this Mac (VNC) on or off; remembered, so it comes back on at the next start
+    func setShare(_ on: Bool) {
+        Share.on = on
+        if on { _ = Share.password; VNCServer.shared.start() } else { VNCServer.shared.stop() }
+        peersMenu?.rebuild(); overlay.refreshShare(); overlay.refreshKeys()
+    }
+
     // v18 (Marko, 5.11.2026: "the right gripper is still resizing. You need to limit the right gripper to only move"): macOS's
     // own edge and corner resizing took the bottom-right corner, so the window is not .resizable any more; only the
     // bottom-left grip resizes it (Grips.swift). Full screen needs .resizable: it is lent for full screen and taken back.
@@ -286,7 +296,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         setStatus("connecting to \(Target.name)…", .secondaryLabelColor, tip: false)
         screen.clearPicture()   // v36: never the previous machine's last frame
         let r = RFB(); r.delegate = self; rfb = r; screen.rfb = r
-        r.connect(host: Target.host, port: Target.port, password: pw)
+        r.connect(host: Target.host, port: Target.port, password: pw, user: Target.isVM ? "" : Target.peerUser)
     }
 
     func rfbConnected(name: String, width: Int, height: Int) {
@@ -327,6 +337,10 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         connected = false; screen.showFrozen(false)
         if !Target.isVM {   // v36: another machine: the picture is cleared, a plain sentence, no retry loop, no VM login
             screen.clearPicture()
+            if reason.hasPrefix("VNC password refused") {   // v39: its login opens under the gear
+                setStatus("\(Target.name): \(reason) · the login is under the gear, LOGIN", .systemOrange)
+                overlay.openLogin(); return
+            }
             setStatus("\(Target.name) \(Target.host):\(Target.port): \(reason). No VNC server there; choose another machine in the menu bar.", .systemOrange)
             return
         }

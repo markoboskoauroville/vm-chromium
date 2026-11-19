@@ -325,7 +325,7 @@ final class ScreenView: NSView {
         // ⌘V with text on the Mac clipboard (v9): the text itself goes to the VM and is pasted the way the window in front
         // takes it (vm-agent paste_text). Read now: Speechify and Voice to Text put the old clipboard back right after
         // their ⌘V, and their ⌘V comes without a ⌘ flagsChanged, so a forwarded key arrived as a bare "v" (test 2.11.2026).
-        if e.modifierFlags.contains(.command) && e.keyCode == 9 && !e.isARepeat,
+        if Target.isVM && e.modifierFlags.contains(.command) && e.keyCode == 9 && !e.isARepeat,
            let text = NSPasteboard.general.string(forType: .string), !text.isEmpty, let onTypeText {
             onTypeText(text); return
         }
@@ -372,7 +372,7 @@ final class ScreenView: NSView {
         let others: NSEvent.ModifierFlags = [.control, .option, .shift, .function]
         if e.keyCode == 0x37 || e.keyCode == 0x36 {
             if f.contains(.command) { cmdAlone = f.intersection(others).isEmpty }
-            else if cmdAlone {
+            else if cmdAlone && Target.isVM {
                 cmdAlone = false
                 DispatchQueue.main.async { [weak self] in
                     self?.rfb?.key(ScreenView.superL, down: true); self?.rfb?.key(ScreenView.superL, down: false)
@@ -380,7 +380,10 @@ final class ScreenView: NSView {
             }
         } else { cmdAlone = false }
         var want: Set<UInt32> = []
-        if f.contains(.command) || f.contains(.control) { want.insert(ScreenView.ctrl) }
+        if Target.isMac {   // v39: a Mac on the other side: ⌘ is its ⌘ (Super), ⌃ its ⌃ (⌥ composes here, as before)
+            if f.contains(.command) { want.insert(ScreenView.superL) }
+            if f.contains(.control) { want.insert(ScreenView.ctrl) }
+        } else if f.contains(.command) || f.contains(.control) { want.insert(ScreenView.ctrl) }
         if f.contains(.shift) { want.insert(ScreenView.shift) }
         for k in want.subtracting(mods) { rfb?.key(k, down: true) }
         for k in mods.subtracting(want) { rfb?.key(k, down: false) }

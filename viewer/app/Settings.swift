@@ -55,6 +55,11 @@ final class SettingsOverlay: Solid {
     let passField = NSSecureTextField()
     private var keyButtons: [UInt16: (WordButton, WordButton)] = [:]
     let sizePopup = NSPopUpButton(frame: .zero, pullsDown: false)
+    private let permPill = NSVisualEffectView()
+    private let loginTitle = NSTextField(labelWithString: "")
+    private lazy var shareOn = WordButton("ON", self, #selector(shareOnClicked))
+    private lazy var shareOff = WordButton("OFF", self, #selector(shareOffClicked))
+    private let shareInfo = NSTextField(labelWithString: "")
     var isOpen: Bool { !panel.isHidden || !services.isHidden }
 
     static let GEAR_W: CGFloat = 34
@@ -83,13 +88,26 @@ final class SettingsOverlay: Solid {
         tip.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         permissions.title = "PERMISSIONS"; permissions.target = self; permissions.action = #selector(openPermissions)
         permissions.setAccessibilityLabel("PERMISSIONS")
-        permissions.lit = true; permissions.litColor = .systemOrange; permissions.isHidden = true
-        let notes = NSStackView(views: [tip, permissions])
+        permissions.lit = true; permissions.litColor = .systemOrange
+        let notes = NSStackView(views: [tip])
         notes.orientation = .horizontal; notes.spacing = 8
         notes.edgeInsets = NSEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
         pill.addSubview(notes); notes.translatesAutoresizingMaskIntoConstraints = false
         pill.translatesAutoresizingMaskIntoConstraints = false
         addSubview(pill)
+        // v39: PERMISSIONS sits top right (MANTRA_MANIFEST permissions-top-right), amber, on its own small pill
+        permPill.material = .hudWindow; permPill.blendingMode = .withinWindow; permPill.state = .active
+        permPill.wantsLayer = true; permPill.layer?.cornerRadius = 12; permPill.isHidden = true
+        permPill.translatesAutoresizingMaskIntoConstraints = false
+        permissions.translatesAutoresizingMaskIntoConstraints = false
+        permPill.addSubview(permissions); addSubview(permPill)
+        NSLayoutConstraint.activate([
+            permissions.leadingAnchor.constraint(equalTo: permPill.leadingAnchor, constant: 10),
+            permissions.trailingAnchor.constraint(equalTo: permPill.trailingAnchor, constant: -10),
+            permissions.centerYAnchor.constraint(equalTo: permPill.centerYAnchor),
+            permPill.heightAnchor.constraint(equalToConstant: 24),
+            permPill.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            permPill.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12)])
         NSLayoutConstraint.activate([
             gear.widthAnchor.constraint(equalToConstant: SettingsOverlay.GEAR_W), gear.heightAnchor.constraint(equalToConstant: 30),
             // v11: kept 12 points in from the corner, where macOS takes the click for resizing the window
@@ -120,7 +138,8 @@ final class SettingsOverlay: Solid {
         stack.addArrangedSubview(hairline())
 
         // v11 (Marko, 5.11.2026): username and password inside the gear; SAVE AND CONNECT stores and connects
-        stack.addArrangedSubview(label("LOGIN  (chromium-vm, \(VNC_HOST):\(VNC_PORT))", 11, NSColor(white: 0.55, alpha: 1), .medium))
+        loginTitle.font = .systemFont(ofSize: 11, weight: .medium); loginTitle.textColor = NSColor(white: 0.55, alpha: 1)
+        stack.addArrangedSubview(loginTitle)
         for (t, f, ph) in [("USERNAME", userField as NSTextField, "ubuntu"), ("PASSWORD", passField as NSTextField, "the VM's VNC password")] {
             f.placeholderString = ph; f.font = .systemFont(ofSize: 13); f.setAccessibilityLabel(t)
             f.widthAnchor.constraint(equalToConstant: 190).isActive = true
@@ -130,6 +149,16 @@ final class SettingsOverlay: Solid {
         userField.stringValue = App.username
         passField.target = self; passField.action = #selector(saveLogin)
         stack.addArrangedSubview(row([WordButton("SAVE AND CONNECT", self, #selector(saveLogin))]))
+        stack.addArrangedSubview(hairline())
+        // v39: SHARE THIS MAC (VNC): the app's own server on :5901, ON | OFF, its address and password
+        stack.addArrangedSubview(label("SHARE THIS MAC (VNC)", 11, NSColor(white: 0.55, alpha: 1), .medium))
+        shareOn.setAccessibilityLabel("SHARE ON"); shareOff.setAccessibilityLabel("SHARE OFF")
+        stack.addArrangedSubview(row([shareOn, pipe(), shareOff, pipe(), WordButton("NEW PASSWORD", self, #selector(newSharePassword))]))
+        shareInfo.font = .systemFont(ofSize: 12, weight: .medium); shareInfo.textColor = NSColor(white: 0.8, alpha: 1)
+        shareInfo.maximumNumberOfLines = 0; shareInfo.lineBreakMode = .byWordWrapping
+        shareInfo.preferredMaxLayoutWidth = 300; shareInfo.isSelectable = true
+        shareInfo.widthAnchor.constraint(equalToConstant: 300).isActive = true
+        stack.addArrangedSubview(shareInfo)
         stack.addArrangedSubview(hairline())
 
         // Marko: "I can enable or disable my F1 and F2 to be on the Mac OS or in the remote session": per key, MAC | VM
@@ -176,7 +205,7 @@ final class SettingsOverlay: Solid {
             panel.widthAnchor.constraint(greaterThanOrEqualToConstant: 330),
             services.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -6),
             services.bottomAnchor.constraint(equalTo: gear.topAnchor, constant: -6)])
-        refreshKeys()
+        refreshShare()
     }
     required init?(coder: NSCoder) { fatalError() }
 
@@ -187,7 +216,7 @@ final class SettingsOverlay: Solid {
         for v in [moveGrip, resizeGrip] as [NSView] where !v.isHidden && v.frame.contains(local) {
             return v
         }
-        for v in [panel, services, pill, gear] where !v.isHidden && v.frame.contains(local) {
+        for v in [panel, services, pill, gear, permPill] where !v.isHidden && v.frame.contains(local) {
             return super.hitTest(p) ?? self
         }
         return nil
@@ -209,24 +238,38 @@ final class SettingsOverlay: Solid {
     func refreshKeys() {
         let held = App.heldKeys
         for (code, (mac, vm)) in keyButtons { mac.lit = held.contains(code); vm.lit = !held.contains(code) }
-        permissions.isHidden = held.isEmpty || CGPreflightPostEventAccess()
+        let keysNeed = !held.isEmpty && !CGPreflightPostEventAccess()
+        let shareNeeds = Share.on && (!Share.screenAllowed || !Share.inputAllowed)
+        permPill.isHidden = !(keysNeed || shareNeeds)
         showNotes()
     }
 
+    /// v39: the login is the one of the machine being viewed: the VM's, or another machine's (Keychain, per name)
+    func fillLogin() {
+        loginTitle.stringValue = Target.isVM ? "LOGIN  (chromium-vm, \(VNC_HOST):\(VNC_PORT))"
+            : "LOGIN  (\(Target.name), \(Target.host):\(Target.port)\(Target.isMac ? ", a Mac: its user and password" : ""))"
+        userField.stringValue = Target.isVM ? App.username : Target.peerUser
+        passField.placeholderString = Target.isVM ? "the VM's VNC password" : "the VNC password of \(Target.name)"
+    }
     @objc func saveLogin() {
         let pw = passField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        App.username = userField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !pw.isEmpty { app?.savePassword(pw) }
+        let user = userField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        if Target.isVM {
+            App.username = user
+            if !pw.isEmpty { app?.savePassword(pw) }
+        } else if !pw.isEmpty || !user.isEmpty {
+            PeerLogin.save(Target.name, user: user, password: pw.isEmpty ? Target.peerPassword : pw)
+        }
         passField.stringValue = ""
         close(); app?.reconnect()
     }
     func openLogin() {
-        panel.isHidden = false; refreshKeys()
+        panel.isHidden = false; refreshShare(); fillLogin()
         DispatchQueue.main.async { [weak self] in guard let self else { return }; self.window?.makeFirstResponder(self.passField) }
     }
     @objc func toggle() {
         if !services.isHidden { services.close(); return }          // the gear closes the services list too
-        panel.isHidden.toggle(); refreshKeys(); if isOpen { loadSizes() }
+        panel.isHidden.toggle(); refreshKeys(); if isOpen { loadSizes(); fillLogin(); refreshShare() }
     }
     @objc func openServices() {
         panel.isHidden = true
@@ -261,10 +304,37 @@ final class SettingsOverlay: Solid {
         refreshKeys()
     }
     /// the note pill shows only when it has something, and never over the open panel
-    func showNotes() { pill.isHidden = !isOpen ? (tip.isHidden && permissions.isHidden) : true }
+    func showNotes() { pill.isHidden = !isOpen ? tip.isHidden : true }
+    /// the Settings page of the first permission missing: Screen Recording (the share's picture), else Accessibility
     @objc func openPermissions() {
+        if Share.on && !Share.screenAllowed {
+            _ = CGRequestScreenCaptureAccess()
+            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
+            return
+        }
         _ = CGRequestPostEventAccess()
         NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
+    }
+
+    @objc func shareOnClicked() { app?.setShare(true) }
+    @objc func shareOffClicked() { app?.setShare(false) }
+    @objc func newSharePassword() { Share.newPassword(); refreshShare(); app?.peersMenu?.rebuild() }
+    /// the share's lines in the panel: on or off, where it listens, the password, who is watching, what is missing
+    func refreshShare() {
+        let srv = VNCServer.shared
+        shareOn.lit = Share.on; shareOff.lit = !Share.on
+        if !Share.on {
+            shareInfo.stringValue = "Off. ON lets the Tailscale machines (the Android app, another Mac) see and use this Mac on port \(SHARE_PORT)."
+        } else {
+            let ip = PeersMenu.selfIPs.first { !$0.contains(":") } ?? "this Mac"
+            var lines = [srv.lastError.isEmpty ? "On: \(ip):\(SHARE_PORT) · \(srv.clientCount) viewing" : srv.lastError,
+                         "Password: \(Share.password)",
+                         "Port \(SHARE_PORT), since 5900 is macOS Screen Sharing's own."]
+            if !Share.screenAllowed { lines.append("Screen Recording not allowed yet: PERMISSIONS, top right.") }
+            if !Share.inputAllowed { lines.append("Accessibility not allowed yet: viewers see but cannot click or type (PERMISSIONS).") }
+            shareInfo.stringValue = lines.joined(separator: "\n")
+        }
+        refreshKeys()
     }
     @objc func fullScreen() { close(); app?.toggleFull() }
     @objc func reconnect() { close(); app?.reconnect() }

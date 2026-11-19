@@ -49,10 +49,11 @@ final class RFB {
 
     // MARK: connect
 
-    func connect(host: String, port: Int, password: String) {
+    /// v39: `user` is only for Apple Remote Desktop auth (a Mac's own Screen Sharing); VNC auth needs only the password
+    func connect(host: String, port: Int, password: String, user: String = NSUserName()) {
         Thread.detachNewThread { [weak self] in
             guard let self else { return }
-            do { try self.run(host: host, port: port, password: password) }
+            do { try self.run(host: host, port: port, password: password, user: user) }
             catch { self.finish("\(error)") }
         }
     }
@@ -71,7 +72,7 @@ final class RFB {
 
     struct Failure: Error, CustomStringConvertible { let description: String }
 
-    private func run(host: String, port: Int, password: String) throws {
+    private func run(host: String, port: Int, password: String, user: String) throws {
         var i: InputStream?, o: OutputStream?
         Stream.getStreamsToHost(withName: host, port: port, inputStream: &i, outputStream: &o)
         guard let i, let o else { throw Failure(description: "no connection") }
@@ -92,10 +93,23 @@ final class RFB {
         let n = Int(try u8())
         if n == 0 { throw Failure(description: try reason()) }
         let types = try read(n)
-        guard types.contains(2) else { throw Failure(description: "the server does not offer VNC password auth (types \(types))") }
-        try write([2])
-        let challenge = try read(16)
-        try write(des(challenge, key: password))
+        // v39: VNC password (2), Apple Remote Desktop (30: a Mac's own Screen Sharing, user + password), or none (1)
+        if types.contains(30) && !user.isEmpty && (!types.contains(2) || ARDAuth.preferred) {
+            try write([30])
+            let g = try read(2), kl = try read(2)
+            let keyLen = Int(kl[0]) << 8 | Int(kl[1])
+            let prime = try read(keyLen), serverPub = try read(keyLen)
+            let (cipher, myPub) = ARDAuth.answer(generator: g, prime: prime, serverPublic: serverPub, user: user, password: password)
+            try write(cipher + myPub)
+        } else if types.contains(2) {
+            try write([2])
+            let challenge = try read(16)
+            try write(RFB.des(challenge, key: password))
+        } else if types.contains(1) {
+            try write([1])
+        } else {
+            throw Failure(description: "the server offers no login this viewer knows (types \(types))")
+        }
         if try u32() != 0 { throw Failure(description: "VNC password refused: " + ((try? reason()) ?? "")) }
 
         try write([1])                                            // ClientInit: shared
@@ -108,8 +122,8 @@ final class RFB {
         var pf: [UInt8] = [0, 0, 0, 0, 32, 24, 0, 1]
         pf += be16(255) + be16(255) + be16(255) + [16, 8, 0, 0, 0, 0]
         try write(pf)
-        // SetEncodings: ZRLE, CopyRect, Raw, ExtendedDesktopSize, DesktopSize, LastRect
-        let enc: [Int32] = [16, 1, 0, -308, -223, -224]
+        // SetEncodings: ZRLE, Hextile (v39, Macs and older servers), CopyRect, Raw, ExtendedDesktopSize, DesktopSize, LastRect
+        let enc: [Int32] = [16, 5, 1, 0, -308, -223, -224]
         var se: [UInt8] = [2, 0] + be16(enc.count)
         for e in enc { se += be32(UInt32(bitPattern: e)) }
         try write(se)
@@ -170,6 +184,7 @@ final class RFB {
             case 0:    try raw(x, y, w, h)
             case 1:    try copyRect(x, y, w, h)
             case 16:   try zrle(x, y, w, h)
+            case 5:    try hextile(x, y, w, h)
             case -223: resize(w, h); DispatchQueue.main.async { self.delegate?.rfbResized(width: w, height: h) }
             case -308:
                 let k = Int(try u8()); _ = try read(3)
@@ -206,6 +221,51 @@ final class RFB {
         var tmp = [UInt32](repeating: 0, count: w * h)
         for r in 0..<h { for c in 0..<w { tmp[r * w + c] = pixels[(sy + r) * width + sx + c] } }
         for r in 0..<h { for c in 0..<w { pixels[(y + r) * width + x + c] = tmp[r * w + c] } }
+    }
+
+    // Hextile (v39): 16×16 tiles; pixels are ours (4 bytes, little endian)
+    private func pix() throws -> UInt32 {
+        let b = try read(4); return (UInt32(b[0]) | UInt32(b[1]) << 8 | UInt32(b[2]) << 16) | 0xFF000000
+    }
+    private func hextile(_ x: Int, _ y: Int, _ w: Int, _ h: Int) throws {
+        var bg: UInt32 = 0xFF000000, fg: UInt32 = 0xFFFFFFFF
+        var ty = y
+        while ty < y + h {
+            let th = min(16, y + h - ty)
+            var tx = x
+            while tx < x + w {
+                let tw = min(16, x + w - tx)
+                let sub = try u8()
+                if sub & 1 != 0 {
+                    let b = try read(tw * th * 4)
+                    lock.lock()
+                    for r in 0..<th { for c in 0..<tw {
+                        let i = (r * tw + c) * 4
+                        put(tx + c, ty + r, UInt32(b[i]) | UInt32(b[i + 1]) << 8 | UInt32(b[i + 2]) << 16 | 0xFF000000) } }
+                    lock.unlock()
+                } else {
+                    if sub & 2 != 0 { bg = try pix() }
+                    if sub & 4 != 0 { fg = try pix() }
+                    var rects: [(UInt32, Int, Int, Int, Int)] = []
+                    if sub & 8 != 0 {
+                        let n = Int(try u8())
+                        for _ in 0..<n {
+                            let c = try (sub & 16 != 0 ? pix() : fg)
+                            let xy = try u8(), wh = try u8()
+                            rects.append((c, Int(xy >> 4), Int(xy & 15), Int(wh >> 4) + 1, Int(wh & 15) + 1))
+                        }
+                    }
+                    lock.lock()
+                    for r in 0..<th { for c in 0..<tw { put(tx + c, ty + r, bg) } }
+                    for (c, sx, sy, sw, sh) in rects {
+                        for r in sy..<min(th, sy + sh) { for k in sx..<min(tw, sx + sw) { put(tx + k, ty + r, c) } }
+                    }
+                    lock.unlock()
+                }
+                tx += 16
+            }
+            ty += 16
+        }
     }
 
     // ZRLE: one zlib stream for the whole connection; 64×64 tiles; CPIXEL = 3 bytes (B, G, R).
@@ -339,7 +399,7 @@ final class RFB {
     private func be32(_ v: UInt32) -> [UInt8] { [UInt8(v >> 24), UInt8((v >> 16) & 0xff), UInt8((v >> 8) & 0xff), UInt8(v & 0xff)] }
 
     /// VncAuth: DES-ECB of the challenge with the password (8 bytes, each byte's bits reversed) as the key.
-    private func des(_ challenge: [UInt8], key password: String) -> [UInt8] {
+    static func des(_ challenge: [UInt8], key password: String) -> [UInt8] {
         var key = [UInt8](repeating: 0, count: 8)
         for (i, b) in Array(password.utf8.prefix(8)).enumerated() {
             var r: UInt8 = 0; for bit in 0..<8 where b & (1 << bit) != 0 { r |= 1 << (7 - bit) }
