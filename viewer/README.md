@@ -12,7 +12,8 @@ signs "Mantra Apps", installs in /Applications and quits the running copy. Star:
     ~/Downloads/API/vnc-<name>.txt (one line password, or two lines user then password). On a Mac ⌘ goes as ⌘ (Super).
   - *Server:* **Share this Mac (VNC)** (menu bar ⌖, or gear → SHARE THIS MAC ON | OFF): RFB 3.8 on **port 5901** on every
     address (5900 is macOS Screen Sharing's own), VNC password (8 characters, shown in the menu and the gear, NEW PASSWORD
-    makes another), the main display through ScreenCaptureKit at its point size (15 fps, only while someone watches),
+    makes another; v43: or any password Marko types under the gear, PASSWORD + SET PASSWORD, one character is fine, no
+    rules, empty = no password, RFB None), the main display through ScreenCaptureKit at its point size (15 fps, only while someone watches),
     pointer and keys as CGEvents, clipboard text both ways. Needs **Screen Recording** (the picture) and **Accessibility**
     (input): the amber PERMISSIONS button top right opens the page still missing. Remembered: it comes back on at start.
   - Door: `POST /api/share {"on":true|false,"new_password":true}` answers on, listening, viewers, password, permissions.

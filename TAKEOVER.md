@@ -1,3 +1,9 @@
+**19.11.2026 v43:** Marko: "custom password without any security limitations. It can be even one one number." The share
+password is whatever he types (gear PASSWORD + SET PASSWORD, door share {"password": ...}), stored in UserDefaults
+(sharePassword), empty = RFB None. Tested: "1" → auth ok + full ZRLE frame from 100.79.251.19:5901, "2" refused, empty →
+types [1] and ServerInit; the app's viewer connected to its own server with "1". After the test a random password was left
+(NEW PASSWORD); Marko sets his own. Run 44470989234 (the first v43 run 44470860186 failed on a quote in Door.swift).
+
 **19.11.2026: Remote Viewing (Mantra) v39-v42, built-in VNC viewer and server (Mac).** Marko: "update my application to have
 built in server and viewer for VNC inside the app ... The user does not need to install anything". Read viewer/README.md
 (Built-in VNC). New files viewer/app/VNCServer.swift (server: NWListener :5901, ScreenCaptureKit, CGEvent, ZRLE/Raw,
