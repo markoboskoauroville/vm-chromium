@@ -376,7 +376,7 @@ final class VNCClient {
                 guard let r = take(16) else { return }
                 guard r == RFB.des(challenge, key: Share.password) else { fail("wrong password"); return }
                 guard Share.screenAllowed else {
-                    fail("The Mac has not allowed Screen Recording for \(APP_NAME) yet: PERMISSIONS in the app"); return }
+                    fail("Screen Recording not allowed on that Mac yet (PERMISSIONS there)"); return }
                 send(be32(0)); stage = .clientInit
             case .clientInit:
                 guard take(1) != nil else { return }
