@@ -97,6 +97,13 @@ final class ScreenView: NSView {
 
     // MARK: picture
 
+    /// v36: the machine changed or the link died: no stale frame of the previous machine stays on screen
+    func clearPicture() {
+        CATransaction.begin(); CATransaction.setDisableActions(true)
+        picture.contents = nil
+        CATransaction.commit()
+    }
+
     func refresh() {
         guard let rfb else { return }
         rfb.lock.lock()

@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 35
+let VERSION = 36
 let APP_NAME = "Remote Viewing (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -284,6 +284,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
             pw = Target.peerPassword   // v34: another machine: ~/Downloads/API/vnc-<name>.txt, may be empty
         }
         setStatus("connecting to \(Target.name)…", .secondaryLabelColor, tip: false)
+        screen.clearPicture()   // v36: never the previous machine's last frame
         let r = RFB(); r.delegate = self; rfb = r; screen.rfb = r
         r.connect(host: Target.host, port: Target.port, password: pw)
     }
@@ -324,7 +325,12 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
 
     func rfbClosed(reason: String) {
         connected = false; screen.showFrozen(false)
-        if reason.contains("refused") {   // a wrong password: no retry loop, the login opens under the gear
+        if !Target.isVM {   // v36: another machine: the picture is cleared, a plain sentence, no retry loop, no VM login
+            screen.clearPicture()
+            setStatus("\(Target.name) \(Target.host):\(Target.port): \(reason). No VNC server there; choose another machine in the menu bar.", .systemOrange)
+            return
+        }
+        if reason.hasPrefix("VNC password refused") {   // v36: only a wrong VNC password (not "Connection refused")   // a wrong password: no retry loop, the login opens under the gear
             setStatus("password refused: enter it under the gear, LOGIN", .systemOrange); overlay.openLogin(); return
         }
         let tail = " (is Tailscale on?)"
