@@ -61,6 +61,7 @@ final class SettingsOverlay: Solid {
     private lazy var shareOff = WordButton("OFF", self, #selector(shareOffClicked))
     private let shareInfo = NSTextField(labelWithString: "")
     private let sharePassField = NSTextField()
+    private var userRow: NSView?
     var isOpen: Bool { !panel.isHidden || !services.isHidden }
 
     static let GEAR_W: CGFloat = 34
@@ -144,13 +145,15 @@ final class SettingsOverlay: Solid {
         // v11 (Marko, 5.11.2026): username and password inside the gear; SAVE AND CONNECT stores and connects
         loginTitle.font = .systemFont(ofSize: 11, weight: .medium); loginTitle.textColor = NSColor(white: 0.55, alpha: 1)
         stack.addArrangedSubview(loginTitle)
-        for (t, f, ph) in [("USERNAME", userField as NSTextField, "ubuntu"), ("PASSWORD", passField as NSTextField, "the VM's VNC password")] {
+        // v44 (Marko, 19.11.2026: "Can we work without ... usernames?"): a password only. The USER NAME row shows only
+        // for a Mac whose Screen Sharing offers nothing but its Apple login, after it asked (Target.askUser).
+        for (t, f, ph) in [("USER NAME", userField as NSTextField, "that Mac's user name"), ("PASSWORD", passField as NSTextField, "the VM's VNC password")] {
             f.placeholderString = ph; f.font = .systemFont(ofSize: 13); f.setAccessibilityLabel(t)
             f.widthAnchor.constraint(equalToConstant: 190).isActive = true
             let n = label(t, 13, .white, .semibold); n.widthAnchor.constraint(equalToConstant: 96).isActive = true
-            stack.addArrangedSubview(row([n, f]))
+            let r = row([n, f]); stack.addArrangedSubview(r)
+            if f === userField { userRow = r; r.isHidden = true }
         }
-        userField.stringValue = App.username
         passField.target = self; passField.action = #selector(saveLogin)
         stack.addArrangedSubview(row([WordButton("SAVE AND CONNECT", self, #selector(saveLogin))]))
         stack.addArrangedSubview(hairline())
@@ -258,19 +261,20 @@ final class SettingsOverlay: Solid {
 
     /// v39: the login is the one of the machine being viewed: the VM's, or another machine's (Keychain, per name)
     func fillLogin() {
-        loginTitle.stringValue = Target.isVM ? "LOGIN  (chromium-vm, \(VNC_HOST):\(VNC_PORT))"
-            : "LOGIN  (\(Target.name), \(Target.host):\(Target.port)\(Target.isMac ? ", a Mac: its user and password" : ""))"
-        userField.stringValue = Target.isVM ? App.username : Target.peerUser
+        loginTitle.stringValue = "PASSWORD OF \(Target.displayName.uppercased())  (\(Target.host):\(Target.port))"
+        let ask = !Target.isVM && Target.askUser
+        userRow?.isHidden = !ask
+        userField.stringValue = ask ? Target.peerUser : ""
         passField.placeholderString = Target.isVM ? "the VM's VNC password" : "its VNC password"
     }
     @objc func saveLogin() {
         let pw = passField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        let user = userField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        let user = Target.askUser ? userField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines) : ""
         if Target.isVM {
-            App.username = user
-            if !pw.isEmpty { app?.savePassword(pw) }
+            if !pw.isEmpty { app?.savePassword(pw) }   // the VM's RFB login is the password alone (account name stays automatic)
         } else if !pw.isEmpty || !user.isEmpty {
-            PeerLogin.save(Target.name, user: user, password: pw.isEmpty ? Target.peerPassword : pw)
+            PeerLogin.save(Target.name, user: user.isEmpty ? (PeerLogin.get(Target.name)?.user ?? "") : user,
+                           password: pw.isEmpty ? Target.peerPassword : pw)
         }
         passField.stringValue = ""
         close(); app?.reconnect()

@@ -23,10 +23,17 @@ enum Target {
         if let k = PeerLogin.get(name)?.password, !k.isEmpty { return k }
         return fileLines.last ?? ""
     }
-    /// the user name for a Mac's own Screen Sharing (Apple login): LOGIN, else the file's first of two lines, else this Mac's user
+    /// the user name for a Mac whose Screen Sharing offers only the Apple login: given under the gear when asked (v44),
+    /// else the file's first of two lines; empty otherwise (no default user name, ever)
     static var peerUser: String {
         if let u = PeerLogin.get(name)?.user, !u.isEmpty { return u }
-        let l = fileLines; return l.count >= 2 ? l[0] : NSUserName()
+        let l = fileLines; return l.count >= 2 ? l[0] : ""
+    }
+    /// v44: this machine asked for a Mac user name (Apple login only): the gear shows the USER NAME row for it
+    static var askUser = false
+    /// "nothing-phone-2a" → "Nothing Phone 2a", for the sentences Marko reads
+    static var displayName: String {
+        name == "chromium-vm" ? name : name.split(separator: "-").map { $0.prefix(1).uppercased() + $0.dropFirst() }.joined(separator: " ")
     }
     private static var fileLines: [String] {
         ((try? String(contentsOfFile: NSHomeDirectory() + "/Downloads/API/vnc-\(name).txt", encoding: .utf8)) ?? "")
@@ -39,7 +46,7 @@ enum Target {
         return Int(s) ?? 5900
     }
     static func set(name n: String, host h: String, port p: Int? = nil, os o: String = "") {
-        name = n; host = h; os = o; port = (h == Agent.host) ? VNC_PORT : (p ?? portFor(n))
+        name = n; host = h; os = o; askUser = false; port = (h == Agent.host) ? VNC_PORT : (p ?? portFor(n))
         Agent.enabled = (h == Agent.host)
     }
 }

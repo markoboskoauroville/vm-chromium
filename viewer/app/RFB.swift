@@ -71,6 +71,7 @@ final class RFB {
     }
 
     struct Failure: Error, CustomStringConvertible { let description: String }
+    static let notSharing = "NOT SHARING: ", needsUser = "MAC USER NEEDED"
 
     private func run(host: String, port: Int, password: String, user: String) throws {
         var i: InputStream?, o: OutputStream?
@@ -81,20 +82,26 @@ final class RFB {
         // Unscheduled streams open in the background: a write before .open fails and the server sees no version.
         let t0 = Date()
         while o.streamStatus == .opening || o.streamStatus == .notOpen {
-            if Date().timeIntervalSince(t0) > 10 { throw Failure(description: "no answer from \(host):\(port)") }
+            if Date().timeIntervalSince(t0) > 10 { throw Failure(description: RFB.notSharing + "no answer from \(host):\(port)") }
             Thread.sleep(forTimeInterval: 0.02)
         }
-        if o.streamStatus == .error { throw Failure(description: o.streamError?.localizedDescription ?? "cannot connect") }
+        if o.streamStatus == .error { throw Failure(description: RFB.notSharing + (o.streamError?.localizedDescription ?? "cannot connect")) }
 
-        let version = try read(12)
+        // v44: nothing answers on that port (closed, refused, timed out): the machine is not sharing
+        let version: [UInt8]
+        do { version = try read(12) } catch { throw Failure(description: RFB.notSharing + "\(error)") }
         guard String(bytes: version, encoding: .ascii)?.hasPrefix("RFB ") == true else { throw Failure(description: "not a VNC server") }
         try write(Array("RFB 003.008\n".utf8))
 
         let n = Int(try u8())
         if n == 0 { throw Failure(description: try reason()) }
         let types = try read(n)
-        // v39: VNC password (2), Apple Remote Desktop (30: a Mac's own Screen Sharing, user + password), or none (1)
-        if types.contains(30) && !user.isEmpty && (!types.contains(2) || ARDAuth.preferred) {
+        // v44 (Marko: "Can we work without ... usernames?"): VNC password (2) or none (1) whenever offered; the Apple login
+        // (30, user + password) only when a Mac's Screen Sharing offers nothing else, and only with a user name he gave
+        if !types.contains(2) && !types.contains(1) && types.contains(30) && user.isEmpty {
+            throw Failure(description: RFB.needsUser)
+        }
+        if !types.contains(2) && !types.contains(1) && types.contains(30) {
             try write([30])
             let g = try read(2), kl = try read(2)
             let keyLen = Int(kl[0]) << 8 | Int(kl[1])

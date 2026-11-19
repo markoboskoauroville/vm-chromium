@@ -7,9 +7,6 @@ import CommonCrypto
 import Security
 
 enum ARDAuth {
-    /// a Mac that offers both: the user login (30) first, it is the one Screen Sharing always has
-    static var preferred = true
-
     static func answer(generator: [UInt8], prime: [UInt8], serverPublic: [UInt8], user: String, password: String) -> ([UInt8], [UInt8]) {
         let n = prime.count
         var priv = [UInt8](repeating: 0, count: n)

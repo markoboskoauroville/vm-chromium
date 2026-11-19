@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 43
+let VERSION = 44
 let APP_NAME = "Remote Viewing (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -338,13 +338,25 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
         connected = false; screen.showFrozen(false)
         if !Target.isVM {   // v36: another machine: the picture is cleared, a plain sentence, no retry loop, no VM login
             screen.clearPicture()
+            if reason.hasPrefix(RFB.notSharing) {   // v44: nothing answers on that port
+                let who = Target.displayName
+                setStatus(Target.os == "android"
+                    ? "\(who) is not sharing: open Mantra Remote Viewing on the phone and turn on SHARE THIS PHONE"
+                    : "\(who) is not sharing (nothing answers on port \(Target.port)): turn its screen sharing on", .systemOrange)
+                return
+            }
+            if reason == RFB.needsUser {   // v44: a Mac that offers only its Apple login: now, and only now, the user name
+                Target.askUser = true
+                setStatus("\(Target.displayName) is a Mac that asks for its user name: enter it and the password under the gear", .systemOrange)
+                overlay.openLogin(); return
+            }
             if reason.hasPrefix("VNC password refused") {
                 let why = reason.dropFirst("VNC password refused".count).trimmingCharacters(in: CharacterSet(charactersIn: ": "))
                 if why.contains("Screen Recording") {   // v40: the other Mac has not allowed its picture yet: no login to fix
                     setStatus("\(Target.name): \(why)", .systemOrange); return
                 }
                 // v39: a refused login: the login of that machine opens under the gear
-                setStatus("\(Target.name): login refused\(why.isEmpty ? "" : " (\(why))") · enter it under the gear, LOGIN", .systemOrange)
+                setStatus("\(Target.displayName): wrong password\(why.isEmpty || why == "wrong password" ? "" : " (\(why))") · enter it under the gear", .systemOrange)
                 overlay.openLogin(); return
             }
             setStatus("\(Target.name) \(Target.host):\(Target.port): \(reason). No VNC server there; choose another machine in the menu bar.", .systemOrange)
@@ -354,7 +366,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
             setStatus("password refused: enter it under the gear, LOGIN", .systemOrange); overlay.openLogin(); return
         }
         let tail = " (is Tailscale on?)"
-        setStatus("not connected: \(reason)\(tail) · trying again", .systemOrange)
+        setStatus("not connected: \(reason.replacingOccurrences(of: RFB.notSharing, with: ""))\(tail) · trying again", .systemOrange)
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
             guard let self, !self.connected else { return }
             self.connect()
