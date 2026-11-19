@@ -323,3 +323,8 @@ Not yet: the bond speed test under load (Claude on the Mac), Marko's hand on the
 viewers always get AAC audio (iPhones). A camera that goes live gets its own private path (`cam-<id>`) from /api/live, the mixer
 switches to it with a short fade, shows a fallback picture with silence while no camera is there, and a scheduled show keeps
 precedence. Deadline: well before the concert of 21.11.2026.
+
+## 19.11.2026, Marko (through the master session): built-in VNC viewer and server in both apps
+"Now please update my application to have built in server and viewer for VNC inside the app. Update both local remote viewer on my Mac Swift and Kotlin APK Android application and build it on a GitHub and report new versions already."
+Earlier: "The user does not need to install anything in this app to be able to remotely viewing. So if that's VNC, it's open source, you can build in VNC in both application."
+Mac part (this repo, viewer/): own RFB client for every tailnet machine (VNC auth + Apple ARD auth), and a built-in server "Share this Mac (VNC)" on port 5901 (ScreenCaptureKit + CGEvent, VNC password shown in the app). Android part: repo MANTRA_REMOTE_VIEWING.
