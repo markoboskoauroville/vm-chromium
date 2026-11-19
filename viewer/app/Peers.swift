@@ -152,7 +152,7 @@ final class PeersMenu: NSObject, NSMenuDelegate {
             if let ip = ips.first {
                 let a = NSMenuItem(title: "Address: \(ip):\(SHARE_PORT)", action: nil, keyEquivalent: ""); a.isEnabled = false; menu.addItem(a)
             }
-            let pw = menu.addItem(withTitle: "Password: \(Share.password)  (click to copy)", action: #selector(copyPassword), keyEquivalent: "")
+            let pw = menu.addItem(withTitle: Share.password.isEmpty ? "No password (set one under the gear)" : "Password: \(Share.password)  (click to copy)", action: #selector(copyPassword), keyEquivalent: "")
             pw.target = self
             let np = menu.addItem(withTitle: "New password", action: #selector(newPassword), keyEquivalent: ""); np.target = self
             if !Share.screenAllowed || !Share.inputAllowed {

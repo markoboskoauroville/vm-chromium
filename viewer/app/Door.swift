@@ -21,7 +21,7 @@ final class Door {
         ("target", "points the viewer at a machine and connects (same as the menu bar): name, host, optional port; chromium-vm keeps its full protocol", ["name": "str", "host": "str", "port": "int"]),
         ("pointer", "sends a pointer event to the connected machine (picture pixels): x, y, buttons (bit 0 = left)", ["x": "int", "y": "int", "buttons": "int"]),
         ("key", "sends one key event to the connected machine (X keysym), down true/false", ["keysym": "int", "down": "bool"]),
-        ("share", "Share this Mac (VNC, port 5901): on true/false switches it; always answers on, listening, viewers, password, permissions; new_password true makes a new password", ["on": "bool", "new_password": "bool"]),
+        ("share", "Share this Mac (VNC, port 5901): on true/false switches it; always answers on, listening, viewers, password, permissions; new_password true makes a new password; password "<any>" sets his own (one character is fine, empty = no password)", ["on": "bool", "new_password": "bool", "password": "str"]),
         ("fetch_downloads", "fetches new VM downloads into ~/Downloads/Chromium Downloads now", [:]),
     ]
 
@@ -112,6 +112,7 @@ final class Door {
             app.pushClipboard { reply(200, ["ok": true, "result": "pushed"]) }
         case "share":
             if let on = args["on"] as? Bool, on != Share.on { app.setShare(on) }
+            if let pw = args["password"] as? String { Share.setPassword(pw); app.overlay.refreshShare(); app.peersMenu?.rebuild() }
             if args["new_password"] as? Bool == true { Share.newPassword(); app.overlay.refreshShare(); app.peersMenu?.rebuild() }
             let srv = VNCServer.shared
             reply(200, ["ok": true, "result": ["on": Share.on, "listening": srv.listening, "port": Int(SHARE_PORT),

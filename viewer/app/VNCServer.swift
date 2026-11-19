@@ -20,13 +20,17 @@ enum Share {
         get { UserDefaults.standard.bool(forKey: "shareOn") }
         set { UserDefaults.standard.set(newValue, forKey: "shareOn") }
     }
+    /// v43 (Marko, 19.11.2026: "custom password without any security limitations. It can be even one one number"): any
+    /// password he types, one character is fine, no rules; empty = no password at all (RFB security type None).
+    /// Only when none was ever set is one made up. VNC itself uses the first 8 characters.
     static var password: String {
-        if let p = UserDefaults.standard.string(forKey: "sharePassword"), !p.isEmpty { return p }
+        if let p = UserDefaults.standard.string(forKey: "sharePassword") { return p }
         let alphabet = Array("abcdefghjkmnpqrstuvwxyz23456789")
         var b = [UInt8](repeating: 0, count: 8); _ = SecRandomCopyBytes(kSecRandomDefault, 8, &b)
         let p = String(b.map { alphabet[Int($0) % alphabet.count] })
         UserDefaults.standard.set(p, forKey: "sharePassword"); return p
     }
+    static func setPassword(_ p: String) { UserDefaults.standard.set(p, forKey: "sharePassword") }
     static func newPassword() { UserDefaults.standard.removeObject(forKey: "sharePassword"); _ = password }
     static var screenAllowed: Bool { CGPreflightScreenCaptureAccess() }
     static var inputAllowed: Bool { CGPreflightPostEventAccess() }
@@ -365,10 +369,16 @@ final class VNCClient {
             case .version:
                 guard let v = take(12) else { return }
                 guard String(bytes: v, encoding: .ascii)?.hasPrefix("RFB 003.") == true else { close(); return }
-                send([1, 2])                                      // one security type: VNC password
+                // one security type: VNC password, or None when the password is empty (v43)
+                send([1, Share.password.isEmpty ? 1 : 2])
                 stage = .security
             case .security:
                 guard let t = take(1) else { return }
+                if Share.password.isEmpty {
+                    guard t[0] == 1 else { fail("this Mac shares without a password"); return }
+                    guard Share.screenAllowed else { fail("Screen Recording not allowed on that Mac yet (PERMISSIONS there)"); return }
+                    send(be32(0)); stage = .clientInit; continue
+                }
                 guard t[0] == 2 else { fail("only VNC password auth"); return }
                 _ = SecRandomCopyBytes(kSecRandomDefault, 16, &challenge)
                 send(challenge); stage = .auth

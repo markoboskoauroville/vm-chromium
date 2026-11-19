@@ -60,6 +60,7 @@ final class SettingsOverlay: Solid {
     private lazy var shareOn = WordButton("ON", self, #selector(shareOnClicked))
     private lazy var shareOff = WordButton("OFF", self, #selector(shareOffClicked))
     private let shareInfo = NSTextField(labelWithString: "")
+    private let sharePassField = NSTextField()
     var isOpen: Bool { !panel.isHidden || !services.isHidden }
 
     static let GEAR_W: CGFloat = 34
@@ -162,6 +163,14 @@ final class SettingsOverlay: Solid {
         shareInfo.preferredMaxLayoutWidth = 300; shareInfo.isSelectable = true
         shareInfo.widthAnchor.constraint(equalToConstant: 300).isActive = true
         stack.addArrangedSubview(shareInfo)
+        // v43: his own password, any length, one character is fine; empty = no password
+        sharePassField.placeholderString = "any password, empty = none"; sharePassField.font = .systemFont(ofSize: 13)
+        sharePassField.setAccessibilityLabel("SHARE PASSWORD")
+        sharePassField.widthAnchor.constraint(equalToConstant: 190).isActive = true
+        sharePassField.target = self; sharePassField.action = #selector(setSharePassword)
+        let spl = label("PASSWORD", 13, .white, .semibold); spl.widthAnchor.constraint(equalToConstant: 96).isActive = true
+        stack.addArrangedSubview(row([spl, sharePassField]))
+        stack.addArrangedSubview(row([WordButton("SET PASSWORD", self, #selector(setSharePassword))]))
         stack.addArrangedSubview(hairline())
 
         // Marko: "I can enable or disable my F1 and F2 to be on the Mac OS or in the remote session": per key, MAC | VM
@@ -321,17 +330,23 @@ final class SettingsOverlay: Solid {
 
     @objc func shareOnClicked() { app?.setShare(true) }
     @objc func shareOffClicked() { app?.setShare(false) }
+    @objc func setSharePassword() {
+        Share.setPassword(sharePassField.stringValue)   // exactly as typed: no rules, no minimum
+        refreshShare(); app?.peersMenu?.rebuild()
+        app?.flash(Share.password.isEmpty ? "Share this Mac: no password now" : "Share this Mac: password set")
+    }
     @objc func newSharePassword() { Share.newPassword(); refreshShare(); app?.peersMenu?.rebuild() }
     /// the share's lines in the panel: on or off, where it listens, the password, who is watching, what is missing
     func refreshShare() {
         let srv = VNCServer.shared
         shareOn.lit = Share.on; shareOff.lit = !Share.on
+        if window?.firstResponder !== sharePassField.currentEditor() { sharePassField.stringValue = Share.password }
         if !Share.on {
             shareInfo.stringValue = "Off. ON lets the Tailscale machines (the Android app, another Mac) see and use this Mac on port \(SHARE_PORT)."
         } else {
             let ip = PeersMenu.selfIPs.first { !$0.contains(":") } ?? "this Mac"
             var lines = [srv.lastError.isEmpty ? "On: \(ip):\(SHARE_PORT) · \(srv.clientCount) viewing" : srv.lastError,
-                         "Password: \(Share.password)",
+                         Share.password.isEmpty ? "No password: anyone on the Tailscale network can connect" : "Password: \(Share.password)",
                          "Port \(SHARE_PORT), since 5900 is macOS Screen Sharing's own."]
             if !Share.screenAllowed { lines.append("Screen Recording not allowed yet: PERMISSIONS, top right.") }
             if !Share.inputAllowed { lines.append("Accessibility not allowed yet: viewers see but cannot click or type (PERMISSIONS).") }
