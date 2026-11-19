@@ -10,7 +10,7 @@ on:
 permissions:
   contents: write
 env:
-  APP: "Mantra Remote Viewing"
+  APP: "Remote Viewing (Mantra)"
   VERSION_FILE: viewer/app/App.swift
 jobs:
   build:

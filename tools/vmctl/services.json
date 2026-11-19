@@ -88,7 +88,7 @@
    "name": "xvnc",
    "bar": false,
    "short": "XVNC",
-   "title": "VNC screen :1 (Mantra Remote Viewing logs in here)",
+   "title": "VNC screen :1 (Remote Viewing (Mantra) logs in here)",
    "kind": "systemd",
    "units": [
     "chromium-vm-xvnc.service"

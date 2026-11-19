@@ -9,7 +9,7 @@ Python API for virtual machine control."*
 
 - **Core** runs from boot and is locked: ckbond (Connection Keeper relay :443), Tailscale, SSH, Xvnc :1, the desktop
   (openbox only), the status bar, the dock (bottom edge / Super: one tile per app + the layouts; core again since 17.11.2026), vm-agent :8890 (the viewer's clipboard and paste), vmctl itself, Queen, the Oracle agents.
-- **Every other program is a service**: off at boot, started by hand (the gear in Mantra Remote Viewing, `vmctl`) or by a
+- **Every other program is a service**: off at boot, started by hand (the gear in Remote Viewing (Mantra), `vmctl`) or by a
   program (the API, with a lease), and stopped the same way.
 - One registry: `/etc/chromium-vm/services.json` (source `services.json` here). Fields: `name`, `short` (≤ 8 characters,
   the name on the status bar and in the gear), `title`, `kind` (`systemd` | `user` | `docker`), `units` / `containers`,
