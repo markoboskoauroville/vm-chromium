@@ -46,7 +46,7 @@ enum Target {
         return Int(s) ?? 5900
     }
     static func set(name n: String, host h: String, port p: Int? = nil, os o: String = "") {
-        name = n; host = h; os = o; askUser = false; port = (h == Agent.host) ? VNC_PORT : (p ?? portFor(n))
+        name = n; host = h; os = o.isEmpty ? (PeersMenu.knownOS[h] ?? "") : o; askUser = false; port = (h == Agent.host) ? VNC_PORT : (p ?? portFor(n))
         Agent.enabled = (h == Agent.host)
     }
 }
@@ -111,6 +111,8 @@ final class PeersMenu: NSObject, NSMenuDelegate {
 
     /// this Mac's own Tailscale addresses (to know when the viewer is pointed at its own server)
     static var selfIPs: [String] = []
+    /// v45: the OS Tailscale reports per address, so a door `target` without it still knows a phone is a phone
+    static var knownOS: [String: String] = [:]
     static func parseSelf(_ data: Data) -> [String] {
         guard let j = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let me = j["Self"] as? [String: Any], let ips = me["TailscaleIPs"] as? [String] else { return [] }
@@ -125,7 +127,10 @@ final class PeersMenu: NSObject, NSMenuDelegate {
             guard (try? p.run()) != nil else { return }
             let data = out.fileHandleForReading.readDataToEndOfFile(); p.waitUntilExit()
             let list = PeersMenu.parse(data), me = PeersMenu.parseSelf(data)
-            DispatchQueue.main.async { self?.peers = list; PeersMenu.selfIPs = me; self?.rebuild() }
+            DispatchQueue.main.async {
+                self?.peers = list; PeersMenu.selfIPs = me
+                for p in list { PeersMenu.knownOS[p.ip] = p.os }
+                self?.rebuild() }
         }
     }
 
