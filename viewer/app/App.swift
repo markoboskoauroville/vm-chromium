@@ -5,7 +5,7 @@
 import AppKit
 import Security
 
-let VERSION = 37
+let VERSION = 38
 let APP_NAME = "Remote Viewing (Mantra)"
 let VNC_HOST = Agent.host, VNC_PORT = 5901
 
@@ -292,7 +292,7 @@ final class App: NSObject, NSApplicationDelegate, RFBDelegate, NSWindowDelegate 
     func rfbConnected(name: String, width: Int, height: Int) {
         connected = true
         setStatus("● \(Target.isVM ? "CHROMIUM VM" : Target.name.uppercased())  \(Target.host)", .systemGreen, tip: false)
-        if overlay.tip.textColor == .systemOrange && overlay.tip.stringValue.hasPrefix("not connected") { overlay.setTip("") }
+        if overlay.tip.textColor == .systemOrange { overlay.setTip("") }   // v38: an old failure note never outlives a good connection
         window.makeFirstResponder(screen)
         startSaver()
         scheduleResize(delay: 0.2)
