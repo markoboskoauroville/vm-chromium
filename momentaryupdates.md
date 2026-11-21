@@ -336,3 +336,8 @@ Meaning: the built-in server's password is typed by Marko in the app, any length
 ## 19.11.2026, Marko (through the master session): no user names
 "I'm confused with the username. Now I open my remote viewing Mantra on Mac OS. There is a gear icon. I clicked on it. It just asked me password for my v n c pass... Server or Nothing Phone 2. I enter password. I cannot connect. There is some default username. Can we work without losing... Usernames?"
 Meaning: the gear's login is a password only, for every machine; a user name is asked only when a real Mac offers nothing but its Apple login; a closed port says plainly that the phone is not sharing.
+
+## 21.11.2026, Marko (relayed by the cloud session "MAI Image 2.7 testing")
+"Images are not as good as Google. Please don't spend my credits anymore. Stop all tasks and close the project. Stop this remote session."
+Verdict: MAI Image 2.7 tested 21.11.2026, not as good as Google (Gemini); Gemini stays the only image maker.
+Made in MAI Labs (account marko.bosko@gmail.com): room + setup with MAI-Image-2.7 (2048x1152 PNG, about 72 s each, C2PA inside, no visible watermark) and room with Flash (1024x1024; it ignored "Aspect Ratio 16:9"). One corrected room prompt was sent just before the stop and not saved. Bookmark "MAI Labs" added first in the bookmarks bar (synced bar id is 5, not 1). Pictures and sheet stay in the session scratchpad; nothing uploaded or pushed to APPS_MIND_MAP.
