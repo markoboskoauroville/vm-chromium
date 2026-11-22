@@ -1,0 +1,7 @@
+## Gemini worker, per-item refs and 16:9 (proven 22.11.2026, Therapies MIDIPan, 3 pictures + 1 regeneration, ~8 min)
+- Refs per item work through `paste_files` (batch `refs` = Drive folder, each item `refs:[names]`; the 21.11 patch only skips it when an item has none). Put refs on Drive with `rclone copyto` from the VM (scp the few small files to /tmp first; the Mac copy of inputs is fine, outputs never come to the Mac).
+- There is no aspect-ratio control in the worker: write "wide 16:9 landscape" in the prompt; Gemini returned 1024x572 (native, the capture is of the image itself, not the viewport). Publishing at 1600 px means upscaling: say so.
+- The worker sleeps an hour after "batch complete": after replacing batch.json run `sudo systemctl restart chromium-vm-worker-gemini` (it starts the round within a minute). A redo = move the file into `<folder>/_wrong/`, fix the prompt in batch.json, restart.
+- Review only by a small JPEG preview (q85, ~90 KB) made on the VM and scp'd to the scratchpad; then zoom crops for pad/finger counts. Don't loop polling Drive: tail ~/.config/chromium-vm/workers/gemini/worker.log on the VM.
+- Scale of a real object in a prompt (22.11.2026): a picture model enlarges small devices; state size in plain comparisons ("about 20 cm, a side plate, a hand is half as wide as the disc"), attach a reference photo with a hand on the object, and say what must NOT hang on the walls.
+- Copy of the skill section; the skill itself lives in ~/.claude/skills/chromium-vm/SKILL.md (MANTRA_MANIFEST/SKILLS.md indexes it).
