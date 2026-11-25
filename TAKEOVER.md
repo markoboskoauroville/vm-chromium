@@ -130,7 +130,7 @@ desktop/install.sh restarts every screen service, the Claude Code one included.
   activity from the left, status right-aligned, 50% see-through band (pseudo-transparency), settings on click.
   Viewer full screen on the 2nd monitor: VM 1512×944 fine after the watcher fix (it had stretched the bar).
   Gemini life story (tools/gemini_life_story.py) on profile "Marko" ([address removed]), refs ~/refs on the VM
-  (from markobosko.pages.dev); 06 verified on Drive. Instagram/Facebook are NOT signed in on the VM.
+  (from markobosko.org); 06 verified on Drive. Instagram/Facebook are NOT signed in on the VM.
 - 2.11.2026 (Mac session): **vm-router v1 + VM Router (Mantra) v1** (router/, README there). Router on 127.0.0.1:8891
   (MANTRA_PORTS `vm-router`), `vmr` on the PATH (symlink to router/vmr.py), Star row `vmrouter` (folder Mac).
   Verified: self-test 8/8 (own background tab, read, refusal of another session's tab and of a tab-less call, /u/N
