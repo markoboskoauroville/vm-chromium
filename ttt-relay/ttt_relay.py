@@ -20,7 +20,8 @@ user is the owner (`/etc/ttt-relay.conf` OWNER=...), or a caller with the token 
 
     GET  /health                       {"ok": true, "version": N}
     GET  /status                       rings {ring: {keys, cursor, resting}}, jobs running, version
-    POST /keys                         {"rings": {"groq": ["k1", "k2"], ...}, "replace": true} -> {"rings": {ring: count}}
+    POST /keys                         {"rings": {"groq": ["k1", "k2"], ...}, "replace": false} -> {"rings": {ring: count}}
+                                       (TTT sends replace false since 28.11.2026: two phones share this store)
                                        write only: keys can never be read back
     POST /jobs?engine=groq_v3&lang=hr  (lang hr | en | auto; auto since version 2) body = the 16 kHz mono WAV; header X-TTT-Names = base64(JSON list of names)
                                        -> {"id": "...", "state": "queued", ...}
@@ -35,11 +36,11 @@ user is the owner (`/etc/ttt-relay.conf` OWNER=...), or a caller with the token 
 Every finished job is one line in /var/lib/ttt-relay/jobs.log (time, engine, lang, seconds of audio, key number,
 attempts, result, ms): never the text, never a key.
 """
-import base64, hashlib, io, json, os, secrets, socket, subprocess, sys, tempfile, threading, time, urllib.error
+import base64, hashlib, io, json, os, re, secrets, socket, subprocess, sys, tempfile, threading, time, urllib.error
 import urllib.parse, urllib.request, uuid, wave
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-VERSION = 2          # 2 (15.11.2026): lang=auto for the Mac app Voice to Text (Mantra); additive, lang en/hr unchanged
+VERSION = 3          # 3 (28.11.2026): a plain HTTP 4xx fails at once (TTT EngineChain.permanent). 2 (15.11.2026): lang=auto for the Mac app Voice to Text (Mantra); additive, lang en/hr unchanged
 STATE_DIR = os.environ.get('TTT_RELAY_STATE', '/var/lib/ttt-relay')
 PORT = int(os.environ.get('TTT_RELAY_PORT', '8897'))
 MAX_RETRIES = 10
@@ -519,6 +520,12 @@ class Job:
 SLOTS = threading.BoundedSemaphore(int(os.environ.get('TTT_RELAY_PARALLEL', '4')))
 
 
+def permanent(msg):
+    """An HTTP 4xx that no retry can change (not 408, 409, 425, 429); TTT EngineChain.permanent, the same rule."""
+    m = re.match(r'HTTP (4\d\d)', (msg or '').strip())
+    return bool(m) and m.group(1) not in ('408', '409', '425', '429')
+
+
 def run_job(store, job):
     ring, label = ENGINES[job.engine]
     sec = wav_seconds(job.wav)
@@ -542,6 +549,11 @@ def run_job(store, job):
                     if f.kind in ('QUOTA', 'AUTH'):
                         job.update(state='failed', error=f'{label}: every key is out of free use or refused',
                                    status=f'Frankfurt · {label}: every key is out')
+                        return
+                    if f.kind == 'ERROR' and permanent(f.msg):
+                        # TTT EngineChain.permanent (28.11.2026): a plain 4xx refusal is the same on every retry; say it now.
+                        job.update(state='failed', error=f'{label} refused this audio: {f.msg}',
+                                   status=f'Frankfurt · {label}: {f.msg[:60]}')
                         return
                     if f.kind == 'NOT_CONFIGURED':
                         job.update(state='failed', error=f.msg or f'{label} is not set up in Frankfurt',
